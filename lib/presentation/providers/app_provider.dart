@@ -2,6 +2,7 @@
 import 'package:flutter/material.dart';
 import 'package:connectivity_plus/connectivity_plus.dart';
 import '../../core/constants/app_constants.dart';
+import '../../core/theme/app_theme.dart';
 
 /// Provider que maneja el estado global de la aplicación
 class AppProvider extends ChangeNotifier {
@@ -389,9 +390,3 @@ class AppProvider extends ChangeNotifier {
   }
 }
 
-// ═══════════════════════════════════════════════════════════════════════════════
-// IMPORTACIONES PARA COLORES
-// ═══════════════════════════════════════════════════════════════════════════════
-
-// Importar desde el tema
-import '../../core/theme/app_theme.dart';

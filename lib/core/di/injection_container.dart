@@ -76,7 +76,7 @@ Future<void> initializeDependencies() async {
   // User Provider - Gestión de usuarios y autenticación
   sl.registerLazySingleton<UserProvider>(
     () => UserProvider(
-      userRepository: sl(),
+      userRepository: sl<UserRepository>(),
     ),
   );
 

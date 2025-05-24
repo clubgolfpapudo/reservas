@@ -4,6 +4,7 @@ import '../../domain/entities/court.dart';
 import '../../domain/repositories/court_repository.dart';
 import '../models/court_model.dart';
 import '../../core/constants/app_constants.dart';
+import '../models/court_model.dart';
 
 class CourtRepositoryImpl implements CourtRepository {
   final FirebaseFirestore _firestore;
@@ -887,23 +888,16 @@ class CourtRepositoryImpl implements CourtRepository {
   String _formatDate(DateTime date) {
     return "${date.year}-${date.month.toString().padLeft(2, '0')}-${date.day.toString().padLeft(2, '0')}";
   }
-}()
-        .map((doc) {
-          if (doc.exists) {
-            return CourtModel.fromFirestore(doc);
-          }
-          return null;
-        });
-  }
-
+// Reemplaza desde la línea 890 en adelante por esto:
+  
   @override
   Stream<List<Court>> watchAllCourts() {
     return _firestore
         .collection(_collection)
-        .orderBy('displayOrder')
         .snapshots()
-        .map((query) => query.docs
+        .map((querySnapshot) => querySnapshot.docs
             .map((doc) => CourtModel.fromFirestore(doc))
+            .cast<Court>()
             .toList());
   }
 
@@ -911,11 +905,11 @@ class CourtRepositoryImpl implements CourtRepository {
   Stream<List<Court>> watchActiveCourts() {
     return _firestore
         .collection(_collection)
-        .where('status', isEqualTo: CourtStatus.active.value)
-        .where('isAvailableForBooking', isEqualTo: true)
-        .orderBy('displayOrder')
+        .where('isActive', isEqualTo: true)
         .snapshots()
-        .map((query) => query.docs
+        .map((querySnapshot) => querySnapshot.docs
             .map((doc) => CourtModel.fromFirestore(doc))
+            .cast<Court>()
             .toList());
   }
+}
