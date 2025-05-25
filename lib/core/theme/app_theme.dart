@@ -436,7 +436,7 @@ class AppTheme {
       ),
       
       // Tarjetas
-      cardTheme: CardTheme(
+      cardTheme: CardThemeData(
         elevation: 2.0,
         shadowColor: Colors.black.withOpacity(0.1),
         shape: RoundedRectangleBorder(
@@ -447,7 +447,7 @@ class AppTheme {
       ),
       
       // Diálogos
-      dialogTheme: DialogTheme(
+      dialogTheme: DialogThemeData(
         elevation: 8.0,
         backgroundColor: Colors.white,
         shape: RoundedRectangleBorder(
@@ -582,7 +582,7 @@ class AppTheme {
       ),
       
       // TabBar
-      tabBarTheme: const TabBarTheme(
+      tabBarTheme: const TabBarThemeData(
         labelColor: AppColors.primaryBlue,
         unselectedLabelColor: AppColors.mediumGray,
         indicatorColor: AppColors.primaryBlue,

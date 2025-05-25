@@ -1,7 +1,8 @@
-// lib/main.dart
+             // ← Cierre del método build// lib/main.dart
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
+import 'presentation/pages/reservations_page.dart';
 
 // Solo imports básicos que sabemos que existen
 import 'presentation/providers/user_provider.dart';
@@ -90,12 +91,13 @@ class _HomePageState extends State<HomePage> {
         centerTitle: true,
         elevation: 0,
       ),
-      body: Center(
-        child: Padding(
-          padding: const EdgeInsets.all(24.0),
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
+      body: SingleChildScrollView(  // ← Agregar esto
+        child: Center(
+          child: Padding(
+            padding: const EdgeInsets.all(24.0),
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
               // Logo o icono de la app
               Container(
                 width: 120,
@@ -222,51 +224,56 @@ class _HomePageState extends State<HomePage> {
               const SizedBox(height: 30),
               
               // Botones de acción
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                children: [
-                  ElevatedButton.icon(
-                    onPressed: _incrementCounter,
-                    icon: const Icon(Icons.add),
-                    label: const Text('Test: +1'),
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.blue.shade600,
-                      foregroundColor: Colors.white,
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 20,
-                        vertical: 12,
-                      ),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(8),
-                      ),
-                    ),
-                  ),
-                  
-                  Container(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 16,
-                      vertical: 12,
-                    ),
-                    decoration: BoxDecoration(
-                      color: Colors.grey.shade100,
-                      borderRadius: BorderRadius.circular(8),
-                      border: Border.all(color: Colors.grey.shade300),
-                    ),
-                    child: Text(
-                      'Contador: $_counter',
-                      style: TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.bold,
-                        color: Colors.grey.shade700,
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-}
+                            Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                              children: [
+                                ElevatedButton.icon(
+                                  onPressed: () {
+                                    // Navegar a la página de reservas
+                                    Navigator.of(context).push(
+                                      MaterialPageRoute(
+                                        builder: (context) => const ReservationsPage(),
+                                      ),
+                                    );
+                                  },
+                                  icon: const Icon(Icons.sports_tennis),
+                                  label: Text('Ver Reservas'),
+                                  style: ElevatedButton.styleFrom(
+                                    backgroundColor: Colors.blue.shade600,
+                                    foregroundColor: Colors.white,
+                                    padding: const EdgeInsets.symmetric(
+                                      horizontal: 20,
+                                      vertical: 12,
+                                    ),
+                                    shape: RoundedRectangleBorder(
+                                      borderRadius: BorderRadius.circular(8),
+                                    ),
+                                  ),
+                                ),
+                                
+                                ElevatedButton.icon(
+                                  onPressed: _incrementCounter,
+                                  icon: const Icon(Icons.add),
+                                  label: Text('Test: +$_counter'), // ← Sin 'const' porque usa variable
+                                  style: ElevatedButton.styleFrom(
+                                    backgroundColor: Colors.green.shade600,
+                                    foregroundColor: Colors.white,
+                                    padding: const EdgeInsets.symmetric(
+                                      horizontal: 20,
+                                      vertical: 12,
+                                    ),
+                                    shape: RoundedRectangleBorder(
+                                      borderRadius: BorderRadius.circular(8),
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ],  // ← AGREGAR ESTAS LÍNEAS DESDE AQUÍ
+                        ),    // ← Cierre del Column
+                      ),      // ← Cierre del Padding
+                    ),        // ← Cierre del Center
+                  ),          // ← Cierre del SingleChildScrollView
+                );            // ← Cierre del Scaffold
+              }               // ← Cierre del método build
+            }                 // ← Cierre de la clase _HomePageState
