@@ -1,411 +1,209 @@
-// lib/presentation/providers/booking_provider.dart
+// lib/presentation/providers/booking_provider.dart (versión mock)
 import 'package:flutter/material.dart';
 import '../../domain/entities/booking.dart';
-import '../../domain/entities/court.dart';
-import '../../domain/repositories/booking_repository.dart';
-import '../../domain/repositories/court_repository.dart';
+import '../../data/mock/mock_data.dart';
 import '../../core/constants/app_constants.dart';
 
-/// Provider que maneja el estado de las reservas
 class BookingProvider extends ChangeNotifier {
-  final BookingRepository _bookingRepository;
-  final CourtRepository _courtRepository;
-
-  BookingProvider({
-    required BookingRepository bookingRepository,
-    required CourtRepository courtRepository,
-  })  : _bookingRepository = bookingRepository,
-        _courtRepository = courtRepository;
-
-  // ═══════════════════════════════════════════════════════════════════════════
-  // ESTADO DE LA APLICACIÓN
-  // ═══════════════════════════════════════════════════════════════════════════
-
-  // Estado de carga
-  bool _isLoading = false;
-  bool get isLoading => _isLoading;
-
-  // Fecha seleccionada
+  // State variables
   DateTime _selectedDate = DateTime.now();
-  DateTime get selectedDate => _selectedDate;
-
-  // Cancha seleccionada
-  String _selectedCourtId = '';
-  String get selectedCourtId => _selectedCourtId;
-
-  // Reservas del día actual
+  String _selectedCourtId = 'court_1'; // PITE por defecto
   List<Booking> _bookings = [];
+  bool _isLoading = false;
+  String? _error;
+
+  // Getters
+  DateTime get selectedDate => _selectedDate;
+  String get selectedCourtId => _selectedCourtId;
+  String get selectedCourtName => AppConstants.getCourtName(_selectedCourtId);
   List<Booking> get bookings => _bookings;
+  bool get isLoading => _isLoading;
+  String? get error => _error;
 
-  // Canchas disponibles
-  List<Court> _courts = [];
-  List<Court> get courts => _courts;
-
-  // Horarios disponibles para la fecha y cancha seleccionada
-  List<String> _availableTimeSlots = [];
-  List<String> get availableTimeSlots => _availableTimeSlots;
-
-  // Error actual
-  String? _errorMessage;
-  String? get errorMessage => _errorMessage;
-
-  // Estado del proceso de reserva
-  BookingFlowState _bookingFlowState = BookingFlowState.viewing;
-  BookingFlowState get bookingFlowState => _bookingFlowState;
-
-  // Datos de la reserva en proceso
-  String? _selectedTimeSlot;
-  String? get selectedTimeSlot => _selectedTimeSlot;
-
-  // ═══════════════════════════════════════════════════════════════════════════
-  // MÉTODOS DE INICIALIZACIÓN
-  // ═══════════════════════════════════════════════════════════════════════════
-
-  /// Inicializa el provider cargando datos iniciales
-  Future<void> initialize() async {
-    await _loadCourts();
-    if (_courts.isNotEmpty) {
-      await selectCourt(_courts.first.id);
-    }
-    await loadBookingsForDate(_selectedDate);
+  // Constructor - cargar datos iniciales
+  BookingProvider() {
+    _loadBookings();
   }
 
-  /// Carga todas las canchas disponibles
-  Future<void> _loadCourts() async {
-    try {
-      _setLoading(true);
-      _courts = await _courtRepository.getActiveCourts();
-      
-      // Seleccionar primera cancha por defecto
-      if (_courts.isNotEmpty && _selectedCourtId.isEmpty) {
-        _selectedCourtId = _courts.first.id;
-      }
-      
-      _clearError();
-    } catch (e) {
-      _setError('Error al cargar canchas: $e');
-    } finally {
-      _setLoading(false);
-    }
-  }
-
-  // ═══════════════════════════════════════════════════════════════════════════
-  // MÉTODOS DE SELECCIÓN
-  // ═══════════════════════════════════════════════════════════════════════════
-
-  /// Selecciona una fecha específica
-  Future<void> selectDate(DateTime date) async {
-    if (date.isAtSameMomentAs(_selectedDate)) return;
-    
-    _selectedDate = date;
-    await loadBookingsForDate(date);
-    await _loadAvailableTimeSlots();
-    notifyListeners();
-  }
-
-  /// Selecciona una cancha específica
-  Future<void> selectCourt(String courtId) async {
-    if (courtId == _selectedCourtId) return;
-    
-    _selectedCourtId = courtId;
-    await loadBookingsForDate(_selectedDate);
-    await _loadAvailableTimeSlots();
-    notifyListeners();
-  }
-
-  /// Selecciona un horario para reserva
-  void selectTimeSlot(String timeSlot) {
-    _selectedTimeSlot = timeSlot;
-    notifyListeners();
-  }
-
-  // ═══════════════════════════════════════════════════════════════════════════
-  // MÉTODOS DE CARGA DE DATOS
-  // ═══════════════════════════════════════════════════════════════════════════
-
-  /// Carga las reservas para una fecha específica
-  Future<void> loadBookingsForDate(DateTime date) async {
-    try {
-      _setLoading(true);
-      
-      if (_selectedCourtId.isNotEmpty) {
-        _bookings = await _bookingRepository.getBookingsByDateAndCourt(
-          date, 
-          _selectedCourtId
-        );
-      } else {
-        _bookings = await _bookingRepository.getBookingsByDate(date);
-      }
-      
-      _clearError();
-    } catch (e) {
-      _setError('Error al cargar reservas: $e');
-    } finally {
-      _setLoading(false);
-    }
-  }
-
-  /// Carga los horarios disponibles para la fecha y cancha seleccionada
-  Future<void> _loadAvailableTimeSlots() async {
-    if (_selectedCourtId.isEmpty) {
-      _availableTimeSlots = [];
-      return;
-    }
-
-    try {
-      _availableTimeSlots = await _bookingRepository.getAvailableTimeSlots(
-        _selectedDate,
-        _selectedCourtId,
-      );
-    } catch (e) {
-      _setError('Error al cargar horarios disponibles: $e');
-      _availableTimeSlots = [];
-    }
-  }
-
-  /// Recarga todos los datos
-  Future<void> refresh() async {
-    await _loadCourts();
-    await loadBookingsForDate(_selectedDate);
-    await _loadAvailableTimeSlots();
-  }
-
-  // ═══════════════════════════════════════════════════════════════════════════
-  // MÉTODOS DE RESERVA
-  // ═══════════════════════════════════════════════════════════════════════════
-
-  /// Inicia el proceso de reserva para un horario específico
-  Future<void> startBookingProcess(String timeSlot) async {
-    try {
-      _selectedTimeSlot = timeSlot;
-      _bookingFlowState = BookingFlowState.selecting;
-      
-      // Verificar disponibilidad antes de continuar
-      final isAvailable = await _bookingRepository.isTimeSlotAvailable(
-        _selectedDate,
-        timeSlot,
-        _selectedCourtId,
-      );
-
-      if (!isAvailable) {
-        throw Exception('El horario ya no está disponible');
-      }
-
-      _clearError();
+  // Cambiar fecha seleccionada
+  void selectDate(DateTime date) {
+    if (_selectedDate != date) {
+      _selectedDate = date;
+      _loadBookings();
       notifyListeners();
-    } catch (e) {
-      _setError('Error al iniciar reserva: $e');
     }
   }
 
-  /// Confirma que el proceso de reserva se completó exitosamente
-  void confirmBookingCompleted() {
-    _bookingFlowState = BookingFlowState.completed;
-    _selectedTimeSlot = null;
-    notifyListeners();
-    
-    // Recargar datos después de un delay
-    Future.delayed(const Duration(seconds: 2), () {
-      refresh();
-    });
+  // Cambiar cancha seleccionada por nombre
+  void selectCourt(String courtName) {
+    final courtId = AppConstants.getCourtId(courtName);
+    if (_selectedCourtId != courtId) {
+      _selectedCourtId = courtId;
+      _loadBookings();
+      notifyListeners();
+    }
   }
 
-  /// Cancela el proceso de reserva actual
-  void cancelBookingProcess() {
-    _bookingFlowState = BookingFlowState.viewing;
-    _selectedTimeSlot = null;
-    _clearError();
-    notifyListeners();
+  // Cambiar cancha por ID
+  void selectCourtById(String courtId) {
+    if (_selectedCourtId != courtId) {
+      _selectedCourtId = courtId;
+      _loadBookings();
+      notifyListeners();
+    }
   }
 
-  /// Actualiza el estado del flujo de reserva
-  void updateBookingFlowState(BookingFlowState newState) {
-    _bookingFlowState = newState;
-    notifyListeners();
+  // Cargar datos mock usando tu estructura existente
+  Future<void> _loadBookings() async {
+    try {
+      _setLoading(true);
+      _clearError();
+
+      // Simular delay de red
+      await Future.delayed(Duration(milliseconds: 300));
+
+      // Usar tu método existente
+      final mockBookings = MockData.getBookingsForDateAndCourt(
+        _selectedDate, 
+        _selectedCourtId,
+      );
+
+      _bookings = mockBookings;
+      _setLoading(false);
+    } catch (e) {
+      _setError('Error cargando reservas: $e');
+      _setLoading(false);
+    }
   }
 
-  // ═══════════════════════════════════════════════════════════════════════════
-  // MÉTODOS DE VALIDACIÓN Y UTILIDADES
-  // ═══════════════════════════════════════════════════════════════════════════
-
-  /// Verifica si un horario está disponible
-  bool isTimeSlotAvailable(String timeSlot) {
-    return _availableTimeSlots.contains(timeSlot);
-  }
-
-  /// Obtiene la reserva para un horario específico
-  Booking? getBookingForTimeSlot(String timeSlot) {
+  // Obtener reserva por horario específico
+  Booking? getBookingForTime(String time) {
     try {
       return _bookings.firstWhere(
-        (booking) => booking.dateTime.time == timeSlot,
+        (booking) => booking.dateTime.time == time,
       );
     } catch (e) {
-      return null;
+      return null; // No encontrada
     }
   }
 
-  /// Obtiene el estado de un horario específico
-  TimeSlotStatus getTimeSlotStatus(String timeSlot) {
-    final booking = getBookingForTimeSlot(timeSlot);
-    
-    if (booking == null) {
-      return TimeSlotStatus.available;
-    }
-    
-    switch (booking.status) {
-      case BookingStatus.complete:
-        return TimeSlotStatus.reserved;
-      case BookingStatus.incomplete:
-        return TimeSlotStatus.incomplete;
-      case BookingStatus.cancelled:
-        return TimeSlotStatus.available;
-    }
+  // Verificar si un horario está disponible
+  bool isTimeSlotAvailable(String time) {
+    return getBookingForTime(time) == null;
   }
 
-  /// Obtiene el nombre de la cancha seleccionada
-  String get selectedCourtName {
-    if (_selectedCourtId.isEmpty || _courts.isEmpty) return '';
+  // Obtener estado de un horario específico (null = disponible)
+  BookingStatus? getTimeSlotStatus(String time) {
+    final booking = getBookingForTime(time);
+    return booking?.status; // null significa disponible
+  }
+
+  // Obtener jugadores activos para un horario (usando BookingPlayer)
+  List<BookingPlayer> getPlayersForTime(String time) {
+    final booking = getBookingForTime(time);
+    return booking?.players
+        .where((player) => player.status == PlayerStatus.confirmed)
+        .toList() ?? [];
+  }
+
+  // Obtener estadísticas para el CompactStats widget
+  Map<String, int> getStats() {
+    final completeCount = _bookings
+        .where((booking) => booking.status == BookingStatus.complete)
+        .length;
     
+    final incompleteCount = _bookings
+        .where((booking) => booking.status == BookingStatus.incomplete)
+        .length;
+    
+    final totalBookedSlots = _bookings.length;
+    final availableCount = AppConstants.availableTimeSlots.length - totalBookedSlots;
+
+    return {
+      'complete': completeCount,
+      'incomplete': incompleteCount,
+      'available': availableCount >= 0 ? availableCount : 0,
+    };
+  }
+
+  // Simular creación de reserva (usando BookingPlayer)
+  Future<bool> createBooking({
+    required String time,
+    required List<BookingPlayer> players,
+    String? calendlyUri,
+  }) async {
     try {
-      final court = _courts.firstWhere((c) => c.id == _selectedCourtId);
-      return court.name;
+      _setLoading(true);
+      _clearError();
+
+      // Simular delay de creación
+      await Future.delayed(Duration(seconds: 1));
+
+      // En implementación real, aquí iría la llamada al servicio
+      print('Mock: Creando reserva para $time con ${players.length} jugadores');
+      
+      // Recargar datos después de crear
+      await _loadBookings();
+      
+      return true;
     } catch (e) {
-      return '';
+      _setError('Error creando reserva: $e');
+      _setLoading(false);
+      return false;
     }
   }
 
-  /// Obtiene la cancha seleccionada
-  Court? get selectedCourt {
-    if (_selectedCourtId.isEmpty || _courts.isEmpty) return null;
-    
+  // Simular cancelación de jugador
+  Future<bool> cancelPlayerFromBooking(String bookingId, String playerEmail) async {
     try {
-      return _courts.firstWhere((c) => c.id == _selectedCourtId);
+      _setLoading(true);
+      _clearError();
+
+      // Simular delay
+      await Future.delayed(Duration(milliseconds: 800));
+
+      print('Mock: Cancelando jugador $playerEmail de reserva $bookingId');
+      
+      // Recargar datos
+      await _loadBookings();
+      
+      return true;
     } catch (e) {
-      return null;
+      _setError('Error cancelando jugador: $e');
+      _setLoading(false);
+      return false;
     }
   }
 
-  /// Obtiene fechas disponibles para reservar (próximos X días)
-  List<DateTime> get availableDates {
-    final dates = <DateTime>[];
-    final today = DateTime.now();
-    
-    for (int i = 0; i < AppConstants.maxDaysInAdvance; i++) {
-      dates.add(DateTime(
-        today.year,
-        today.month,
-        today.day + i,
-      ));
-    }
-    
-    return dates;
+  // Recargar datos manualmente
+  Future<void> refresh() async {
+    await _loadBookings();
   }
 
-  /// Verifica si una fecha es hoy
-  bool isToday(DateTime date) {
-    final now = DateTime.now();
-    return date.year == now.year &&
-           date.month == now.month &&
-           date.day == now.day;
-  }
-
-  /// Verifica si una fecha es mañana
-  bool isTomorrow(DateTime date) {
-    final tomorrow = DateTime.now().add(const Duration(days: 1));
-    return date.year == tomorrow.year &&
-           date.month == tomorrow.month &&
-           date.day == tomorrow.day;
-  }
-
-  /// Obtiene el nombre formateado de una fecha
-  String getFormattedDateName(DateTime date) {
-    if (isToday(date)) return 'Hoy';
-    if (isTomorrow(date)) return 'Mañana';
-    
-    final weekday = AppConstants.getWeekdayName(date.weekday);
-    return '$weekday ${date.day}';
-  }
-
-  // ═══════════════════════════════════════════════════════════════════════════
-  // MÉTODOS PRIVADOS DE ESTADO
-  // ═══════════════════════════════════════════════════════════════════════════
-
+  // Helpers privados
   void _setLoading(bool loading) {
     _isLoading = loading;
     notifyListeners();
   }
 
   void _setError(String error) {
-    _errorMessage = error;
+    _error = error;
     notifyListeners();
   }
 
   void _clearError() {
-    _errorMessage = null;
+    _error = null;
   }
 
-  // ═══════════════════════════════════════════════════════════════════════════
-  // MÉTODOS DE LIMPIEZA
-  // ═══════════════════════════════════════════════════════════════════════════
-
-  @override
-  void dispose() {
-    // Limpiar recursos si es necesario
-    super.dispose();
-  }
-}
-
-// ═══════════════════════════════════════════════════════════════════════════════
-// ENUMS Y CLASES AUXILIARES
-// ═══════════════════════════════════════════════════════════════════════════════
-
-/// Estados del flujo de reserva
-enum BookingFlowState {
-  viewing,        // Viendo reservas
-  selecting,      // Seleccionando fecha/hora
-  booking,        // En proceso de reserva (WebView)
-  completed,      // Reserva completada
-}
-
-/// Estados de un time slot
-enum TimeSlotStatus {
-  available,      // Disponible para reservar
-  reserved,       // Reservado (4 jugadores)
-  incomplete,     // Incompleto (menos de 4 jugadores)
-}
-
-/// Extensión para obtener colores según el estado del time slot
-extension TimeSlotStatusExtension on TimeSlotStatus {
-  Color get backgroundColor {
-    switch (this) {
-      case TimeSlotStatus.available:
-        return AppColors.available;
-      case TimeSlotStatus.reserved:
-        return AppColors.reserved;
-      case TimeSlotStatus.incomplete:
-        return AppColors.incomplete;
+  // Método para debugging
+  void debugPrintBookings() {
+    print('=== BOOKINGS DEBUG ===');
+    print('Date: $_selectedDate');
+    print('Court: $_selectedCourtId (${selectedCourtName})');
+    print('Bookings count: ${_bookings.length}');
+    for (final booking in _bookings) {
+      print('  ${booking.dateTime.time} - ${booking.status} - ${booking.activePlayersCount} players');
     }
-  }
-  
-  Color get textColor {
-    switch (this) {
-      case TimeSlotStatus.available:
-        return AppColors.availableText;
-      case TimeSlotStatus.reserved:
-        return AppColors.reservedText;
-      case TimeSlotStatus.incomplete:
-        return AppColors.incompleteText;
-    }
-  }
-  
-  String get statusText {
-    switch (this) {
-      case TimeSlotStatus.available:
-        return 'DISPONIBLE';
-      case TimeSlotStatus.reserved:
-        return 'RESERVADA';
-      case TimeSlotStatus.incomplete:
-        return 'INCOMPLETA';
-    }
+    print('===================');
   }
 }

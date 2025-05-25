@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import 'presentation/pages/reservations_page.dart';
+import 'presentation/providers/booking_provider.dart';
 
 // Solo imports básicos que sabemos que existen
 import 'presentation/providers/user_provider.dart';
@@ -33,7 +34,14 @@ void main() async {
 
   print("=== EJECUTANDO APP PRINCIPAL ===");
   // Ejecutar la aplicación
-  runApp(const MyApp());
+  runApp(
+    MultiProvider(
+      providers: [
+        ChangeNotifierProvider(create: (_) => BookingProvider()),
+      ],
+      child: const MyApp(),
+    ),
+  );
 }
 
 /// Aplicación principal
@@ -232,7 +240,7 @@ class _HomePageState extends State<HomePage> {
                                     // Navegar a la página de reservas
                                     Navigator.of(context).push(
                                       MaterialPageRoute(
-                                        builder: (context) => const ReservationsPage(),
+                                        builder: (context) => ReservationsPage(),
                                       ),
                                     );
                                   },

@@ -191,6 +191,31 @@ abstract class AppConstants {
   // ═══════════════════════════════════════════════════════════════════════════
   static const Duration defaultReminderTime = Duration(hours: 24);
   static const List<int> reminderOptions = [1, 2, 6, 12, 24, 48]; // horas
+
+  // ═══════════════════════════════════════════════════════════════════════════
+  // CONSTANTES PARA DISEÑO COMPACTO (NUEVAS)
+  // ═══════════════════════════════════════════════════════════════════════════
+  
+  // Mapeo de canchas ID -> Nombre  
+  static const Map<String, String> courtIdToName = {
+    'court_1': 'PITE',
+    'court_2': 'LILEN', 
+    'court_3': 'PLAIYA',
+  };
+
+  // Mapeo de canchas Nombre -> ID
+  static const Map<String, String> courtNameToId = {
+    'PITE': 'court_1',
+    'LILEN': 'court_2',
+    'PLAIYA': 'court_3',
+  };
+
+  // Horarios disponibles para reservas (alias de allTimeSlots)
+  static const List<String> availableTimeSlots = allTimeSlots;
+
+  // Duraciones de animación
+  static const Duration defaultAnimationDuration = Duration(milliseconds: 300);
+  static const Duration fastAnimationDuration = Duration(milliseconds: 150);
   
   // ═══════════════════════════════════════════════════════════════════════════
   // MÉTODOS UTILITARIOS
@@ -227,7 +252,7 @@ abstract class AppConstants {
     return courtColors[courtName] ?? '#2196F3';
   }
   
-  /// Obtiene el número de una cancha
+  /// Obtiene el número de una cancha (método existente)
   static int getCourtNumber(String courtName) {
     return courtNumbers[courtName] ?? 1;
   }
@@ -235,6 +260,20 @@ abstract class AppConstants {
   /// Verifica si un email está exento de restricciones
   static bool isExemptEmail(String email) {
     return exemptEmails.contains(email.toLowerCase());
+  }
+
+  // ═══════════════════════════════════════════════════════════════════════════
+  // MÉTODOS NUEVOS PARA DISEÑO COMPACTO
+  // ═══════════════════════════════════════════════════════════════════════════
+  
+  /// Obtiene el nombre de la cancha por ID
+  static String getCourtName(String courtId) {
+    return courtIdToName[courtId] ?? 'Desconocida';
+  }
+
+  /// Obtiene el ID de la cancha por nombre
+  static String getCourtId(String courtName) {
+    return courtNameToId[courtName] ?? 'court_1';
   }
 }
 
