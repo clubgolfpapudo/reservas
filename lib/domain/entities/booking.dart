@@ -1,20 +1,15 @@
 // lib/domain/entities/booking.dart
-import 'package:equatable/equatable.dart';
+import 'package:flutter/material.dart';
 
-// ═══════════════════════════════════════════════════════════════════════════════
-// ENTIDAD PRINCIPAL: BOOKING
-// ═══════════════════════════════════════════════════════════════════════════════
-
-class Booking extends Equatable {
+class Booking {
   final String id;
   final String courtId;
-  final int court;
+  final int court; // Para compatibilidad con Google Sheets
   final BookingDateTime dateTime;
-  final List<Player> players;
+  final List<BookingPlayer> players;
   final int activePlayersCount;
   final BookingStatus status;
-  final bool visibleInCalendar;
-  final String? calendlyUri;
+  final String calendlyUri;
   final BookingMetadata metadata;
 
   const Booking({
@@ -25,34 +20,45 @@ class Booking extends Equatable {
     required this.players,
     required this.activePlayersCount,
     required this.status,
-    required this.visibleInCalendar,
-    this.calendlyUri,
+    required this.calendlyUri,
     required this.metadata,
   });
 
-  @override
-  List<Object?> get props => [
-        id,
-        courtId,
-        court,
-        dateTime,
-        players,
-        activePlayersCount,
-        status,
-        visibleInCalendar,
-        calendlyUri,
-        metadata,
-      ];
+  // Getters útiles según reglas de negocio
+  bool get isComplete => activePlayersCount == 4;
+  bool get isIncomplete => activePlayersCount > 0 && activePlayersCount < 4;
+  bool get isEmpty => activePlayersCount == 0;
+  
+  BookingPlayer? get mainBooker {
+    try {
+      return players.firstWhere((p) => p.isMainBooker);
+    } catch (e) {
+      return null;
+    }
+  }
+  
+  List<BookingPlayer> get confirmedPlayers => 
+    players.where((p) => p.status == PlayerStatus.confirmed).toList();
+    
+  List<BookingPlayer> get cancelledPlayers => 
+    players.where((p) => p.status == PlayerStatus.cancelled).toList();
 
+  // Método para obtener nombres de jugadores confirmados separados por *
+  String get playersDisplayText {
+    return confirmedPlayers
+        .map((player) => player.name)
+        .join(' * ');
+  }
+
+  // copyWith para actualizaciones
   Booking copyWith({
     String? id,
     String? courtId,
     int? court,
     BookingDateTime? dateTime,
-    List<Player>? players,
+    List<BookingPlayer>? players,
     int? activePlayersCount,
     BookingStatus? status,
-    bool? visibleInCalendar,
     String? calendlyUri,
     BookingMetadata? metadata,
   }) {
@@ -64,218 +70,191 @@ class Booking extends Equatable {
       players: players ?? this.players,
       activePlayersCount: activePlayersCount ?? this.activePlayersCount,
       status: status ?? this.status,
-      visibleInCalendar: visibleInCalendar ?? this.visibleInCalendar,
       calendlyUri: calendlyUri ?? this.calendlyUri,
       metadata: metadata ?? this.metadata,
     );
   }
 }
 
-// ═══════════════════════════════════════════════════════════════════════════════
-// ENTIDAD: BOOKING DATE TIME
-// ═══════════════════════════════════════════════════════════════════════════════
-
-class BookingDateTime extends Equatable {
-  final int day;
-  final String month;
-  final int year;
-  final String date;
-  final String time;
-  final int timestamp;
-  final String weekday;
+class BookingDateTime {
+  final int day;           // Día numérico (para compatibilidad)
+  final String month;      // Mes abreviado (para compatibilidad)
+  final String date;       // Fecha normalizada YYYY-MM-DD
+  final String time;       // Hora de inicio formato HH:MM
+  final int timestamp;     // Timestamp para operaciones y ordenamiento
 
   const BookingDateTime({
     required this.day,
     required this.month,
-    required this.year,
     required this.date,
     required this.time,
     required this.timestamp,
-    required this.weekday,
   });
 
-  factory BookingDateTime.fromMap(Map<String, dynamic> map) {
+  DateTime get dateTimeObject => DateTime.fromMillisecondsSinceEpoch(timestamp);
+  
+  String get formattedDateTime => '$date $time';
+  String get displayDate => '$day $month';
+  String get displayTime => time;
+
+  // copyWith
+  BookingDateTime copyWith({
+    int? day,
+    String? month,
+    String? date,
+    String? time,
+    int? timestamp,
+  }) {
     return BookingDateTime(
-      day: map['day'] ?? 0,
-      month: map['month'] ?? '',
-      year: map['year'] ?? 0,
-      date: map['date'] ?? '',
-      time: map['time'] ?? '',
-      timestamp: map['timestamp'] ?? 0,
-      weekday: map['weekday'] ?? '',
+      day: day ?? this.day,
+      month: month ?? this.month,
+      date: date ?? this.date,
+      time: time ?? this.time,
+      timestamp: timestamp ?? this.timestamp,
     );
   }
-
-  Map<String, dynamic> toMap() {
-    return {
-      'day': day,
-      'month': month,
-      'year': year,
-      'date': date,
-      'time': time,
-      'timestamp': timestamp,
-      'weekday': weekday,
-    };
-  }
-
-  @override
-  List<Object> get props => [day, month, year, date, time, timestamp, weekday];
 }
 
-// ═══════════════════════════════════════════════════════════════════════════════
-// ENTIDAD: PLAYER
-// ═══════════════════════════════════════════════════════════════════════════════
+class BookingPlayer {
+  final String? id;        // ID de usuario en Firebase (nullable para invitados)
+  final String name;       // Nombre completo
+  final String email;      // Correo electrónico
+  final bool isMainBooker; // Indica que es quien inició la reserva
+  final PlayerStatus status; // Estado: confirmed o cancelled
 
-class Player extends Equatable {
-  final String? id;
-  final String name;
-  final String email;
-  final bool isMainBooker;
-  final PlayerStatus status;
-  final int statusChangedAt;
-  final String statusChangedBy;
-
-  const Player({
+  const BookingPlayer({
     this.id,
     required this.name,
     required this.email,
     required this.isMainBooker,
     required this.status,
-    required this.statusChangedAt,
-    required this.statusChangedBy,
   });
 
-  factory Player.fromMap(Map<String, dynamic> map) {
-    return Player(
-      id: map['id'],
-      name: map['name'] ?? '',
-      email: map['email'] ?? '',
-      isMainBooker: map['isMainBooker'] ?? false,
-      status: PlayerStatus.fromString(map['status'] ?? 'confirmed'),
-      statusChangedAt: map['statusChangedAt'] ?? 0,
-      statusChangedBy: map['statusChangedBy'] ?? '',
+  bool get isRegisteredUser => id != null && id!.isNotEmpty;
+  bool get isGuest => id == null || id!.isEmpty;
+  bool get isConfirmed => status == PlayerStatus.confirmed;
+  bool get isCancelled => status == PlayerStatus.cancelled;
+
+  // copyWith
+  BookingPlayer copyWith({
+    String? id,
+    String? name,
+    String? email,
+    bool? isMainBooker,
+    PlayerStatus? status,
+  }) {
+    return BookingPlayer(
+      id: id ?? this.id,
+      name: name ?? this.name,
+      email: email ?? this.email,
+      isMainBooker: isMainBooker ?? this.isMainBooker,
+      status: status ?? this.status,
     );
   }
-
-  Map<String, dynamic> toMap() {
-    return {
-      'id': id,
-      'name': name,
-      'email': email,
-      'isMainBooker': isMainBooker,
-      'status': status.value,
-      'statusChangedAt': statusChangedAt,
-      'statusChangedBy': statusChangedBy,
-    };
-  }
-
-  @override
-  List<Object?> get props => [
-        id,
-        name,
-        email,
-        isMainBooker,
-        status,
-        statusChangedAt,
-        statusChangedBy,
-      ];
 }
 
-// ═══════════════════════════════════════════════════════════════════════════════
-// ENTIDAD: BOOKING METADATA
-// ═══════════════════════════════════════════════════════════════════════════════
-
-class BookingMetadata extends Equatable {
-  final int createdAt;
-  final int updatedAt;
-  final String createdBy;
-  final String updatedBy;
-  final String syncSource;
-  final int lastSyncAt;
+class BookingMetadata {
+  final int createdAt;     // Fecha de creación (timestamp)
+  final int updatedAt;     // Última actualización (timestamp)
+  final String createdBy;  // Referencia a quien creó la reserva
 
   const BookingMetadata({
     required this.createdAt,
     required this.updatedAt,
     required this.createdBy,
-    required this.updatedBy,
-    required this.syncSource,
-    required this.lastSyncAt,
   });
 
-  factory BookingMetadata.fromMap(Map<String, dynamic> map) {
+  DateTime get createdAtDateTime => 
+    DateTime.fromMillisecondsSinceEpoch(createdAt);
+  DateTime get updatedAtDateTime => 
+    DateTime.fromMillisecondsSinceEpoch(updatedAt);
+
+  // copyWith
+  BookingMetadata copyWith({
+    int? createdAt,
+    int? updatedAt,
+    String? createdBy,
+  }) {
     return BookingMetadata(
-      createdAt: map['createdAt'] ?? 0,
-      updatedAt: map['updatedAt'] ?? 0,
-      createdBy: map['createdBy'] ?? '',
-      updatedBy: map['updatedBy'] ?? '',
-      syncSource: map['syncSource'] ?? '',
-      lastSyncAt: map['lastSyncAt'] ?? 0,
+      createdAt: createdAt ?? this.createdAt,
+      updatedAt: updatedAt ?? this.updatedAt,
+      createdBy: createdBy ?? this.createdBy,
     );
   }
-
-  Map<String, dynamic> toMap() {
-    return {
-      'createdAt': createdAt,
-      'updatedAt': updatedAt,
-      'createdBy': createdBy,
-      'updatedBy': updatedBy,
-      'syncSource': syncSource,
-      'lastSyncAt': lastSyncAt,
-    };
-  }
-
-  @override
-  List<Object> get props => [
-        createdAt,
-        updatedAt,
-        createdBy,
-        updatedBy,
-        syncSource,
-        lastSyncAt,
-      ];
 }
 
-// ═══════════════════════════════════════════════════════════════════════════════
-// ENUMS
-// ═══════════════════════════════════════════════════════════════════════════════
-
+// Enums según diseño del documento
 enum BookingStatus {
-  complete('complete'),
-  incomplete('incomplete'),
-  cancelled('cancelled');
+  complete,    // 4 jugadores confirmados
+  incomplete,  // <4 jugadores confirmados
+  cancelled;   // Reserva cancelada
 
-  const BookingStatus(this.value);
-  final String value;
+  String get displayName {
+    switch (this) {
+      case BookingStatus.complete:
+        return 'Reservada';
+      case BookingStatus.incomplete:
+        return 'Incompleta';
+      case BookingStatus.cancelled:
+        return 'Cancelada';
+    }
+  }
 
-  static BookingStatus fromString(String value) {
-    switch (value) {
-      case 'complete':
-        return BookingStatus.complete;
-      case 'incomplete':
-        return BookingStatus.incomplete;
-      case 'cancelled':
-        return BookingStatus.cancelled;
-      default:
-        return BookingStatus.incomplete;
+  // Colores según documento de diseño
+  Color get color {
+    switch (this) {
+      case BookingStatus.complete:
+        return const Color(0xFF2E7AFF); // Azul
+      case BookingStatus.incomplete:
+        return const Color(0xFFFF7530); // Naranja
+      case BookingStatus.cancelled:
+        return Colors.red;
+    }
+  }
+
+  Color get backgroundColor {
+    switch (this) {
+      case BookingStatus.complete:
+        return const Color(0xFF2E7AFF); // Azul
+      case BookingStatus.incomplete:
+        return const Color(0xFFFF7530); // Naranja
+      case BookingStatus.cancelled:
+        return Colors.red.shade100;
+    }
+  }
+
+  Color get textColor {
+    switch (this) {
+      case BookingStatus.complete:
+        return Colors.white;
+      case BookingStatus.incomplete:
+        return Colors.white;
+      case BookingStatus.cancelled:
+        return Colors.red.shade800;
     }
   }
 }
 
 enum PlayerStatus {
-  confirmed('confirmed'),
-  cancelled('cancelled');
+  confirmed,
+  cancelled;
 
-  const PlayerStatus(this.value);
-  final String value;
-
-  static PlayerStatus fromString(String value) {
-    switch (value) {
-      case 'confirmed':
-        return PlayerStatus.confirmed;
-      case 'cancelled':
-        return PlayerStatus.cancelled;
-      default:
-        return PlayerStatus.confirmed;
+  String get displayName {
+    switch (this) {
+      case PlayerStatus.confirmed:
+        return 'Confirmado';
+      case PlayerStatus.cancelled:
+        return 'Cancelado';
     }
   }
+}
+
+// Estado para slots disponibles (cuando no hay reserva)
+enum TimeSlotStatus {
+  available;
+
+  String get displayName => 'Disponible';
+  
+  Color get backgroundColor => const Color(0xFFE8F4F9); // Azul claro
+  Color get textColor => Colors.black;
 }

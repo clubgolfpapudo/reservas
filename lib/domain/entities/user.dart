@@ -1,27 +1,18 @@
 // lib/domain/entities/user.dart
-import 'package:equatable/equatable.dart';
-
-// ═══════════════════════════════════════════════════════════════════════════════
-// ENTIDAD PRINCIPAL: USER
-// ═══════════════════════════════════════════════════════════════════════════════
-
-class User extends Equatable {
+class User {
   final String id;
   final String name;
   final String email;
-  final String? phone;
-  final UserRole role;
-  final bool isExempt;
+  final String phone;
+  final DateTime? birthDate;
   final bool isActive;
-  
-  // Campos específicos del club
-  final String? membershipNumber;     // Número de socio
-  final String? parentMemberId;       // ID del socio titular (para hijos)
-  final DateTime? birthDate;          // Fecha nacimiento (para validar edad límite)
-  final DateTime? membershipExpiry;   // Vencimiento de membresía
-  final String? sponsorMemberId;      // ID del socio que invita (para visitas - opcional)
-  final DateTime? temporaryAccessExpiry; // Vencimiento acceso temporal (visitas)
-  
+  final bool isExempt;
+  final UserRole role;
+  final String membershipNumber;
+  final DateTime? membershipExpiry;
+  final String sponsorMemberId;
+  final String parentMemberId;
+  final String temporaryAccessExpiry;
   final UserPreferences preferences;
   final UserStats stats;
   final UserMetadata metadata;
@@ -30,84 +21,28 @@ class User extends Equatable {
     required this.id,
     required this.name,
     required this.email,
-    this.phone,
-    required this.role,
-    required this.isExempt,
-    required this.isActive,
-    this.membershipNumber,
-    this.parentMemberId,
+    required this.phone,
     this.birthDate,
+    required this.isActive,
+    required this.isExempt,
+    required this.role,
+    required this.membershipNumber,
     this.membershipExpiry,
-    this.sponsorMemberId,
-    this.temporaryAccessExpiry,
+    required this.sponsorMemberId,
+    required this.parentMemberId,
+    required this.temporaryAccessExpiry,
     required this.preferences,
     required this.stats,
     required this.metadata,
   });
 
-  @override
-  List<Object?> get props => [
-        id,
-        name,
-        email,
-        phone,
-        role,
-        isExempt,
-        isActive,
-        membershipNumber,
-        parentMemberId,
-        birthDate,
-        membershipExpiry,
-        sponsorMemberId,
-        temporaryAccessExpiry,
-        preferences,
-        stats,
-        metadata,
-      ];
+  // Getters útiles según documento
+  bool get canMakeReservations => isActive && !_isMembershipExpired;
+  bool get _isMembershipExpired => 
+    membershipExpiry != null && membershipExpiry!.isBefore(DateTime.now());
 
-  User copyWith({
-    String? id,
-    String? name,
-    String? email,
-    String? phone,
-    UserRole? role,
-    bool? isExempt,
-    bool? isActive,
-    String? membershipNumber,
-    String? parentMemberId,
-    DateTime? birthDate,
-    DateTime? membershipExpiry,
-    String? sponsorMemberId,
-    DateTime? temporaryAccessExpiry,
-    UserPreferences? preferences,
-    UserStats? stats,
-    UserMetadata? metadata,
-  }) {
-    return User(
-      id: id ?? this.id,
-      name: name ?? this.name,
-      email: email ?? this.email,
-      phone: phone ?? this.phone,
-      role: role ?? this.role,
-      isExempt: isExempt ?? this.isExempt,
-      isActive: isActive ?? this.isActive,
-      membershipNumber: membershipNumber ?? this.membershipNumber,
-      parentMemberId: parentMemberId ?? this.parentMemberId,
-      birthDate: birthDate ?? this.birthDate,
-      membershipExpiry: membershipExpiry ?? this.membershipExpiry,
-      sponsorMemberId: sponsorMemberId ?? this.sponsorMemberId,
-      temporaryAccessExpiry: temporaryAccessExpiry ?? this.temporaryAccessExpiry,
-      preferences: preferences ?? this.preferences,
-      stats: stats ?? this.stats,
-      metadata: metadata ?? this.metadata,
-    );
-  }
+  bool get mustPayForReservations => !isExempt && role != UserRole.admin;
 
-  // ═══════════════════════════════════════════════════════════════════════════
-  // MÉTODOS DE VALIDACIÓN Y REGLAS DE NEGOCIO
-  // ═══════════════════════════════════════════════════════════════════════════
-
-  /// Calcula la edad actual del usuario
   int? get age {
     if (birthDate == null) return null;
     final now = DateTime.now();
@@ -119,145 +54,84 @@ class User extends Equatable {
     return age;
   }
 
-  /// Verifica si el usuario es elegible como hijo de socio (≤ 25 años)
-  bool get isEligibleAsChild {
-    if (role != UserRole.hijoSocio) return true;
-    return age != null && age! <= 25;
-  }
+  bool get isAdmin => role == UserRole.admin;
+  bool get isSocio => role == UserRole.socioTitular || role == UserRole.socioAdhesion;
+  bool get isChild => role == UserRole.hijoSocio;
+  bool get isGuest => role == UserRole.visita;
 
-  /// Verifica si el usuario tiene acceso temporal válido
-  bool get hasValidTemporaryAccess {
-    if (role != UserRole.visita) return true;
-    if (temporaryAccessExpiry == null) return false;
-    return DateTime.now().isBefore(temporaryAccessExpiry!);
-  }
+  String get displayRole => role.displayName;
 
-  /// Verifica si la membresía está vigente
-  bool get hasMembershipActive {
-    if (role == UserRole.admin || role == UserRole.visita) return true;
-    if (membershipExpiry == null) return true; // Sin vencimiento
-    return DateTime.now().isBefore(membershipExpiry!);
-  }
-
-  /// Verifica si el usuario puede hacer reservas
-  bool get canMakeReservations {
-    return isActive && 
-           hasMembershipActive && 
-           isEligibleAsChild &&
-           (role != UserRole.visita || hasValidTemporaryAccess);
-  }
-
-  /// Verifica si el usuario debe pagar por las reservas
-  bool get mustPayForReservations {
-    return role == UserRole.visita || role == UserRole.filial;
-  }
-
-  /// Verifica si el usuario puede reservar sin restricciones de horario
-  bool get canReserveWithoutTimeRestrictions {
-    return role == UserRole.admin || 
-           role == UserRole.socioTitular || 
-           role == UserRole.hijoSocio;
-  }
-
-  /// Obtiene las restricciones de horario para el usuario
-  List<String> get allowedTimeSlots {
-    if (canReserveWithoutTimeRestrictions) {
-      return []; // Sin restricciones (todos los horarios)
-    }
-    
-    // Restricciones para visitas y filial
-    // Esto podría venir de configuración, pero por ahora hardcoded
-    if (role == UserRole.visita) {
-      return ['09:00', '10:30', '15:00', '16:30']; // Horarios limitados
-    }
-    
-    if (role == UserRole.filial) {
-      return ['09:00', '10:30', '12:00', '13:30']; // Horarios de mañana/mediodía
-    }
-    
-    return [];
-  }
-
-  /// Obtiene los días permitidos para reservar
-  List<int> get allowedWeekdays {
-    if (canReserveWithoutTimeRestrictions) {
-      return [1, 2, 3, 4, 5, 6, 7]; // Todos los días
-    }
-    
-    // Restricciones para visitas y filial
-    if (role == UserRole.visita) {
-      return [1, 2, 3, 4, 5]; // Solo días de semana
-    }
-    
-    if (role == UserRole.filial) {
-      return [2, 3, 4]; // Solo martes, miércoles, jueves
-    }
-    
-    return [1, 2, 3, 4, 5, 6, 7];
+  // copyWith method
+  User copyWith({
+    String? id,
+    String? name,
+    String? email,
+    String? phone,
+    DateTime? birthDate,
+    bool? isActive,
+    bool? isExempt,
+    UserRole? role,
+    String? membershipNumber,
+    DateTime? membershipExpiry,
+    String? sponsorMemberId,
+    String? parentMemberId,
+    String? temporaryAccessExpiry,
+    UserPreferences? preferences,
+    UserStats? stats,
+    UserMetadata? metadata,
+  }) {
+    return User(
+      id: id ?? this.id,
+      name: name ?? this.name,
+      email: email ?? this.email,
+      phone: phone ?? this.phone,
+      birthDate: birthDate ?? this.birthDate,
+      isActive: isActive ?? this.isActive,
+      isExempt: isExempt ?? this.isExempt,
+      role: role ?? this.role,
+      membershipNumber: membershipNumber ?? this.membershipNumber,
+      membershipExpiry: membershipExpiry ?? this.membershipExpiry,
+      sponsorMemberId: sponsorMemberId ?? this.sponsorMemberId,
+      parentMemberId: parentMemberId ?? this.parentMemberId,
+      temporaryAccessExpiry: temporaryAccessExpiry ?? this.temporaryAccessExpiry,
+      preferences: preferences ?? this.preferences,
+      stats: stats ?? this.stats,
+      metadata: metadata ?? this.metadata,
+    );
   }
 }
 
-// ═══════════════════════════════════════════════════════════════════════════════
-// ENTIDAD: USER PREFERENCES
-// ═══════════════════════════════════════════════════════════════════════════════
-
-class UserPreferences extends Equatable {
+class UserPreferences {
+  final String defaultCourt;
   final bool notificationsEnabled;
   final int reminderHoursBeforeBooking;
-  final String defaultCourtView;
 
   const UserPreferences({
+    required this.defaultCourt,
     required this.notificationsEnabled,
     required this.reminderHoursBeforeBooking,
-    required this.defaultCourtView,
   });
 
-  factory UserPreferences.fromMap(Map<String, dynamic> map) {
-    return UserPreferences(
-      notificationsEnabled: map['notificationsEnabled'] ?? true,
-      reminderHoursBeforeBooking: map['reminderHoursBeforeBooking'] ?? 24,
-      defaultCourtView: map['defaultCourtView'] ?? 'PITE',
-    );
-  }
-
-  Map<String, dynamic> toMap() {
-    return {
-      'notificationsEnabled': notificationsEnabled,
-      'reminderHoursBeforeBooking': reminderHoursBeforeBooking,
-      'defaultCourtView': defaultCourtView,
-    };
-  }
-
-  @override
-  List<Object> get props => [
-        notificationsEnabled,
-        reminderHoursBeforeBooking,
-        defaultCourtView,
-      ];
-
+  // copyWith method
   UserPreferences copyWith({
+    String? defaultCourt,
     bool? notificationsEnabled,
     int? reminderHoursBeforeBooking,
-    String? defaultCourtView,
   }) {
     return UserPreferences(
+      defaultCourt: defaultCourt ?? this.defaultCourt,
       notificationsEnabled: notificationsEnabled ?? this.notificationsEnabled,
       reminderHoursBeforeBooking: reminderHoursBeforeBooking ?? this.reminderHoursBeforeBooking,
-      defaultCourtView: defaultCourtView ?? this.defaultCourtView,
     );
   }
 }
 
-// ═══════════════════════════════════════════════════════════════════════════════
-// ENTIDAD: USER STATS
-// ═══════════════════════════════════════════════════════════════════════════════
-
-class UserStats extends Equatable {
+class UserStats {
   final int totalBookings;
   final int cancelledBookings;
   final int noShowBookings;
-  final double totalAmountPaid;        // Total pagado en reservas
-  final String? lastBookingDate;
+  final int totalAmountPaid;
+  final DateTime? lastBookingDate;
 
   const UserStats({
     required this.totalBookings,
@@ -267,41 +141,20 @@ class UserStats extends Equatable {
     this.lastBookingDate,
   });
 
-  factory UserStats.fromMap(Map<String, dynamic> map) {
-    return UserStats(
-      totalBookings: map['totalBookings'] ?? 0,
-      cancelledBookings: map['cancelledBookings'] ?? 0,
-      noShowBookings: map['noShowBookings'] ?? 0,
-      totalAmountPaid: (map['totalAmountPaid'] ?? 0.0).toDouble(),
-      lastBookingDate: map['lastBookingDate'],
-    );
-  }
+  // Getters útiles
+  int get completedBookings => totalBookings - cancelledBookings - noShowBookings;
+  double get cancellationRate => 
+    totalBookings > 0 ? (cancelledBookings / totalBookings) * 100 : 0;
+  double get noShowRate => 
+    totalBookings > 0 ? (noShowBookings / totalBookings) * 100 : 0;
 
-  Map<String, dynamic> toMap() {
-    return {
-      'totalBookings': totalBookings,
-      'cancelledBookings': cancelledBookings,
-      'noShowBookings': noShowBookings,
-      'totalAmountPaid': totalAmountPaid,
-      'lastBookingDate': lastBookingDate,
-    };
-  }
-
-  @override
-  List<Object?> get props => [
-        totalBookings,
-        cancelledBookings,
-        noShowBookings,
-        totalAmountPaid,
-        lastBookingDate,
-      ];
-
+  // copyWith method
   UserStats copyWith({
     int? totalBookings,
     int? cancelledBookings,
     int? noShowBookings,
-    double? totalAmountPaid,
-    String? lastBookingDate,
+    int? totalAmountPaid,
+    DateTime? lastBookingDate,
   }) {
     return UserStats(
       totalBookings: totalBookings ?? this.totalBookings,
@@ -313,98 +166,80 @@ class UserStats extends Equatable {
   }
 }
 
-// ═══════════════════════════════════════════════════════════════════════════════
-// ENTIDAD: USER METADATA
-// ═══════════════════════════════════════════════════════════════════════════════
-
-class UserMetadata extends Equatable {
+class UserMetadata {
   final int createdAt;
   final int updatedAt;
-  final int lastLogin;
+  final int? lastLogin;
 
   const UserMetadata({
     required this.createdAt,
     required this.updatedAt,
-    required this.lastLogin,
+    this.lastLogin,
   });
 
-  factory UserMetadata.fromMap(Map<String, dynamic> map) {
+  DateTime get createdAtDateTime => DateTime.fromMillisecondsSinceEpoch(createdAt);
+  DateTime get updatedAtDateTime => DateTime.fromMillisecondsSinceEpoch(updatedAt);
+  DateTime? get lastLoginDateTime => 
+    lastLogin != null ? DateTime.fromMillisecondsSinceEpoch(lastLogin!) : null;
+
+  // copyWith method
+  UserMetadata copyWith({
+    int? createdAt,
+    int? updatedAt,
+    int? lastLogin,
+  }) {
     return UserMetadata(
-      createdAt: map['createdAt'] ?? 0,
-      updatedAt: map['updatedAt'] ?? 0,
-      lastLogin: map['lastLogin'] ?? 0,
+      createdAt: createdAt ?? this.createdAt,
+      updatedAt: updatedAt ?? this.updatedAt,
+      lastLogin: lastLogin ?? this.lastLogin,
     );
   }
-
-  Map<String, dynamic> toMap() {
-    return {
-      'createdAt': createdAt,
-      'updatedAt': updatedAt,
-      'lastLogin': lastLogin,
-    };
-  }
-
-  @override
-  List<Object> get props => [createdAt, updatedAt, lastLogin];
 }
 
-// ═══════════════════════════════════════════════════════════════════════════════
-// ENUMS
-// ═══════════════════════════════════════════════════════════════════════════════
-
 enum UserRole {
-  admin('admin'),
-  socioTitular('socio_titular'),
-  hijoSocio('hijo_socio'),
-  visita('visita'),
-  filial('filial');
+  admin,
+  socioTitular,
+  socioAdhesion,
+  hijoSocio,
+  visita;
 
-  const UserRole(this.value);
-  final String value;
-
-  static UserRole fromString(String value) {
-    switch (value) {
-      case 'admin':
-        return UserRole.admin;
-      case 'socio_titular':
-        return UserRole.socioTitular;
-      case 'hijo_socio':
-        return UserRole.hijoSocio;
-      case 'visita':
-        return UserRole.visita;
-      case 'filial':
-        return UserRole.filial;
-      default:
-        return UserRole.socioTitular;
+  String get value {
+    switch (this) {
+      case UserRole.admin:
+        return 'admin';
+      case UserRole.socioTitular:
+        return 'socio_titular';
+      case UserRole.socioAdhesion:
+        return 'socio_adhesion';
+      case UserRole.hijoSocio:
+        return 'hijo_socio';
+      case UserRole.visita:
+        return 'visita';
     }
   }
 
-  // Helpers para UI
   String get displayName {
     switch (this) {
       case UserRole.admin:
         return 'Administrador';
       case UserRole.socioTitular:
         return 'Socio Titular';
+      case UserRole.socioAdhesion:
+        return 'Socio Adhesión';
       case UserRole.hijoSocio:
         return 'Hijo de Socio';
       case UserRole.visita:
         return 'Visita';
-      case UserRole.filial:
-        return 'Filial';
     }
   }
 
-  // Verificaciones rápidas
   bool get isAdmin => this == UserRole.admin;
-  bool get isSocio => this == UserRole.socioTitular;
-  bool get isHijoSocio => this == UserRole.hijoSocio;
-  bool get isVisita => this == UserRole.visita;
-  bool get isFilial => this == UserRole.filial;
-  
-  // Privilegios base
-  bool get canManageBookings => isAdmin;
-  bool get canViewAllBookings => isAdmin || isSocio;
-  bool get needsPayment => isVisita || isFilial;
-  bool get hasTimeRestrictions => isVisita || isFilial;
+  bool get isSocio => this == UserRole.socioTitular || this == UserRole.socioAdhesion;
+
+  static UserRole fromString(String value) {
+    return UserRole.values.firstWhere(
+      (role) => role.value == value,
+      orElse: () => UserRole.visita,
+    );
+  }
 }

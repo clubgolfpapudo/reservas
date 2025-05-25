@@ -1,5 +1,10 @@
 // lib/presentation/pages/reservations_page.dart
 import 'package:flutter/material.dart';
+import '../../domain/entities/booking.dart';
+import '../../domain/entities/court.dart';
+import '../../data/mock/mock_data.dart';
+import '../widgets/time_slot_block.dart';
+import '../widgets/court_tab_button.dart';
 
 class ReservationsPage extends StatefulWidget {
   const ReservationsPage({Key? key}) : super(key: key);
@@ -10,76 +15,8 @@ class ReservationsPage extends StatefulWidget {
 
 class _ReservationsPageState extends State<ReservationsPage> {
   DateTime selectedDate = DateTime.now();
+  String selectedCourt = 'PITE'; // Cancha por defecto
   
-  // 🎾 DATOS SIMULADOS - Reservas de ejemplo
-  final List<Map<String, dynamic>> mockReservations = [
-    {
-      'id': '1',
-      'courtName': 'Cancha 1',
-      'courtNumber': 1,
-      'date': DateTime.now(),
-      'startTime': '08:00',
-      'endTime': '09:30',
-      'playerName': 'Juan Pérez',
-      'playerPhone': '+56912345678',
-      'status': 'confirmed',
-      'price': 15000,
-    },
-    {
-      'id': '2',
-      'courtName': 'Cancha 1',
-      'courtNumber': 1,
-      'date': DateTime.now(),
-      'startTime': '10:00',
-      'endTime': '11:30',
-      'playerName': 'María García',
-      'playerPhone': '+56987654321',
-      'status': 'confirmed',
-      'price': 15000,
-    },
-    {
-      'id': '3',
-      'courtName': 'Cancha 2',
-      'courtNumber': 2,
-      'date': DateTime.now(),
-      'startTime': '14:00',
-      'endTime': '15:30',
-      'playerName': 'Carlos López',
-      'playerPhone': '+56911111111',
-      'status': 'pending',
-      'price': 15000,
-    },
-    {
-      'id': '4',
-      'courtName': 'Cancha 2',
-      'courtNumber': 2,
-      'date': DateTime.now(),
-      'startTime': '16:00',
-      'endTime': '17:30',
-      'playerName': 'Ana Martínez',
-      'playerPhone': '+56922222222',
-      'status': 'confirmed',
-      'price': 18000,
-    },
-    {
-      'id': '5',
-      'courtName': 'Cancha 3',
-      'courtNumber': 3,
-      'date': DateTime.now(),
-      'startTime': '09:00',
-      'endTime': '10:30',
-      'playerName': 'Diego Ruiz',
-      'playerPhone': '+56933333333',
-      'status': 'confirmed',
-      'price': 15000,
-    },
-  ];
-
-  // Horarios disponibles del club
-  final List<String> availableTimeSlots = [
-    '08:00', '09:30', '11:00', '12:30', '14:00', '15:30', '17:00', '18:30', '20:00'
-  ];
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -99,102 +36,125 @@ class _ReservationsPageState extends State<ReservationsPage> {
           IconButton(
             icon: const Icon(Icons.add),
             onPressed: () {
-              // TODO: Navegar a crear nueva reserva
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(content: Text('Nueva reserva - Próximamente')),
-              );
+              _showCreateReservationDialog();
             },
           ),
         ],
       ),
       body: Column(
         children: [
-          // Header con selector de fecha
-          _buildDateSelector(),
+          // Header con información de fecha y selector de cancha
+          _buildDateAndCourtHeader(),
           
-          // Lista de reservas
+          // Lista de horarios con reservas
           Expanded(
-            child: _buildReservationsList(),
+            child: _buildTimeSlotsList(),
           ),
         ],
       ),
     );
   }
 
-  Widget _buildDateSelector() {
+  Widget _buildDateAndCourtHeader() {
     return Container(
       color: Colors.white,
       padding: const EdgeInsets.all(16),
       child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(
-            'Fecha seleccionada',
-            style: TextStyle(
-              fontSize: 14,
-              color: Colors.grey.shade600,
-              fontWeight: FontWeight.w500,
+          // Encabezado con fecha según diseño del documento
+          Container(
+            padding: const EdgeInsets.symmetric(vertical: 24.0),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                const Text(
+                  "Reservas ",
+                  style: TextStyle(fontSize: 32.0, fontWeight: FontWeight.bold),
+                ),
+                Icon(
+                  Icons.sports_tennis,
+                  size: 32,
+                  color: Colors.blue.shade600,
+                ),
+                Text(
+                  " ${selectedDate.day} de ${_getMonthName(selectedDate.month)}",
+                  style: TextStyle(
+                    fontSize: 32.0, 
+                    fontWeight: FontWeight.bold,
+                    color: Colors.blue.shade600,
+                  ),
+                ),
+              ],
             ),
           ),
-          const SizedBox(height: 8),
+          
+          const SizedBox(height: 16),
+          
+          // Selector de cancha según diseño del documento
           Row(
+            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
             children: [
-              Icon(
-                Icons.calendar_today,
-                color: Colors.blue.shade600,
-                size: 20,
+              CourtTabButton(
+                court: "PITE", 
+                isSelected: selectedCourt == "PITE",
+                onTap: () => _onCourtSelected("PITE"),
               ),
-              const SizedBox(width: 8),
-              Text(
-                _formatDate(selectedDate),
-                style: TextStyle(
-                  fontSize: 18,
-                  fontWeight: FontWeight.bold,
-                  color: Colors.grey.shade800,
-                ),
+              CourtTabButton(
+                court: "LILEN", 
+                isSelected: selectedCourt == "LILEN",
+                onTap: () => _onCourtSelected("LILEN"),
               ),
-              const Spacer(),
-              TextButton.icon(
-                onPressed: () => _selectDate(context),
-                icon: const Icon(Icons.edit),
-                label: const Text('Cambiar'),
+              CourtTabButton(
+                court: "PLAIYA", 
+                isSelected: selectedCourt == "PLAIYA",
+                onTap: () => _onCourtSelected("PLAIYA"),
               ),
             ],
           ),
-          const SizedBox(height: 8),
-          _buildDateSummary(),
+          
+          const SizedBox(height: 16),
+          
+          // Resumen de reservas del día
+          _buildDaySummary(),
         ],
       ),
     );
   }
 
-  Widget _buildDateSummary() {
-    final todayReservations = _getReservationsForDate(selectedDate);
-    final totalReservations = todayReservations.length;
-    final totalRevenue = todayReservations.fold<int>(
-      0, (sum, reservation) => sum + (reservation['price'] as int)
-    );
+  Widget _buildDaySummary() {
+    final selectedCourtData = MockData.getCourtByName(selectedCourt);
+    final todayBookings = _getBookingsForSelectedDateAndCourt();
+    
+    final completeBookings = todayBookings.where((b) => b.status == BookingStatus.complete).length;
+    final incompleteBookings = todayBookings.where((b) => b.status == BookingStatus.incomplete).length;
+    final availableSlots = MockData.availableTimeSlots.length - todayBookings.length;
 
     return Container(
-      padding: const EdgeInsets.all(12),
+      padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
         color: Colors.blue.shade50,
-        borderRadius: BorderRadius.circular(8),
+        borderRadius: BorderRadius.circular(12),
         border: Border.all(color: Colors.blue.shade200),
       ),
       child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceAround,
         children: [
           _buildSummaryItem(
-            icon: Icons.sports_tennis,
-            label: 'Reservas',
-            value: '$totalReservations',
-            color: Colors.blue.shade600,
+            icon: Icons.check_circle,
+            label: 'Completas',
+            value: '$completeBookings',
+            color: const Color(0xFF2E7AFF), // Azul según documento
           ),
-          const SizedBox(width: 16),
           _buildSummaryItem(
-            icon: Icons.attach_money,
-            label: 'Ingresos',
-            value: '\$${_formatMoney(totalRevenue)}',
+            icon: Icons.warning,
+            label: 'Incompletas',
+            value: '$incompleteBookings',
+            color: const Color(0xFFFF7530), // Naranja según documento
+          ),
+          _buildSummaryItem(
+            icon: Icons.schedule,
+            label: 'Disponibles',
+            value: '$availableSlots',
             color: Colors.green.shade600,
           ),
         ],
@@ -208,324 +168,164 @@ class _ReservationsPageState extends State<ReservationsPage> {
     required String value,
     required Color color,
   }) {
-    return Row(
+    return Column(
       children: [
-        Icon(icon, color: color, size: 16),
-        const SizedBox(width: 4),
-        Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              label,
-              style: TextStyle(
-                fontSize: 12,
-                color: Colors.grey.shade600,
-              ),
-            ),
-            Text(
-              value,
-              style: TextStyle(
-                fontSize: 14,
-                fontWeight: FontWeight.bold,
-                color: color,
-              ),
-            ),
-          ],
+        Icon(icon, color: color, size: 24),
+        const SizedBox(height: 4),
+        Text(
+          value,
+          style: TextStyle(
+            fontSize: 20,
+            fontWeight: FontWeight.bold,
+            color: color,
+          ),
+        ),
+        Text(
+          label,
+          style: TextStyle(
+            fontSize: 12,
+            color: Colors.grey.shade600,
+          ),
         ),
       ],
     );
   }
 
-  Widget _buildReservationsList() {
-    final reservationsForDate = _getReservationsForDate(selectedDate);
+  Widget _buildTimeSlotsList() {
+    final bookings = _getBookingsForSelectedDateAndCourt();
+    final bookingsByTime = <String, Booking>{};
     
-    if (reservationsForDate.isEmpty) {
-      return _buildEmptyState();
+    // Mapear reservas por horario
+    for (final booking in bookings) {
+      bookingsByTime[booking.dateTime.time] = booking;
     }
 
-    // Agrupar reservas por cancha
-    final reservationsByCourt = <int, List<Map<String, dynamic>>>{};
-    for (final reservation in reservationsForDate) {
-      final courtNumber = reservation['courtNumber'] as int;
-      reservationsByCourt[courtNumber] ??= [];
-      reservationsByCourt[courtNumber]!.add(reservation);
+    if (MockData.availableTimeSlots.isEmpty) {
+      return const Center(
+        child: Text('No hay horarios configurados'),
+      );
     }
 
     return ListView.builder(
       padding: const EdgeInsets.all(16),
-      itemCount: reservationsByCourt.length,
+      itemCount: MockData.availableTimeSlots.length,
       itemBuilder: (context, index) {
-        final courtNumber = reservationsByCourt.keys.elementAt(index);
-        final courtReservations = reservationsByCourt[courtNumber]!;
+        final timeSlot = MockData.availableTimeSlots[index];
+        final booking = bookingsByTime[timeSlot];
         
-        return _buildCourtCard(courtNumber, courtReservations);
+        if (booking != null) {
+          // Hay una reserva en este horario
+          return TimeSlotBlock(
+            time: timeSlot,
+            status: booking.status,
+            players: booking.confirmedPlayers,
+            onReservePressed: () {}, // No aplicable para reservas existentes
+            onTap: () => _showBookingDetails(booking),
+          );
+        } else {
+          // Horario disponible
+          return TimeSlotBlock(
+            time: timeSlot,
+            status: null, // null indica disponible
+            players: const [],
+            onReservePressed: () => _initiateBookingProcess(timeSlot),
+            onTap: () => _initiateBookingProcess(timeSlot),
+          );
+        }
       },
     );
   }
 
-  Widget _buildCourtCard(int courtNumber, List<Map<String, dynamic>> reservations) {
-    return Card(
-      margin: const EdgeInsets.only(bottom: 16),
-      elevation: 2,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(12),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          // Header de la cancha
-          Container(
-            padding: const EdgeInsets.all(16),
-            decoration: BoxDecoration(
-              color: Colors.blue.shade600,
-              borderRadius: const BorderRadius.only(
-                topLeft: Radius.circular(12),
-                topRight: Radius.circular(12),
-              ),
-            ),
-            child: Row(
-              children: [
-                const Icon(
-                  Icons.sports_tennis,
-                  color: Colors.white,
-                  size: 24,
-                ),
-                const SizedBox(width: 12),
-                Text(
-                  'Cancha $courtNumber',
-                  style: const TextStyle(
-                    color: Colors.white,
-                    fontSize: 18,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-                const Spacer(),
-                Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                  decoration: BoxDecoration(
-                    color: Colors.white.withOpacity(0.2),
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  child: Text(
-                    '${reservations.length} reservas',
-                    style: const TextStyle(
-                      color: Colors.white,
-                      fontSize: 12,
-                      fontWeight: FontWeight.w500,
-                    ),
-                  ),
-                ),
-              ],
-            ),
-          ),
-          
-          // Lista de reservas de esta cancha
-          ...reservations.map((reservation) => _buildReservationItem(reservation)).toList(),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildReservationItem(Map<String, dynamic> reservation) {
-    final status = reservation['status'] as String;
-    final statusColor = status == 'confirmed' ? Colors.green : Colors.orange;
-    final statusText = status == 'confirmed' ? 'Confirmada' : 'Pendiente';
-
-    return Container(
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        border: Border(
-          bottom: BorderSide(color: Colors.grey.shade200),
-        ),
-      ),
-      child: Row(
-        children: [
-          // Horario
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-            decoration: BoxDecoration(
-              color: Colors.grey.shade100,
-              borderRadius: BorderRadius.circular(8),
-            ),
-            child: Column(
-              children: [
-                Text(
-                  reservation['startTime'],
-                  style: const TextStyle(
-                    fontSize: 16,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-                Text(
-                  reservation['endTime'],
-                  style: TextStyle(
-                    fontSize: 12,
-                    color: Colors.grey.shade600,
-                  ),
-                ),
-              ],
-            ),
-          ),
-          
-          const SizedBox(width: 16),
-          
-          // Información del jugador
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  reservation['playerName'],
-                  style: const TextStyle(
-                    fontSize: 16,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-                const SizedBox(height: 4),
-                Text(
-                  reservation['playerPhone'],
-                  style: TextStyle(
-                    fontSize: 14,
-                    color: Colors.grey.shade600,
-                  ),
-                ),
-              ],
-            ),
-          ),
-          
-          // Estado y precio
-          Column(
-            crossAxisAlignment: CrossAxisAlignment.end,
-            children: [
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                decoration: BoxDecoration(
-                  color: statusColor.withOpacity(0.1),
-                  borderRadius: BorderRadius.circular(12),
-                  border: Border.all(color: statusColor),
-                ),
-                child: Text(
-                  statusText,
-                  style: TextStyle(
-                    color: statusColor,
-                    fontSize: 12,
-                    fontWeight: FontWeight.w500,
-                  ),
-                ),
-              ),
-              const SizedBox(height: 8),
-              Text(
-                '\$${_formatMoney(reservation['price'])}',
-                style: const TextStyle(
-                  fontSize: 16,
-                  fontWeight: FontWeight.bold,
-                  color: Colors.green,
-                ),
-              ),
-            ],
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildEmptyState() {
-    return Center(
-      child: Padding(
-        padding: const EdgeInsets.all(32),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(
-              Icons.sports_tennis,
-              size: 80,
-              color: Colors.grey.shade400,
-            ),
-            const SizedBox(height: 16),
-            Text(
-              'No hay reservas',
-              style: TextStyle(
-                fontSize: 24,
-                fontWeight: FontWeight.bold,
-                color: Colors.grey.shade600,
-              ),
-            ),
-            const SizedBox(height: 8),
-            Text(
-              'No hay reservas programadas para ${_formatDate(selectedDate)}',
-              style: TextStyle(
-                fontSize: 16,
-                color: Colors.grey.shade500,
-              ),
-              textAlign: TextAlign.center,
-            ),
-            const SizedBox(height: 24),
-            ElevatedButton.icon(
-              onPressed: () {
-                // TODO: Navegar a crear nueva reserva
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(content: Text('Nueva reserva - Próximamente')),
-                );
-              },
-              icon: const Icon(Icons.add),
-              label: const Text('Crear Nueva Reserva'),
-              style: ElevatedButton.styleFrom(
-                backgroundColor: Colors.blue.shade600,
-                foregroundColor: Colors.white,
-                padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
   // Métodos auxiliares
-  List<Map<String, dynamic>> _getReservationsForDate(DateTime date) {
-    return mockReservations.where((reservation) {
-      final reservationDate = reservation['date'] as DateTime;
-      return reservationDate.year == date.year &&
-             reservationDate.month == date.month &&
-             reservationDate.day == date.day;
-    }).toList();
+  List<Booking> _getBookingsForSelectedDateAndCourt() {
+    final selectedCourtData = MockData.getCourtByName(selectedCourt);
+    if (selectedCourtData == null) return [];
+    
+    return MockData.getBookingsForDateAndCourt(selectedDate, selectedCourtData.id);
   }
 
-  String _formatDate(DateTime date) {
-    final months = [
+  void _onCourtSelected(String courtName) {
+    setState(() {
+      selectedCourt = courtName;
+    });
+  }
+
+  String _getMonthName(int month) {
+    const months = [
       'Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio',
       'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'
     ];
-    
-    final weekdays = [
-      'Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado', 'Domingo'
-    ];
-    
-    final weekday = weekdays[date.weekday - 1];
-    final month = months[date.month - 1];
-    
-    return '$weekday, ${date.day} de $month';
+    return months[month - 1];
   }
 
-  String _formatMoney(int amount) {
-    return amount.toString().replaceAllMapped(
-      RegExp(r'(\d{1,3})(?=(\d{3})+(?!\d))'),
-      (Match m) => '${m[1]}.',
+  void _showCreateReservationDialog() {
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(
+        content: Text('🚀 Próximamente: Crear nueva reserva'),
+        backgroundColor: Colors.blue,
+      ),
     );
   }
 
-  Future<void> _selectDate(BuildContext context) async {
-    final DateTime? picked = await showDatePicker(
+  void _showBookingDetails(Booking booking) {
+    showDialog(
       context: context,
-      initialDate: selectedDate,
-      firstDate: DateTime.now().subtract(const Duration(days: 30)),
-      lastDate: DateTime.now().add(const Duration(days: 365)),
+      builder: (context) => AlertDialog(
+        title: Text('Reserva ${booking.dateTime.time}'),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text('Estado: ${booking.status.displayName}'),
+            Text('Cancha: ${booking.court} - $selectedCourt'),
+            const Divider(),
+            const Text('Jugadores:', style: TextStyle(fontWeight: FontWeight.bold)),
+            ...booking.confirmedPlayers.map((player) => Padding(
+              padding: const EdgeInsets.only(left: 8, top: 4),
+              child: Row(
+                children: [
+                  Icon(
+                    player.isMainBooker ? Icons.star : Icons.person,
+                    size: 16,
+                    color: player.isMainBooker ? Colors.amber : Colors.grey,
+                  ),
+                  const SizedBox(width: 8),
+                  Expanded(child: Text(player.name)),
+                ],
+              ),
+            )).toList(),
+            if (booking.cancelledPlayers.isNotEmpty) ...[
+              const Divider(),
+              const Text('Cancelados:', style: TextStyle(fontWeight: FontWeight.bold)),
+              ...booking.cancelledPlayers.map((player) => Padding(
+                padding: const EdgeInsets.only(left: 8, top: 4),
+                child: Text(
+                  player.name,
+                  style: TextStyle(
+                    color: Colors.grey.shade600,
+                    decoration: TextDecoration.lineThrough,
+                  ),
+                ),
+              )).toList(),
+            ],
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(),
+            child: const Text('Cerrar'),
+          ),
+        ],
+      ),
     );
-    
-    if (picked != null && picked != selectedDate) {
-      setState(() {
-        selectedDate = picked;
-      });
-    }
+  }
+
+  void _initiateBookingProcess(String timeSlot) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text('🎾 Reservar $selectedCourt a las $timeSlot - Próximamente'),
+        backgroundColor: Colors.green,
+      ),
+    );
   }
 }

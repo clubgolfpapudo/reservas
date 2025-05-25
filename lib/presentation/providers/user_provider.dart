@@ -390,12 +390,16 @@ class UserProvider extends ChangeNotifier {
     }
     
     // Verificar acceso temporal
+    // Verificar acceso temporal
     if (_currentUser!.role == UserRole.visita && 
-        _currentUser!.temporaryAccessExpiry != null) {
-      final daysLeft = _currentUser!.temporaryAccessExpiry!
-          .difference(DateTime.now()).inDays;
-      if (daysLeft < 7) {
-        warnings.add('Acceso temporal vence en $daysLeft días');
+        _currentUser!.temporaryAccessExpiry.isNotEmpty) {
+      // Si temporaryAccessExpiry es String con fecha, convertir:
+      final expiryDate = DateTime.tryParse(_currentUser!.temporaryAccessExpiry);
+      if (expiryDate != null) {
+        final daysLeft = expiryDate.difference(DateTime.now()).inDays;
+        if (daysLeft < 7) {
+          warnings.add('Acceso temporal vence en $daysLeft días');
+        }
       }
     }
     
