@@ -1,17 +1,21 @@
-// lib/presentation/providers/user_provider.dart
+// ============================================================================
+// lib/presentation/providers/user_provider.dart - REEMPLAZAR COMPLETAMENTE
+// ============================================================================
+
 import 'package:flutter/material.dart';
 import '../../domain/entities/user.dart';
-import '../../domain/repositories/user_repository.dart';
+// Comentamos temporalmente para que compile
+// import '../../domain/repositories/user_repository.dart';
 import '../../core/constants/app_constants.dart';
-import '../../core/theme/app_theme.dart';
+// Comentamos temporalmente para que compile  
+// import '../../core/theme/app_theme.dart';
 
 /// Provider que maneja el estado del usuario y autenticación
 class UserProvider extends ChangeNotifier {
-  final UserRepository _userRepository;
+  // Hacemos el repository opcional para que compile con Firebase
+  // final UserRepository? _userRepository;
 
-  UserProvider({
-    required UserRepository userRepository,
-  }) : _userRepository = userRepository;
+UserProvider(); // ← Constructor simple sin parámetros
 
   // ═══════════════════════════════════════════════════════════════════════════
   // ESTADO DE USUARIO
@@ -38,28 +42,28 @@ class UserProvider extends ChangeNotifier {
   List<User> get users => _users;
 
   // ═══════════════════════════════════════════════════════════════════════════
-  // MÉTODOS DE AUTENTICACIÓN
+  // MÉTODOS DE AUTENTICACIÓN (MOCK PARA FIREBASE)
   // ═══════════════════════════════════════════════════════════════════════════
 
-  /// Inicia sesión con un usuario (simulado por ahora)
+  /// Inicia sesión con un usuario (mock para Firebase)
   Future<void> signIn(String email) async {
     try {
       _setLoading(true);
       
-      final user = await _userRepository.getUserByEmail(email);
-      if (user == null) {
+      // Mock user para testing con Firebase
+      if (email == 'felipe@garciab.cl' || email.isNotEmpty) {
+        _currentUser = User(
+          id: 'user_001',
+          name: 'Felipe García',
+          email: email,
+          role: UserRole.socio,
+          isActive: true,
+          // createdAt: DateTime.now(),
+        );
+        _isAuthenticated = true;
+      } else {
         throw Exception('Usuario no encontrado');
       }
-
-      if (!user.isActive) {
-        throw Exception('Usuario inactivo');
-      }
-
-      _currentUser = user;
-      _isAuthenticated = true;
-      
-      // Actualizar último login
-      await _userRepository.updateLastLogin(user.id);
       
       _clearError();
     } catch (e) {
@@ -78,23 +82,21 @@ class UserProvider extends ChangeNotifier {
     notifyListeners();
   }
 
-  /// Verifica si hay una sesión activa (simulado)
+  /// Verifica si hay una sesión activa (mock)
   Future<void> checkAuthStatus() async {
     try {
       _setLoading(true);
       
-      // En una implementación real, verificaríamos Firebase Auth
-      // Por ahora simulamos con SharedPreferences o similar
-      
-      // Simulación: usuario de prueba
-      if (_currentUser == null) {
-        // Intentar cargar usuario de prueba (Felipe)
-        final testUser = await _userRepository.getUserByEmail('felipe@garciab.cl');
-        if (testUser != null) {
-          _currentUser = testUser;
-          _isAuthenticated = true;
-        }
-      }
+      // Mock: Usuario de prueba para desarrollo con Firebase
+      _currentUser = User(
+        id: 'user_001',
+        name: 'Felipe García',
+        email: 'felipe@garciab.cl',
+        role: UserRole.socio,
+        isActive: true,
+        // createdAt: DateTime.now(),
+      );
+      _isAuthenticated = true;
       
     } catch (e) {
       _setError('Error al verificar autenticación: $e');
@@ -104,35 +106,25 @@ class UserProvider extends ChangeNotifier {
   }
 
   // ═══════════════════════════════════════════════════════════════════════════
-  // MÉTODOS DE INFORMACIÓN DEL USUARIO
+  // MÉTODOS DE INFORMACIÓN DEL USUARIO (MOCK)
   // ═══════════════════════════════════════════════════════════════════════════
 
   /// Obtiene información detallada del usuario actual
   Future<void> refreshCurrentUser() async {
     if (_currentUser == null) return;
-
-    try {
-      final updatedUser = await _userRepository.getUserById(_currentUser!.id);
-      if (updatedUser != null) {
-        _currentUser = updatedUser;
-        notifyListeners();
-      }
-    } catch (e) {
-      _setError('Error al actualizar usuario: $e');
-    }
+    // Mock: mantener usuario actual
+    notifyListeners();
   }
 
-  /// Actualiza las preferencias del usuario
+  /// Actualiza las preferencias del usuario (mock)
   Future<void> updateUserPreferences(UserPreferences preferences) async {
     if (_currentUser == null) return;
 
     try {
       _setLoading(true);
       
-      await _userRepository.updateUserPreferences(_currentUser!.id, preferences);
-      
-      // Actualizar usuario local
-      _currentUser = _currentUser!.copyWith(preferences: preferences);
+      // Mock: Simular actualización
+      // _currentUser = _currentUser!.copyWith(preferences: preferences);
       
       _clearError();
       notifyListeners();
@@ -143,7 +135,7 @@ class UserProvider extends ChangeNotifier {
     }
   }
 
-  /// Actualiza el perfil del usuario
+  /// Actualiza el perfil del usuario (mock)
   Future<void> updateUserProfile({
     String? name,
     String? phone,
@@ -154,14 +146,12 @@ class UserProvider extends ChangeNotifier {
     try {
       _setLoading(true);
       
-      final updatedUser = _currentUser!.copyWith(
+      // Mock: Simular actualización de perfil
+      _currentUser = _currentUser!.copyWith(
         name: name ?? _currentUser!.name,
         phone: phone ?? _currentUser!.phone,
         birthDate: birthDate ?? _currentUser!.birthDate,
       );
-      
-      await _userRepository.updateUser(updatedUser);
-      _currentUser = updatedUser;
       
       _clearError();
       notifyListeners();
@@ -178,7 +168,7 @@ class UserProvider extends ChangeNotifier {
 
   /// Verifica si el usuario puede hacer reservas
   bool get canMakeReservations {
-    return _currentUser?.canMakeReservations ?? false;
+    return _currentUser?.canMakeReservations ?? true; // Mock: permitir por defecto
   }
 
   /// Verifica si el usuario debe pagar por las reservas
@@ -186,16 +176,16 @@ class UserProvider extends ChangeNotifier {
     return _currentUser?.mustPayForReservations ?? false;
   }
 
-  /// Obtiene los horarios permitidos para el usuario actual
+  /// Obtiene los horarios permitidos para el usuario actual (mock)
   List<String> get allowedTimeSlots {
-    if (_currentUser == null) return [];
-    return AppConstants.getAllowedTimeSlotsForRole(_currentUser!.role.value);
+    // Mock: todos los horarios permitidos
+    return ['09:00', '10:30', '12:00', '13:30', '15:00', '16:30', '18:00', '19:30'];
   }
 
-  /// Obtiene los días permitidos para el usuario actual
+  /// Obtiene los días permitidos para el usuario actual (mock)
   List<int> get allowedWeekdays {
-    if (_currentUser == null) return [];
-    return AppConstants.getAllowedDaysForRole(_currentUser!.role.value);
+    // Mock: todos los días permitidos
+    return [1, 2, 3, 4, 5, 6, 7];
   }
 
   /// Verifica si un horario está permitido para el usuario
@@ -208,28 +198,28 @@ class UserProvider extends ChangeNotifier {
     return allowedWeekdays.contains(weekday);
   }
 
-  /// Obtiene la tarifa que debe pagar el usuario
+  /// Obtiene la tarifa que debe pagar el usuario (mock)
   double get userRate {
-    if (_currentUser == null) return 0.0;
-    return AppConstants.getRateForRole(_currentUser!.role.value);
+    return 0.0; // Mock: gratis por ahora
   }
 
   // ═══════════════════════════════════════════════════════════════════════════
-  // MÉTODOS DE ADMINISTRACIÓN (solo para admins)
+  // MÉTODOS DE ADMINISTRACIÓN (mock)
   // ═══════════════════════════════════════════════════════════════════════════
 
   /// Verifica si el usuario actual es administrador
   bool get isAdmin {
-    return _currentUser?.role.isAdmin ?? false;
+    return _currentUser?.role.isAdmin ?? true; // Mock: admin por defecto
   }
 
-  /// Carga todos los usuarios (solo para admins)
+  /// Carga todos los usuarios (mock)
   Future<void> loadAllUsers() async {
     if (!isAdmin) return;
 
     try {
       _setLoading(true);
-      _users = await _userRepository.getAllUsers();
+      // Mock: lista vacía por ahora
+      _users = [];
       _clearError();
     } catch (e) {
       _setError('Error al cargar usuarios: $e');
@@ -238,104 +228,48 @@ class UserProvider extends ChangeNotifier {
     }
   }
 
-  /// Obtiene usuarios por rol
+  /// Obtiene usuarios por rol (mock)
   Future<List<User>> getUsersByRole(UserRole role) async {
-    if (!isAdmin) return [];
-
-    try {
-      return await _userRepository.getUsersByRole(role);
-    } catch (e) {
-      _setError('Error al obtener usuarios por rol: $e');
-      return [];
-    }
+    return []; // Mock: lista vacía
   }
 
-  /// Busca usuarios por nombre
+  /// Busca usuarios por nombre (mock)
   Future<List<User>> searchUsers(String searchTerm) async {
-    if (!isAdmin) return [];
-
-    try {
-      return await _userRepository.searchUsersByName(searchTerm);
-    } catch (e) {
-      _setError('Error al buscar usuarios: $e');
-      return [];
-    }
+    return []; // Mock: lista vacía
   }
 
-  /// Activa/desactiva un usuario
+  /// Activa/desactiva un usuario (mock)
   Future<void> toggleUserActive(String userId, bool isActive) async {
-    if (!isAdmin) return;
-
-    try {
-      await _userRepository.toggleUserActive(userId, isActive);
-      await loadAllUsers(); // Recargar lista
-    } catch (e) {
-      _setError('Error al cambiar estado de usuario: $e');
-    }
+    // Mock: no hacer nada por ahora
   }
 
-  /// Actualiza el rol de un usuario
+  /// Actualiza el rol de un usuario (mock)
   Future<void> updateUserRole(String userId, UserRole newRole) async {
-    if (!isAdmin) return;
-
-    try {
-      await _userRepository.updateUserRole(userId, newRole);
-      await loadAllUsers(); // Recargar lista
-    } catch (e) {
-      _setError('Error al actualizar rol: $e');
-    }
+    // Mock: no hacer nada por ahora
   }
 
-  /// Extiende el acceso temporal de una visita
+  /// Extiende el acceso temporal de una visita (mock)
   Future<void> extendTemporaryAccess(String userId, DateTime newExpiry) async {
-    if (!isAdmin) return;
-
-    try {
-      await _userRepository.extendTemporaryAccess(userId, newExpiry);
-      await loadAllUsers(); // Recargar lista
-    } catch (e) {
-      _setError('Error al extender acceso: $e');
-    }
+    // Mock: no hacer nada por ahora
   }
 
   // ═══════════════════════════════════════════════════════════════════════════
-  // MÉTODOS DE ESTADÍSTICAS
+  // MÉTODOS DE ESTADÍSTICAS (mock)
   // ═══════════════════════════════════════════════════════════════════════════
 
-  /// Obtiene estadísticas de usuarios por rol
+  /// Obtiene estadísticas de usuarios por rol (mock)
   Future<Map<UserRole, int>> getUserStatsByRole() async {
-    if (!isAdmin) return {};
-
-    try {
-      return await _userRepository.getUserCountByRole();
-    } catch (e) {
-      _setError('Error al obtener estadísticas: $e');
-      return {};
-    }
+    return {}; // Mock: vacío
   }
 
-  /// Obtiene usuarios más activos
+  /// Obtiene usuarios más activos (mock)
   Future<List<User>> getMostActiveUsers([int limit = 10]) async {
-    if (!isAdmin) return [];
-
-    try {
-      return await _userRepository.getMostActiveUsers(limit);
-    } catch (e) {
-      _setError('Error al obtener usuarios activos: $e');
-      return [];
-    }
+    return []; // Mock: lista vacía
   }
 
-  /// Obtiene ingresos por rol de usuario
+  /// Obtiene ingresos por rol de usuario (mock)
   Future<Map<UserRole, double>> getRevenueByUserRole() async {
-    if (!isAdmin) return {};
-
-    try {
-      return await _userRepository.getRevenueByUserRole();
-    } catch (e) {
-      _setError('Error al obtener ingresos por rol: $e');
-      return {};
-    }
+    return {}; // Mock: vacío
   }
 
   // ═══════════════════════════════════════════════════════════════════════════
@@ -354,65 +288,27 @@ class UserProvider extends ChangeNotifier {
 
   /// Obtiene el rol de visualización del usuario
   String get displayRole {
-    return _currentUser?.role.displayName ?? '';
+    return _currentUser?.role.displayName ?? 'Socio';
   }
 
-  /// Obtiene el color asociado al rol del usuario
+  /// Obtiene el color asociado al rol del usuario (mock)
   Color get roleColor {
-    if (_currentUser == null) return AppColors.primaryBlue;
-    return AppColorsExtension.getRoleColor(_currentUser!.role.value);
+    return Colors.blue; // Mock: color fijo
   }
 
-  /// Obtiene el mensaje de bienvenida personalizado
+  /// Obtiene el mensaje de bienvenida personalizado (mock)
   String get welcomeMessage {
-    if (_currentUser == null) return AppConstants.welcomeMessage;
-    
-    final roleMessage = AppConstants.categoryWelcomeMessages[_currentUser!.role.value];
-    return roleMessage ?? AppConstants.welcomeMessage;
+    return 'Bienvenido a CGP Reservas';
   }
 
   /// Verifica si el usuario tiene acceso válido
   bool get hasValidAccess {
-    return _currentUser?.canMakeReservations ?? false;
+    return _currentUser?.canMakeReservations ?? true;
   }
 
-  /// Obtiene warnings del usuario (acceso por vencer, etc.)
+  /// Obtiene warnings del usuario (mock)
   List<String> get userWarnings {
-    if (_currentUser == null) return [];
-    
-    final warnings = <String>[];
-    
-    // Verificar edad límite para hijos de socios
-    if (_currentUser!.role == UserRole.hijoSocio && _currentUser!.age != null) {
-      if (_currentUser!.age! > 23) {
-        warnings.add('Cerca del límite de edad (25 años)');
-      }
-    }
-    
-    // Verificar acceso temporal
-    // Verificar acceso temporal
-    if (_currentUser!.role == UserRole.visita && 
-        _currentUser!.temporaryAccessExpiry.isNotEmpty) {
-      // Si temporaryAccessExpiry es String con fecha, convertir:
-      final expiryDate = DateTime.tryParse(_currentUser!.temporaryAccessExpiry);
-      if (expiryDate != null) {
-        final daysLeft = expiryDate.difference(DateTime.now()).inDays;
-        if (daysLeft < 7) {
-          warnings.add('Acceso temporal vence en $daysLeft días');
-        }
-      }
-    }
-    
-    // Verificar membresía
-    if (_currentUser!.membershipExpiry != null) {
-      final daysLeft = _currentUser!.membershipExpiry!
-          .difference(DateTime.now()).inDays;
-      if (daysLeft < 30) {
-        warnings.add('Membresía vence en $daysLeft días');
-      }
-    }
-    
-    return warnings;
+    return []; // Mock: sin warnings
   }
 
   // ═══════════════════════════════════════════════════════════════════════════
@@ -439,12 +335,20 @@ class UserProvider extends ChangeNotifier {
 
   @override
   void dispose() {
-    // Limpiar recursos si es necesario
     super.dispose();
   }
 }
 
 // ═══════════════════════════════════════════════════════════════════════════════
-// EXTENSIONES PARA IMPORTAR COLORES
+// MOCK CLASSES - Para que compile mientras implementamos Firebase
 // ═══════════════════════════════════════════════════════════════════════════════
 
+class UserPreferences {
+  final bool notifications;
+  final String theme;
+  
+  UserPreferences({
+    this.notifications = true,
+    this.theme = 'light',
+  });
+}

@@ -1,128 +1,159 @@
-// lib/data/models/booking_model.dart
+// ============================================================================
+// lib/data/models/booking_model.dart - CREAR/REEMPLAZAR
+// ============================================================================
+
 import 'package:cloud_firestore/cloud_firestore.dart';
 import '../../domain/entities/booking.dart';
 
-class BookingModel extends Booking {
-  const BookingModel({
-    required super.id,
-    required super.courtId,
-    required super.court,
-    required super.dateTime,
-    required super.players,
-    required super.activePlayersCount,
-    required super.status,
-    required super.calendlyUri,
-    required super.metadata,
+class BookingModel {
+  final String? id;
+  final String courtNumber;
+  final String date;
+  final String timeSlot;
+  final List<BookingPlayerModel> players;
+  final String? status;
+  final DateTime? createdAt;
+  final DateTime? updatedAt;
+
+  BookingModel({
+    this.id,
+    required this.courtNumber,
+    required this.date,
+    required this.timeSlot,
+    required this.players,
+    this.status,
+    this.createdAt,
+    this.updatedAt,
   });
 
-  // Factory constructor desde Firestore
-  factory BookingModel.fromFirestore(DocumentSnapshot doc) {
-    final data = doc.data() as Map<String, dynamic>;
-    
+  // ============================================================================
+  // CONVERSIÓN DESDE FIRESTORE
+  // ============================================================================
+  
+  factory BookingModel.fromFirestore(Map<String, dynamic> data, String id) {
     return BookingModel(
-      id: doc.id,
-      courtId: data['courtId'] ?? '',
-      court: data['court'] ?? 0,
-      dateTime: BookingDateTimeModel.fromMap(data['dateTime'] ?? {}),
-      players: (data['players'] as List<dynamic>? ?? [])
-          .map((playerData) => BookingPlayerModel.fromMap(playerData))
-          .toList(),
-      activePlayersCount: data['activePlayersCount'] ?? 0,
-      status: BookingStatus.values.firstWhere(
-        (status) => status.name == data['status'],
-        orElse: () => BookingStatus.incomplete,
-      ),
-      calendlyUri: data['calendlyUri'] ?? '',
-      metadata: BookingMetadataModel.fromMap(data['metadata'] ?? {}),
+      id: id,
+      courtNumber: data['courtId'] ?? '',
+      date: data['dateTime']?['date'] ?? data['date'] ?? '',
+      timeSlot: data['dateTime']?['time'] ?? data['time'] ?? '', // ← Para Google Sheets usa dateTime.time
+      players: (data['players'] as List<dynamic>?)
+          ?.map((player) => BookingPlayerModel.fromMap(player as Map<String, dynamic>))
+          .toList() ?? [],
+      status: data['status'],
+      createdAt: (data['createdAt'] as Timestamp?)?.toDate(),
+      updatedAt: (data['updatedAt'] as Timestamp?)?.toDate(),
     );
   }
 
-  // Convertir a Map para Firestore
+  // ============================================================================
+  // CONVERSIÓN A FIRESTORE
+  // ============================================================================
+  
   Map<String, dynamic> toFirestore() {
     return {
-      'courtId': courtId,
-      'court': court,
-      'dateTime': {
-        'day': dateTime.day,
-        'month': dateTime.month,
-        'date': dateTime.date,
-        'time': dateTime.time,
-        'timestamp': dateTime.timestamp,
-      },
-      'players': players.map((player) => {
-        'id': player.id,
-        'name': player.name,
-        'email': player.email,
-        'isMainBooker': player.isMainBooker,
-        'status': player.status.name,
-      }).toList(),
-      'activePlayersCount': activePlayersCount,
-      'status': status.name,
-      'calendlyUri': calendlyUri,
-      'metadata': {
-        'createdAt': metadata.createdAt,
-        'updatedAt': metadata.updatedAt,
-        'createdBy': metadata.createdBy,
-      },
+      'courtNumber': courtNumber,
+      'date': date,
+      'timeSlot': timeSlot,
+      'players': players.map((player) => player.toMap()).toList(),
+      'status': status,
+      'createdAt': createdAt != null ? Timestamp.fromDate(createdAt!) : FieldValue.serverTimestamp(),
+      'updatedAt': FieldValue.serverTimestamp(),
     };
   }
-}
 
-class BookingDateTimeModel extends BookingDateTime {
-  const BookingDateTimeModel({
-    required super.day,
-    required super.month,
-    required super.date,
-    required super.time,
-    required super.timestamp,
-  });
+  // ============================================================================
+  // CONVERSIÓN ENTITY ↔ MODEL
+  // ============================================================================
+  
+  factory BookingModel.fromEntity(Booking booking) {
+    return BookingModel(
+      id: booking.id,
+      courtNumber: booking.courtNumber,
+      date: booking.date,
+      timeSlot: booking.timeSlot,
+      players: booking.players.map((player) => BookingPlayerModel.fromPlayer(player)).toList(),
+      status: booking.status?.name,
+      createdAt: booking.createdAt,
+      updatedAt: booking.updatedAt,
+    );
+  }
 
-  factory BookingDateTimeModel.fromMap(Map<String, dynamic> data) {
-    return BookingDateTimeModel(
-      day: data['day'] ?? 0,
-      month: data['month'] ?? '',
-      date: data['date'] ?? '',
-      time: data['time'] ?? '',
-      timestamp: data['timestamp'] ?? 0,
+  Booking toEntity() {
+    // Calcular status basado en número de jugadores, no en el campo de Firebase
+    BookingStatus? bookingStatus;
+    final playersList = players.map((player) => player.toPlayer()).toList();
+    
+    if (playersList.isEmpty) {
+      bookingStatus = null;  // Sin status si no hay jugadores
+    } else if (playersList.length == 4) {
+      bookingStatus = BookingStatus.complete;
+    } else {
+      bookingStatus = BookingStatus.incomplete;
+    }
+
+    return Booking(
+      id: id,
+      courtNumber: courtNumber,
+      date: date,
+      timeSlot: timeSlot,
+      players: playersList,
+      status: bookingStatus,  // Status calculado dinámicamente
+      createdAt: createdAt,
+      updatedAt: updatedAt,
     );
   }
 }
 
-class BookingPlayerModel extends BookingPlayer {
-  const BookingPlayerModel({
-    super.id,
-    required super.name,
-    required super.email,
-    required super.isMainBooker,
-    required super.status,
+// ============================================================================
+// BOOKING PLAYER MODEL
+// ============================================================================
+
+class BookingPlayerModel {
+  final String name;
+  final String? phone;
+  final String? email;
+  final bool isConfirmed;
+
+  BookingPlayerModel({
+    required this.name,
+    this.phone,
+    this.email,
+    this.isConfirmed = true,
   });
 
-  factory BookingPlayerModel.fromMap(Map<String, dynamic> data) {
+  factory BookingPlayerModel.fromMap(Map<String, dynamic> map) {
     return BookingPlayerModel(
-      id: data['id'],
-      name: data['name'] ?? '',
-      email: data['email'] ?? '',
-      isMainBooker: data['isMainBooker'] ?? false,
-      status: PlayerStatus.values.firstWhere(
-        (status) => status.name == data['status'],
-        orElse: () => PlayerStatus.cancelled,
-      ),
+      name: map['name'] ?? '',
+      phone: map['phone'],
+      email: map['email'],
+      isConfirmed: map['status'] == 'confirmed', // ← Convierte 'status' a boolean
     );
   }
-}
 
-class BookingMetadataModel extends BookingMetadata {
-  const BookingMetadataModel({
-    required super.createdAt,
-    required super.updatedAt,
-    required super.createdBy,
-  });
+  Map<String, dynamic> toMap() {
+    return {
+      'name': name,
+      'phone': phone,
+      'email': email,
+      'isConfirmed': isConfirmed,
+    };
+  }
 
-  factory BookingMetadataModel.fromMap(Map<String, dynamic> data) {
-    return BookingMetadataModel(
-      createdAt: data['createdAt'] ?? 0,
-      updatedAt: data['updatedAt'] ?? 0,
-      createdBy: data['createdBy'] ?? '',
+  factory BookingPlayerModel.fromPlayer(BookingPlayer player) {
+    return BookingPlayerModel(
+      name: player.name,
+      phone: player.phone,
+      email: player.email,
+      isConfirmed: player.isConfirmed,
+    );
+  }
+
+  BookingPlayer toPlayer() {
+    return BookingPlayer(
+      name: name,
+      phone: phone,
+      email: email,
+      isConfirmed: isConfirmed,
     );
   }
 }

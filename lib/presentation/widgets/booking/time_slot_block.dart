@@ -77,7 +77,7 @@ class _TimeSlotBlockState extends State<TimeSlotBlock>
         return const Color(0xFF2E7AFF); // Azul
       case BookingStatus.incomplete:
         return const Color(0xFFFF7530); // Naranja
-      case BookingStatus.cancelled:
+      // case BookingStatus.cancelled:
         return Colors.grey; // Gris
     }
   }
@@ -92,7 +92,7 @@ class _TimeSlotBlockState extends State<TimeSlotBlock>
         return "Reservada";
       case BookingStatus.incomplete:
         return "Incompleta";
-      case BookingStatus.cancelled:
+      // case BookingStatus.cancelled:
         return "Cancelada";
     }
   }
@@ -105,7 +105,7 @@ class _TimeSlotBlockState extends State<TimeSlotBlock>
     if (widget.players.isEmpty || _isExpanded) return const SizedBox.shrink();
     
     final activePlayers = widget.players
-        .where((player) => player.status == PlayerStatus.confirmed)
+        // .where((player) => player.status == PlayerStatus.confirmed)
         .toList();
     
     if (activePlayers.isEmpty) return const SizedBox.shrink();
@@ -140,7 +140,7 @@ class _TimeSlotBlockState extends State<TimeSlotBlock>
     }
 
     final activePlayers = widget.players
-        .where((player) => player.status == PlayerStatus.confirmed)
+        // .where((player) => player.status == PlayerStatus.confirmed)
         .toList();
 
     return SizeTransition(

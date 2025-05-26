@@ -31,12 +31,29 @@ class ReservationsPage extends StatelessWidget {
               // Tabs de canchas compactos
               CompactCourtTabs(
                 selectedCourt: bookingProvider.selectedCourtName,
-                onCourtSelected: (court) => bookingProvider.selectCourt(court),
+                onCourtSelected: (courtName) {
+                  // Mapear nombre a ID
+                  String courtId;
+                  switch (courtName) {
+                    case 'PITE':
+                      courtId = 'court_1';
+                      break;
+                    case 'LILEN':
+                      courtId = 'court_2';
+                      break;
+                    case 'PLAIYA':
+                      courtId = 'court_3';
+                      break;
+                    default:
+                      courtId = 'court_1';
+                  }
+                  bookingProvider.selectCourt(courtId);
+                },
               ),
 
               // Estadísticas compactas
               CompactStats(
-                bookings: bookingProvider.bookings,
+                bookings: bookingProvider.currentBookings,
               ),
 
               // Lista de horarios
@@ -96,7 +113,16 @@ class ReservationsPage extends StatelessWidget {
       itemCount: AppConstants.availableTimeSlots.length,
       itemBuilder: (context, index) {
         final timeSlot = AppConstants.availableTimeSlots[index];
-        final booking = provider.getBookingForTime(timeSlot);
+        final booking = provider.getBookingForTimeSlot(timeSlot);
+
+        // DEBUG TEMPORAL
+        if (timeSlot == '16:30') {
+          print('🎰 Slot 16:30 - booking encontrado: ${booking != null}');
+          if (booking != null) {
+            print('   - Status: ${booking.status}');
+            print('   - Players: ${booking.players.length}');
+          }
+        }
         
         // Determinar estado del slot
         BookingStatus? status; // null = disponible
@@ -105,7 +131,7 @@ class ReservationsPage extends StatelessWidget {
         if (booking != null) {
           status = booking.status;
           players = booking.players
-              .where((player) => player.status == PlayerStatus.confirmed)
+              // .where((player) => player.status == PlayerStatus.confirmed)
               .toList();
         } else {
           status = null; // null = disponible

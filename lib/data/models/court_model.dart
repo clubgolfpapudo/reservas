@@ -1,51 +1,46 @@
-// lib/data/models/court_model.dart
-class CourtModel extends Court {
-  const CourtModel({
-    required super.id,
-    required super.number,
-    required super.name,
-    required super.status,
-    required super.metadata,
+import 'package:cloud_firestore/cloud_firestore.dart';
+import '../../domain/entities/court.dart';
+
+class CourtModel {
+  final String? id;
+  final String name;
+  final String description;
+  final int number;
+  final int displayOrder;
+  final String status;
+  final bool isAvailableForBooking;
+
+  CourtModel({
+    this.id,
+    required this.name,
+    required this.description,
+    required this.number,
+    required this.displayOrder,
+    required this.status,
+    required this.isAvailableForBooking,
   });
 
-  factory CourtModel.fromFirestore(DocumentSnapshot doc) {
-    final data = doc.data() as Map<String, dynamic>;
-    
+  factory CourtModel.fromFirestore(Map<String, dynamic> data, String id) {
     return CourtModel(
-      id: doc.id,
-      number: data['number'] ?? 0,
+      id: id,
       name: data['name'] ?? '',
-      status: CourtStatus.values.firstWhere(
-        (status) => status.name == data['status'],
-        orElse: () => CourtStatus.inactive,
-      ),
-      metadata: CourtMetadataModel.fromMap(data['metadata'] ?? {}),
+      description: data['description'] ?? '',
+      number: data['number'] ?? 0,
+      displayOrder: data['displayOrder'] ?? 0,
+      status: data['status'] ?? 'active',
+      isAvailableForBooking: data['isAvailableForBooking'] ?? true,
     );
   }
 
-  Map<String, dynamic> toFirestore() {
-    return {
-      'number': number,
-      'name': name,
-      'status': status.name,
-      'metadata': {
-        'createdAt': metadata.createdAt,
-        'updatedAt': metadata.updatedAt,
-      },
-    };
-  }
-}
-
-class CourtMetadataModel extends CourtMetadata {
-  const CourtMetadataModel({
-    required super.createdAt,
-    required super.updatedAt,
-  });
-
-  factory CourtMetadataModel.fromMap(Map<String, dynamic> data) {
-    return CourtMetadataModel(
-      createdAt: data['createdAt'] ?? 0,
-      updatedAt: data['updatedAt'] ?? 0,
+  Court toEntity() {
+    return Court(
+      id: id,
+      name: name,
+      description: description,
+      number: number,
+      displayOrder: displayOrder,
+      status: status,
+      isAvailableForBooking: isAvailableForBooking,
     );
   }
 }

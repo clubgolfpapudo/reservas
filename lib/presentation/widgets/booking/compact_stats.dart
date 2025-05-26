@@ -1,7 +1,7 @@
 // lib/presentation/widgets/booking/compact_stats.dart
 import 'package:flutter/material.dart';
 import '../../../domain/entities/booking.dart';
-import '../../../data/mock/mock_data.dart';
+// import '../../../data/mock/mock_data.dart';
 import '../../../core/constants/app_constants.dart';
 
 class CompactStats extends StatelessWidget {

@@ -1,209 +1,287 @@
-// lib/presentation/providers/booking_provider.dart (versión mock)
+// ============================================================================
+// lib/presentation/providers/booking_provider.dart - REEMPLAZAR COMPLETAMENTE
+// ============================================================================
+
 import 'package:flutter/material.dart';
+import 'dart:async';
+
+// Entities
 import '../../domain/entities/booking.dart';
-import '../../data/mock/mock_data.dart';
+import '../../domain/entities/court.dart';
+
+// Services  
+import '../../data/services/firestore_service.dart';
+
+// Constants
 import '../../core/constants/app_constants.dart';
 
 class BookingProvider extends ChangeNotifier {
-  // State variables
-  DateTime _selectedDate = DateTime.now();
-  String _selectedCourtId = 'court_1'; // PITE por defecto
+  // ============================================================================
+  // ESTADO PRIVADO
+  // ============================================================================
+  
+  List<Court> _courts = [];
   List<Booking> _bookings = [];
+  String _selectedCourtId = 'court_1';
+  DateTime _selectedDate = DateTime.now();
   bool _isLoading = false;
   String? _error;
-
-  // Getters
-  DateTime get selectedDate => _selectedDate;
-  String get selectedCourtId => _selectedCourtId;
-  String get selectedCourtName => AppConstants.getCourtName(_selectedCourtId);
+  
+  // Streams subscriptions para limpiar recursos
+  StreamSubscription? _courtsSubscription;
+  StreamSubscription? _bookingsSubscription;
+  
+  // ============================================================================
+  // GETTERS PÚBLICOS
+  // ============================================================================
+  
+  List<Court> get courts => _courts;
   List<Booking> get bookings => _bookings;
+  String get selectedCourtId => _selectedCourtId;
+  DateTime get selectedDate => _selectedDate;
   bool get isLoading => _isLoading;
   String? get error => _error;
+  
+  // ============================================================================
+  // COMPUTED PROPERTIES
+  // ============================================================================
+  
+  Court? get selectedCourt {
+    try {
+      return _courts.firstWhere((court) => court.id == _selectedCourtId);
+    } catch (e) {
+      return null;
+    }
+  }
+  
+  String get selectedCourtName {
+    return selectedCourt?.name ?? 'Cancha';
+  }
+  
+  List<Booking> get currentBookings {
+    final bookings = _bookings.where((booking) => booking.courtNumber == _selectedCourtId).toList();
+    print('🚨🚨🚨 DEBUG RESERVAS 🚨🚨🚨');
+    print('Court seleccionada: $_selectedCourtId');
+    print('Total bookings encontradas: ${bookings.length}');
+    if (bookings.isNotEmpty) {
+      print('Primera reserva: ${bookings[0].timeSlot}');
+    }
+    return bookings;
+  }
+  
+  // ============================================================================
+  // ESTADÍSTICAS PARA UI COMPACTA
+  // ============================================================================
+  
+  int get completeBookingsCount {
+    return currentBookings
+        .where((b) => b.status == BookingStatus.complete)
+        .length;
+  }
+  
+  int get incompleteBookingsCount {
+    return currentBookings
+        .where((b) => b.status == BookingStatus.incomplete)
+        .length;
+  }
+  
+  int get availableBookingsCount {
+    const timeSlots = ['09:00', '10:30', '12:00', '13:30', '15:00', '16:30', '18:00', '19:30'];
+    return timeSlots.length - currentBookings.length;
+  }
+  
+  // ============================================================================
+  // MÉTODOS AUXILIARES
+  // ============================================================================
 
-  // Constructor - cargar datos iniciales
+  Booking? getBookingForTimeSlot(String timeSlot) {
+    print('DEBUG: Buscando timeSlot: "$timeSlot"');
+    print('DEBUG: currentBookings count: ${currentBookings.length}');
+    print('DEBUG: currentBookings: ${currentBookings.map((b) => "${b.timeSlot} - ${b.courtNumber}").toList()}');
+    
+    try {
+      final result = currentBookings.firstWhere(
+        (booking) => booking.timeSlot == timeSlot,
+      );
+      print('DEBUG: ¡Encontrada! ${result.timeSlot} en cancha ${result.courtNumber}');
+      return result;
+    } catch (e) {
+      print('DEBUG: No encontrada para timeSlot: "$timeSlot"');
+      return null;
+    }
+  }
+
+  bool isTimeSlotAvailable(String timeSlot) {
+    return getBookingForTimeSlot(timeSlot) == null;
+  }
+  
+  // ============================================================================
+  // INICIALIZACIÓN
+  // ============================================================================
+  
   BookingProvider() {
-    _loadBookings();
+    _initializeProvider();
   }
-
-  // Cambiar fecha seleccionada
-  void selectDate(DateTime date) {
-    if (_selectedDate != date) {
-      _selectedDate = date;
-      _loadBookings();
-      notifyListeners();
-    }
-  }
-
-  // Cambiar cancha seleccionada por nombre
-  void selectCourt(String courtName) {
-    final courtId = AppConstants.getCourtId(courtName);
-    if (_selectedCourtId != courtId) {
-      _selectedCourtId = courtId;
-      _loadBookings();
-      notifyListeners();
-    }
-  }
-
-  // Cambiar cancha por ID
-  void selectCourtById(String courtId) {
-    if (_selectedCourtId != courtId) {
-      _selectedCourtId = courtId;
-      _loadBookings();
-      notifyListeners();
-    }
-  }
-
-  // Cargar datos mock usando tu estructura existente
-  Future<void> _loadBookings() async {
-    try {
-      _setLoading(true);
-      _clearError();
-
-      // Simular delay de red
-      await Future.delayed(Duration(milliseconds: 300));
-
-      // Usar tu método existente
-      final mockBookings = MockData.getBookingsForDateAndCourt(
-        _selectedDate, 
-        _selectedCourtId,
-      );
-
-      _bookings = mockBookings;
-      _setLoading(false);
-    } catch (e) {
-      _setError('Error cargando reservas: $e');
-      _setLoading(false);
-    }
-  }
-
-  // Obtener reserva por horario específico
-  Booking? getBookingForTime(String time) {
-    try {
-      return _bookings.firstWhere(
-        (booking) => booking.dateTime.time == time,
-      );
-    } catch (e) {
-      return null; // No encontrada
-    }
-  }
-
-  // Verificar si un horario está disponible
-  bool isTimeSlotAvailable(String time) {
-    return getBookingForTime(time) == null;
-  }
-
-  // Obtener estado de un horario específico (null = disponible)
-  BookingStatus? getTimeSlotStatus(String time) {
-    final booking = getBookingForTime(time);
-    return booking?.status; // null significa disponible
-  }
-
-  // Obtener jugadores activos para un horario (usando BookingPlayer)
-  List<BookingPlayer> getPlayersForTime(String time) {
-    final booking = getBookingForTime(time);
-    return booking?.players
-        .where((player) => player.status == PlayerStatus.confirmed)
-        .toList() ?? [];
-  }
-
-  // Obtener estadísticas para el CompactStats widget
-  Map<String, int> getStats() {
-    final completeCount = _bookings
-        .where((booking) => booking.status == BookingStatus.complete)
-        .length;
-    
-    final incompleteCount = _bookings
-        .where((booking) => booking.status == BookingStatus.incomplete)
-        .length;
-    
-    final totalBookedSlots = _bookings.length;
-    final availableCount = AppConstants.availableTimeSlots.length - totalBookedSlots;
-
-    return {
-      'complete': completeCount,
-      'incomplete': incompleteCount,
-      'available': availableCount >= 0 ? availableCount : 0,
-    };
-  }
-
-  // Simular creación de reserva (usando BookingPlayer)
-  Future<bool> createBooking({
-    required String time,
-    required List<BookingPlayer> players,
-    String? calendlyUri,
-  }) async {
-    try {
-      _setLoading(true);
-      _clearError();
-
-      // Simular delay de creación
-      await Future.delayed(Duration(seconds: 1));
-
-      // En implementación real, aquí iría la llamada al servicio
-      print('Mock: Creando reserva para $time con ${players.length} jugadores');
-      
-      // Recargar datos después de crear
-      await _loadBookings();
-      
-      return true;
-    } catch (e) {
-      _setError('Error creando reserva: $e');
-      _setLoading(false);
-      return false;
-    }
-  }
-
-  // Simular cancelación de jugador
-  Future<bool> cancelPlayerFromBooking(String bookingId, String playerEmail) async {
-    try {
-      _setLoading(true);
-      _clearError();
-
-      // Simular delay
-      await Future.delayed(Duration(milliseconds: 800));
-
-      print('Mock: Cancelando jugador $playerEmail de reserva $bookingId');
-      
-      // Recargar datos
-      await _loadBookings();
-      
-      return true;
-    } catch (e) {
-      _setError('Error cancelando jugador: $e');
-      _setLoading(false);
-      return false;
-    }
-  }
-
-  // Recargar datos manualmente
-  Future<void> refresh() async {
+  
+  Future<void> _initializeProvider() async {
+    print('🔥 Inicializando BookingProvider con Firebase...');
+    await _loadCourts();
     await _loadBookings();
   }
+  
+  // ============================================================================
+  // CARGA DE DATOS DESDE FIREBASE
+  // ============================================================================
+  
+  Future<void> _loadCourts() async {
+    try {
+      _setLoading(true);
+      print('📋 Cargando canchas desde Firestore...');
+      
+      // Cancelar suscripción anterior si existe
+      _courtsSubscription?.cancel();
+      
+      // Stream en tiempo real de Firestore
+      _courtsSubscription = FirestoreService.getCourts().listen(
+        (courts) {
+          print('✅ Canchas cargadas: ${courts.length}');
+          for (var court in courts) {
+            print('   - ${court.name} (${court.id})');
+          }
+          
+          _courts = courts;
+          _setLoading(false);
+          notifyListeners();
+        },
+        onError: (error) {
+          print('❌ Error cargando canchas: $error');
+          _setError('Error cargando canchas: $error');
+        },
+      );
+    } catch (e) {
+      print('❌ Error conectando con Firebase: $e');
+      _setError('Error conectando con Firebase: $e');
+    }
+  }
+  
+  Future<void> _loadBookings() async {
+    try {
+      print('📋 Cargando reservas desde Firestore para fecha: $_selectedDate');
+      
+      // Cancelar suscripción anterior si existe
+      _bookingsSubscription?.cancel();
+      
+      // Stream en tiempo real de Firestore
+      _bookingsSubscription = FirestoreService.getBookingsByDate(_selectedDate).listen(
+        (bookings) {
+          print('✅ Reservas cargadas: ${bookings.length}');
+          for (var booking in bookings) {
+            print('   - ${booking.courtNumber} ${booking.timeSlot}: ${booking.players.length} jugadores');
+          }
+          
+          _bookings = bookings;
+          notifyListeners();
+        },
+        onError: (error) {
+          print('❌ Error cargando reservas: $error');
+          _setError('Error cargando reservas: $error');
+        },
+      );
+    } catch (e) {
+      print('❌ Error cargando reservas: $e');
+      _setError('Error cargando reservas: $e');
+    }
+  }
+  
+  // ============================================================================
+  // ACCIONES DEL USUARIO
+  // ============================================================================
+  
+  void selectCourt(String courtId) {
+    if (_selectedCourtId != courtId) {
+      print('🏓 Cambiando a cancha: $courtId');
+      _selectedCourtId = courtId;
+      notifyListeners();
+    }
+  }
+  
+  void selectDate(DateTime date) {
+    if (_selectedDate != date) {
+      print('📅 Cambiando a fecha: $date');
+      _selectedDate = date;
+      _loadBookings(); // Recargar reservas para nueva fecha
+      notifyListeners();
+    }
+  }
+  
+  Future<void> refresh() async {
+    print('🔄 Refrescando datos...');
+    await _loadBookings();
+  }
+  
+  // ============================================================================
+  // OPERACIONES CRUD (Para futuro uso)
+  // ============================================================================
+  
+  Future<void> createBooking(Booking booking) async {
+    try {
+      _setLoading(true);
+      print('➕ Creando nueva reserva...');
+      
+      final bookingId = await FirestoreService.createBooking(booking);
+      print('✅ Reserva creada con ID: $bookingId');
+      
+      _setLoading(false);
+    } catch (e) {
+      print('❌ Error creando reserva: $e');
+      _setError('Error creando reserva: $e');
+    }
+  }
 
-  // Helpers privados
+  // ============================================================================
+  // GESTIÓN DE ESTADO INTERNO
+  // ============================================================================
+  
   void _setLoading(bool loading) {
     _isLoading = loading;
+    if (loading) _error = null;
     notifyListeners();
   }
-
+  
   void _setError(String error) {
     _error = error;
+    _isLoading = false;
     notifyListeners();
   }
-
-  void _clearError() {
+  
+  void clearError() {
     _error = null;
+    notifyListeners();
   }
-
-  // Método para debugging
-  void debugPrintBookings() {
-    print('=== BOOKINGS DEBUG ===');
-    print('Date: $_selectedDate');
-    print('Court: $_selectedCourtId (${selectedCourtName})');
-    print('Bookings count: ${_bookings.length}');
-    for (final booking in _bookings) {
-      print('  ${booking.dateTime.time} - ${booking.status} - ${booking.activePlayersCount} players');
-    }
-    print('===================');
+  
+  // ============================================================================
+  // CLEANUP - Importante para evitar memory leaks
+  // ============================================================================
+  
+  @override
+  void dispose() {
+    print('🧹 Limpiando BookingProvider...');
+    _courtsSubscription?.cancel();
+    _bookingsSubscription?.cancel();
+    super.dispose();
+  }
+  
+  // ============================================================================
+  // DEBUG - Método para verificar estado
+  // ============================================================================
+  
+  void debugPrintState() {
+    print('🐛 BookingProvider State:');
+    print('   - Courts: ${_courts.length}');
+    print('   - Bookings: ${_bookings.length}');
+    print('   - Selected Court: $_selectedCourtId');
+    print('   - Selected Date: $_selectedDate');
+    print('   - Loading: $_isLoading');
+    print('   - Error: $_error');
   }
 }
