@@ -66,37 +66,3 @@ class Court extends Equatable {
     );
   }
 }
-
-// ============================================================================
-// lib/core/constants/app_constants.dart - VERIFICAR QUE TENGAS ESTO
-// ============================================================================
-
-class AppConstants {
-  // Horarios disponibles
-  static const List<String> timeSlots = [
-    '09:00',
-    '10:30', 
-    '12:00',
-    '13:30',
-    '15:00',
-    '16:30',
-    '18:00',
-    '19:30',
-  ];
-  
-  // Mapeo de IDs de canchas a nombres
-  static const Map<String, String> courtNames = {
-    'court_1': 'PITE',
-    'court_2': 'LILEN', 
-    'court_3': 'PLAIYA',
-  };
-  
-  // Duraciones de animación
-  static const Duration animationDuration = Duration(milliseconds: 300);
-  static const Duration fastAnimationDuration = Duration(milliseconds: 150);
-  
-  // Colores
-  static const String primaryBlue = '#2E7AFF';
-  static const String lightBlue = '#E8F4F9';
-  static const String orange = '#FF7530';
-}

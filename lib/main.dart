@@ -1,57 +1,50 @@
-// ============================================================================
-// lib/main.dart - LIMPIAR Y REEMPLAZAR COMPLETAMENTE
-// ============================================================================
-
+// lib/main.dart - CONFIGURACIÓN REAL DE FIREBASE
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:firebase_core/firebase_core.dart';
-import 'firebase_options.dart';
+
+// Pages
+import 'presentation/pages/reservations_page.dart';
 
 // Providers
 import 'presentation/providers/booking_provider.dart';
-import 'presentation/providers/user_provider.dart';
-
-// Pages
-import 'presentation/pages/reservations_page.dart'; // Cambiado a reservations_page
-
-// Utils
-import 'utils/firebase_seeder.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   
-  print("🔥 Inicializando Firebase...");
-  
-  // Inicializar Firebase
+  // Inicializar Firebase con tu configuración real
   await Firebase.initializeApp(
-    options: DefaultFirebaseOptions.currentPlatform,
+    options: const FirebaseOptions(
+      apiKey: "AIzaSyDdXsf0ZxA8IS7GD9pDAnAwkJF0sq6YVRE",
+      authDomain: "cgpreservas.firebaseapp.com",
+      projectId: "cgpreservas",
+      storageBucket: "cgpreservas.firebasestorage.app",
+      messagingSenderId: "577498054078",
+      appId: "1:577498054078:web:fb7b12b9e355065d3d0def",
+    ),
   );
   
-  print("✅ Firebase inicializado correctamente");
-  
-  // Poblar datos iniciales (descomenta solo la primera vez)
-  // await FirebaseSeeder.seedData();
+  print('🔥 Firebase inicializado correctamente para proyecto: cgpreservas');
   
   runApp(const MyApp());
 }
 
 class MyApp extends StatelessWidget {
-  const MyApp({super.key});
+  const MyApp({Key? key}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
     return MultiProvider(
       providers: [
         ChangeNotifierProvider(create: (_) => BookingProvider()),
-        ChangeNotifierProvider(create: (_) => UserProvider()),
       ],
       child: MaterialApp(
         title: 'CGP Reservas',
         theme: ThemeData(
           primarySwatch: Colors.blue,
-          fontFamily: 'Roboto',
+          useMaterial3: true,
         ),
-        home: const ReservationsPage(), // Directo a reservas
+        home: const ReservationsPage(),
         debugShowCheckedModeBanner: false,
       ),
     );

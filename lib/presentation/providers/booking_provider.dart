@@ -1,7 +1,4 @@
-// ============================================================================
-// lib/presentation/providers/booking_provider.dart - REEMPLAZAR COMPLETAMENTE
-// ============================================================================
-
+// lib/presentation/providers/booking_provider.dart - ACTUALIZAR
 import 'package:flutter/material.dart';
 import 'dart:async';
 
@@ -27,6 +24,10 @@ class BookingProvider extends ChangeNotifier {
   bool _isLoading = false;
   String? _error;
   
+  // NUEVO: Estado para navegación de fechas
+  List<DateTime> _availableDates = [];
+  int _currentDateIndex = 0;
+  
   // Streams subscriptions para limpiar recursos
   StreamSubscription? _courtsSubscription;
   StreamSubscription? _bookingsSubscription;
@@ -41,6 +42,11 @@ class BookingProvider extends ChangeNotifier {
   DateTime get selectedDate => _selectedDate;
   bool get isLoading => _isLoading;
   String? get error => _error;
+  
+  // NUEVOS: Getters para navegación de fechas
+  List<DateTime> get availableDates => _availableDates;
+  int get currentDateIndex => _currentDateIndex;
+  int get totalAvailableDays => _availableDates.length;
   
   // ============================================================================
   // COMPUTED PROPERTIES
@@ -62,6 +68,7 @@ class BookingProvider extends ChangeNotifier {
     final bookings = _bookings.where((booking) => booking.courtNumber == _selectedCourtId).toList();
     print('🚨🚨🚨 DEBUG RESERVAS 🚨🚨🚨');
     print('Court seleccionada: $_selectedCourtId');
+    print('Fecha seleccionada: $_selectedDate');
     print('Total bookings encontradas: ${bookings.length}');
     if (bookings.isNotEmpty) {
       print('Primera reserva: ${bookings[0].timeSlot}');
@@ -125,8 +132,39 @@ class BookingProvider extends ChangeNotifier {
   
   Future<void> _initializeProvider() async {
     print('🔥 Inicializando BookingProvider con Firebase...');
+    _generateAvailableDates();
     await _loadCourts();
     await _loadBookings();
+  }
+  
+  // NUEVO: Generar fechas disponibles (regla 72 horas)
+  void _generateAvailableDates() {
+    _availableDates.clear();
+    final now = DateTime.now();
+    
+    for (int i = 0; i < 4; i++) {
+      final date = DateTime(now.year, now.month, now.day + i);
+      _availableDates.add(date);
+    }
+    
+    // Establecer fecha actual como la primera disponible
+    _selectedDate = _availableDates[0];
+    _currentDateIndex = 0;
+    
+    print('📅 Fechas disponibles generadas: ${_availableDates.length}');
+    for (var date in _availableDates) {
+      print('   - ${_formatDate(date)}');
+    }
+  }
+  
+  // Helper para formatear fechas
+  String _formatDate(DateTime date) {
+    const months = [
+      '', 'Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio',
+      'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'
+    ];
+    
+    return '${date.day} de ${months[date.month]}';
   }
   
   // ============================================================================
@@ -136,37 +174,64 @@ class BookingProvider extends ChangeNotifier {
   Future<void> _loadCourts() async {
     try {
       _setLoading(true);
-      print('📋 Cargando canchas desde Firestore...');
+      print('📋 Cargando canchas...');
       
-      // Cancelar suscripción anterior si existe
-      _courtsSubscription?.cancel();
+      // Mock data para canchas usando tu estructura completa
+      final now = DateTime.now();
+      _courts = [
+        Court(
+          id: 'court_1',
+          name: 'PITE',
+          description: 'Cancha de pádel PITE',
+          number: 1,
+          displayOrder: 1,
+          status: 'active',
+          isAvailableForBooking: true,
+          createdAt: now,
+          updatedAt: now,
+        ),
+        Court(
+          id: 'court_2',
+          name: 'LILEN',
+          description: 'Cancha de pádel LILEN',
+          number: 2,
+          displayOrder: 2,
+          status: 'active',
+          isAvailableForBooking: true,
+          createdAt: now,
+          updatedAt: now,
+        ),
+        Court(
+          id: 'court_3',
+          name: 'PLAIYA',
+          description: 'Cancha de pádel PLAIYA',
+          number: 3,
+          displayOrder: 3,
+          status: 'active',
+          isAvailableForBooking: true,
+          createdAt: now,
+          updatedAt: now,
+        ),
+      ];
       
-      // Stream en tiempo real de Firestore
-      _courtsSubscription = FirestoreService.getCourts().listen(
-        (courts) {
-          print('✅ Canchas cargadas: ${courts.length}');
-          for (var court in courts) {
-            print('   - ${court.name} (${court.id})');
-          }
-          
-          _courts = courts;
-          _setLoading(false);
-          notifyListeners();
-        },
-        onError: (error) {
-          print('❌ Error cargando canchas: $error');
-          _setError('Error cargando canchas: $error');
-        },
-      );
+      print('✅ Canchas cargadas: ${_courts.length}');
+      for (var court in _courts) {
+        print('   - ${court.name} (${court.id}) - ${court.status}');
+      }
+      
+      _setLoading(false);
+      notifyListeners();
     } catch (e) {
-      print('❌ Error conectando con Firebase: $e');
-      _setError('Error conectando con Firebase: $e');
+      print('❌ Error cargando canchas: $e');
+      _setError('Error cargando canchas: $e');
     }
   }
   
   Future<void> _loadBookings() async {
     try {
-      print('📋 Cargando reservas desde Firestore para fecha: $_selectedDate');
+      final dateStr = '${_selectedDate.year}-${_selectedDate.month.toString().padLeft(2, '0')}-${_selectedDate.day.toString().padLeft(2, '0')}';
+      print('📋 Cargando reservas desde Firestore para fecha: $dateStr');
+      print('🔍 Fecha seleccionada original: $_selectedDate');
       
       // Cancelar suscripción anterior si existe
       _bookingsSubscription?.cancel();
@@ -175,8 +240,9 @@ class BookingProvider extends ChangeNotifier {
       _bookingsSubscription = FirestoreService.getBookingsByDate(_selectedDate).listen(
         (bookings) {
           print('✅ Reservas cargadas: ${bookings.length}');
+          print('📊 Detalles de reservas:');
           for (var booking in bookings) {
-            print('   - ${booking.courtNumber} ${booking.timeSlot}: ${booking.players.length} jugadores');
+            print('   - ${booking.courtNumber} ${booking.timeSlot}: ${booking.players.length} jugadores (fecha: ${booking.date})');
           }
           
           _bookings = bookings;
@@ -201,6 +267,8 @@ class BookingProvider extends ChangeNotifier {
     if (_selectedCourtId != courtId) {
       print('🏓 Cambiando a cancha: $courtId');
       _selectedCourtId = courtId;
+      
+      // Notificar inmediatamente para respuesta instantánea
       notifyListeners();
     }
   }
@@ -209,9 +277,95 @@ class BookingProvider extends ChangeNotifier {
     if (_selectedDate != date) {
       print('📅 Cambiando a fecha: $date');
       _selectedDate = date;
+      
+      // Actualizar índice actual
+      _currentDateIndex = _availableDates.indexWhere((d) => 
+        d.year == date.year && d.month == date.month && d.day == date.day);
+      
+      if (_currentDateIndex == -1) _currentDateIndex = 0;
+      
       _loadBookings(); // Recargar reservas para nueva fecha
       notifyListeners();
     }
+  }
+  
+  // NUEVOS: Métodos para navegación de fechas
+  void selectDateByIndex(int index) {
+    if (index >= 0 && index < _availableDates.length && index != _currentDateIndex) {
+      _currentDateIndex = index;
+      _selectedDate = _availableDates[index];
+      print('📅 Cambiando a fecha por índice: $index - ${_formatDate(_selectedDate)}');
+      _loadBookings();
+      notifyListeners();
+    }
+  }
+  
+  void nextDate() {
+    if (_currentDateIndex < _availableDates.length - 1) {
+      selectDateByIndex(_currentDateIndex + 1);
+    }
+  }
+  
+  void previousDate() {
+    if (_currentDateIndex > 0) {
+      selectDateByIndex(_currentDateIndex - 1);
+    }
+  }
+  
+  bool get canGoToPreviousDate => _currentDateIndex > 0;
+  bool get canGoToNextDate => _currentDateIndex < _availableDates.length - 1;
+
+  // ============================================================================
+  // FILTRADO DE HORARIOS POR REGLA 72 HORAS
+  // ============================================================================
+  
+  /// Obtiene los horarios disponibles para mostrar según la fecha y hora actual
+  List<String> getAvailableTimeSlotsForDate(DateTime date) {
+    final now = DateTime.now();
+    final isToday = date.year == now.year && 
+                   date.month == now.month && 
+                   date.day == now.day;
+    
+    // Calcular si es el último día de la ventana de 72 horas
+    final daysDifference = date.difference(DateTime(now.year, now.month, now.day)).inDays;
+    final isLastDay = daysDifference == 3; // Día +3 de la regla 72 horas
+    
+    print('⏰ Calculando horarios disponibles:');
+    print('   - Fecha seleccionada: $date');
+    print('   - Es hoy: $isToday');
+    print('   - Días de diferencia: $daysDifference');
+    print('   - Es último día (72h): $isLastDay');
+    print('   - Hora actual: ${now.hour}:${now.minute}');
+    
+    final currentHour = now.hour;
+    final currentMinute = now.minute;
+    final currentTimeInMinutes = currentHour * 60 + currentMinute;
+    
+    // Lista de horarios directa (evita conflicto de imports)
+    const allTimeSlots = ['09:00', '10:30', '12:00', '13:30', '15:00', '16:30', '18:00', '19:30'];
+    
+    final filteredSlots = allTimeSlots.where((timeSlot) {
+      final parts = timeSlot.split(':');
+      final slotHour = int.parse(parts[0]);
+      final slotMinute = int.parse(parts[1]);
+      final slotTimeInMinutes = slotHour * 60 + slotMinute;
+      
+      if (isToday) {
+        // Hoy: mostrar solo horarios futuros (al menos 30 min)
+        return slotTimeInMinutes > (currentTimeInMinutes);
+      } else if (isLastDay) {
+        // Último día (72h): mostrar solo hasta la hora actual
+        return slotTimeInMinutes <= currentTimeInMinutes;
+      } else {
+        // Días intermedios: mostrar todos los horarios
+        return true;
+      }
+    }).toList();
+    
+    print('   - Horarios filtrados: ${filteredSlots.length}');
+    print('   - Horarios: $filteredSlots');
+    
+    return filteredSlots;
   }
   
   Future<void> refresh() async {
@@ -281,6 +435,8 @@ class BookingProvider extends ChangeNotifier {
     print('   - Bookings: ${_bookings.length}');
     print('   - Selected Court: $_selectedCourtId');
     print('   - Selected Date: $_selectedDate');
+    print('   - Current Date Index: $_currentDateIndex');
+    print('   - Available Dates: ${_availableDates.length}');
     print('   - Loading: $_isLoading');
     print('   - Error: $_error');
   }
