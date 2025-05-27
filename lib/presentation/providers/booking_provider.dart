@@ -80,21 +80,51 @@ class BookingProvider extends ChangeNotifier {
   // ESTADÍSTICAS PARA UI COMPACTA
   // ============================================================================
   
-  int get completeBookingsCount {
-    return currentBookings
-        .where((b) => b.status == BookingStatus.complete)
-        .length;
+  // ✅ NUEVOS MÉTODOS que reciben horarios filtrados como parámetro:
+
+  /// Calcula estadísticas basadas SOLO en los horarios visibles en pantalla
+  Map<String, int> getStatsForVisibleTimeSlots(List<String> visibleTimeSlots) {
+    int completeCount = 0;
+    int incompleteCount = 0;
+    int availableCount = 0;
+    
+    print('📊 Calculando estadísticas para horarios visibles: $visibleTimeSlots');
+    
+    for (final timeSlot in visibleTimeSlots) {
+      final booking = getBookingForTimeSlot(timeSlot);
+      
+      if (booking == null) {
+        availableCount++;
+        print('   - $timeSlot: DISPONIBLE');
+      } else if (booking.status == BookingStatus.complete) {
+        completeCount++;
+        print('   - $timeSlot: COMPLETA (${booking.players.length} jugadores)');
+      } else if (booking.status == BookingStatus.incomplete) {
+        incompleteCount++;
+        print('   - $timeSlot: INCOMPLETA (${booking.players.length} jugadores)');
+      }
+    }
+    
+    print('📊 Resultado final: $completeCount completas, $incompleteCount incompletas, $availableCount disponibles');
+    
+    return {
+      'complete': completeCount,
+      'incomplete': incompleteCount,
+      'available': availableCount,
+    };
   }
-  
-  int get incompleteBookingsCount {
-    return currentBookings
-        .where((b) => b.status == BookingStatus.incomplete)
-        .length;
+
+  // Métodos de conveniencia que mantienen la API existente pero calculan correctamente
+  int getCompleteBookingsCount(List<String> visibleTimeSlots) {
+    return getStatsForVisibleTimeSlots(visibleTimeSlots)['complete'] ?? 0;
   }
-  
-  int get availableBookingsCount {
-    const timeSlots = ['09:00', '10:30', '12:00', '13:30', '15:00', '16:30', '18:00', '19:30'];
-    return timeSlots.length - currentBookings.length;
+
+  int getIncompleteBookingsCount(List<String> visibleTimeSlots) {
+    return getStatsForVisibleTimeSlots(visibleTimeSlots)['incomplete'] ?? 0;
+  }
+
+  int getAvailableBookingsCount(List<String> visibleTimeSlots) {
+    return getStatsForVisibleTimeSlots(visibleTimeSlots)['available'] ?? 0;
   }
   
   // ============================================================================
