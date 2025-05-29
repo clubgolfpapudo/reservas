@@ -1,4 +1,4 @@
-// lib/presentation/widgets/common/date_navigation_header.dart - VERSIÓN CORREGIDA
+// lib/presentation/widgets/common/date_navigation_header.dart - LAYOUT COMPACTO UNA LÍNEA
 import 'package:flutter/material.dart';
 
 class DateNavigationHeader extends StatelessWidget {
@@ -35,10 +35,10 @@ class DateNavigationHeader extends StatelessWidget {
       ),
       child: SafeArea(
         child: Padding(
-          padding: const EdgeInsets.fromLTRB(16, 8, 16, 12), // ✅ Reduced padding
+          padding: const EdgeInsets.fromLTRB(16, 8, 16, 12),
           child: Column(
             children: [
-              // Header principal - REORGANIZADO
+              // ✅ HEADER PRINCIPAL - TODO EN UNA LÍNEA CENTRADO
               Row(
                 children: [
                   // Botón atrás
@@ -47,57 +47,68 @@ class DateNavigationHeader extends StatelessWidget {
                     onPressed: onBackPressed,
                   ),
                   
-                  // Título compacto con fecha
+                  // ✅ CENTRO: TÍTULO + FECHA + FLECHAS JUNTOS
                   Expanded(
-                    child: GestureDetector(
-                      onTap: onDateTap,
-                      child: Column(
-                        children: [
-                          // Solo el título principal
-                          Text(
-                            'Reservas Pádel',
-                            style: const TextStyle(
-                              color: Colors.white,
-                              fontSize: 16, // ✅ Smaller font
-                              fontWeight: FontWeight.w600,
+                    child: Center(
+                      child: GestureDetector(
+                        onTap: onDateTap,
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            // Título principal
+                            const Text(
+                              'Pádel',
+                              style: TextStyle(
+                                color: Colors.white,
+                                fontSize: 16,
+                                fontWeight: FontWeight.w600,
+                              ),
                             ),
-                            overflow: TextOverflow.ellipsis, // ✅ Handle overflow
-                          ),
-                          const SizedBox(height: 2),
-                          // Fecha en línea separada
-                          Text(
-                            _formatDate(currentDate),
-                            style: TextStyle(
-                              color: Colors.white.withOpacity(0.85),
-                              fontSize: 12,
-                              fontWeight: FontWeight.w400,
+                            
+                            // Separador
+                            Text(
+                              ' • ',
+                              style: TextStyle(
+                                color: Colors.white.withOpacity(0.7),
+                                fontSize: 16,
+                                fontWeight: FontWeight.w400,
+                              ),
                             ),
-                            overflow: TextOverflow.ellipsis, // ✅ Handle overflow
-                          ),
-                        ],
+                            
+                            // Fecha
+                            Text(
+                              _formatDateCompact(currentDate),
+                              style: TextStyle(
+                                color: Colors.white.withOpacity(0.9),
+                                fontSize: 16,
+                                fontWeight: FontWeight.w500,
+                              ),
+                            ),
+                            
+                            const SizedBox(width: 12),
+                            
+                            // ✅ FLECHAS INMEDIATAMENTE DESPUÉS DE LA FECHA
+                            Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                _buildNavButton(
+                                  icon: Icons.chevron_left,
+                                  onPressed: currentIndex > 0 ? onPreviousDate : null,
+                                ),
+                                const SizedBox(width: 4),
+                                _buildNavButton(
+                                  icon: Icons.chevron_right,
+                                  onPressed: currentIndex < totalDays - 1 ? onNextDate : null,
+                                ),
+                              ],
+                            ),
+                          ],
+                        ),
                       ),
                     ),
                   ),
 
-                  // Flechas de navegación - SEPARADAS
-                  Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      _buildNavButton(
-                        icon: Icons.chevron_left,
-                        onPressed: currentIndex > 0 ? onPreviousDate : null,
-                      ),
-                      const SizedBox(width: 4),
-                      _buildNavButton(
-                        icon: Icons.chevron_right,
-                        onPressed: currentIndex < totalDays - 1 ? onNextDate : null,
-                      ),
-                    ],
-                  ),
-
-                  const SizedBox(width: 8),
-
-                  // Botón agregar
+                  // Botón agregar (equilibra el layout)
                   _buildActionButton(
                     icon: Icons.add,
                     onPressed: onAddPressed,
@@ -105,9 +116,9 @@ class DateNavigationHeader extends StatelessWidget {
                 ],
               ),
 
-              const SizedBox(height: 8), // ✅ Reduced spacing
+              const SizedBox(height: 8),
 
-              // Indicadores de días
+              // Indicadores de días (más compactos)
               _buildDateIndicators(),
             ],
           ),
@@ -140,18 +151,18 @@ class DateNavigationHeader extends StatelessWidget {
     VoidCallback? onPressed,
   }) {
     return Container(
-      width: 24,
-      height: 24,
+      width: 28, // ✅ Ligeramente más grande para mejor usabilidad móvil
+      height: 28,
       decoration: BoxDecoration(
         color: Colors.white.withOpacity(onPressed != null ? 0.15 : 0.05),
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: BorderRadius.circular(14),
       ),
       child: IconButton(
         padding: EdgeInsets.zero,
         icon: Icon(
           icon,
           color: Colors.white.withOpacity(onPressed != null ? 0.9 : 0.3),
-          size: 12,
+          size: 16, // ✅ Ícono más grande para mejor tap target
         ),
         onPressed: onPressed,
       ),
@@ -166,7 +177,7 @@ class DateNavigationHeader extends StatelessWidget {
         return AnimatedContainer(
           duration: const Duration(milliseconds: 300),
           margin: const EdgeInsets.symmetric(horizontal: 3),
-          width: isActive ? 16 : 6, // ✅ Slightly smaller active indicator
+          width: isActive ? 14 : 6,
           height: 6,
           decoration: BoxDecoration(
             color: Colors.white.withOpacity(isActive ? 1.0 : 0.3),
@@ -177,12 +188,14 @@ class DateNavigationHeader extends StatelessWidget {
     );
   }
 
-  String _formatDate(DateTime date) {
+  // ✅ FORMATO DE FECHA COMPLETO PERO COMPACTO
+  String _formatDateCompact(DateTime date) {
     const months = [
       '', 'Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio',
-      'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'
+      'Jul', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'
     ];
     
-    return '${date.day} de ${months[date.month]}';
+    // Formato: "28 Mayo" - completo pero sin "de"
+    return '${date.day} ${months[date.month]}';
   }
 }

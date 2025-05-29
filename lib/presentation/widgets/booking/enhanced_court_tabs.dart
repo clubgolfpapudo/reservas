@@ -1,5 +1,6 @@
-// lib/presentation/widgets/booking/enhanced_court_tabs.dart
+// lib/presentation/widgets/booking/enhanced_court_tabs.dart - ANDROID COLOR FIX
 import 'package:flutter/material.dart';
+import '../../../core/constants/app_constants.dart';
 
 class EnhancedCourtTabs extends StatefulWidget {
   final String selectedCourt;
@@ -17,51 +18,45 @@ class EnhancedCourtTabs extends StatefulWidget {
 
 class _EnhancedCourtTabsState extends State<EnhancedCourtTabs>
     with TickerProviderStateMixin {
-  late AnimationController _shineController;
-  late Animation<double> _shineAnimation;
+  late AnimationController _glowController;
+  late Animation<double> _glowAnimation;
 
   @override
   void initState() {
     super.initState();
-    _shineController = AnimationController(
-      duration: const Duration(seconds: 2),
+    _glowController = AnimationController(
+      duration: const Duration(milliseconds: 1200), // ✅ Más lento para Android
       vsync: this,
     );
-    _shineAnimation = Tween<double>(
-      begin: -1.0,
-      end: 1.0,
+    _glowAnimation = Tween<double>(
+      begin: 0.2,
+      end: 0.6,
     ).animate(CurvedAnimation(
-      parent: _shineController,
+      parent: _glowController,
       curve: Curves.easeInOut,
     ));
 
-    // Iniciar animación de brillo cada 3 segundos
-    _shineController.repeat(period: const Duration(seconds: 3));
+    _glowController.repeat(reverse: true);
   }
 
   @override
   void dispose() {
-    _shineController.dispose();
+    _glowController.dispose();
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
-    const courtNames = ['PITE', 'LILEN', 'PLAIYA'];
-    
-    return Padding(
-      padding: const EdgeInsets.fromLTRB(20, 16, 20, 8),
+    return Container(
+      margin: const EdgeInsets.fromLTRB(20, 16, 20, 0),
       child: Row(
-        children: courtNames.map((courtName) {
-          final isSelected = widget.selectedCourt == courtName;
+        children: AppConstants.courtNames.map((courtName) {
           return Expanded(
             child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 4),
-              child: _buildCourtTab(
-                courtName: courtName,
-                isSelected: isSelected,
-                onTap: () => widget.onCourtSelected(courtName),
+              padding: EdgeInsets.only(
+                right: courtName != AppConstants.courtNames.last ? 8.0 : 0,
               ),
+              child: _buildTab(courtName),
             ),
           );
         }).toList(),
@@ -69,88 +64,78 @@ class _EnhancedCourtTabsState extends State<EnhancedCourtTabs>
     );
   }
 
-  Widget _buildCourtTab({
-    required String courtName,
-    required bool isSelected,
-    required VoidCallback onTap,
-  }) {
-    return AnimatedContainer(
-      duration: const Duration(milliseconds: 200), // ← Reducido de 300ms a 200ms
-      curve: Curves.easeOut,
-      transform: Matrix4.identity()
-        ..translate(0.0, isSelected ? -2.0 : 0.0),
-      child: GestureDetector(
-        onTap: onTap,
-        child: Container(
-          padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 16),
-          decoration: BoxDecoration(
-            gradient: isSelected
-                ? const LinearGradient(
-                    begin: Alignment.topLeft,
-                    end: Alignment.bottomRight,
-                    colors: [Color(0xFF2E7AFF), Color(0xFF1a5ce6)],
-                  )
-                : null,
-            color: isSelected ? null : const Color(0xFFF8F9FA),
-            borderRadius: BorderRadius.circular(12),
-            border: Border.all(
-              color: isSelected ? const Color(0xFF2E7AFF) : const Color(0xFFE9ECEF),
-              width: 1,
-            ),
-            boxShadow: isSelected
-                ? [
-                    BoxShadow(
-                      color: const Color(0xFF2E7AFF).withOpacity(0.3),
-                      blurRadius: 12,
-                      offset: const Offset(0, 4),
-                    ),
-                  ]
-                : null,
-          ),
-          child: Stack(
-            children: [
-              // Efecto de brillo más sutil y rápido
-              if (isSelected)
-                AnimatedBuilder(
-                  animation: _shineAnimation,
-                  builder: (context, child) {
-                    return Positioned.fill(
-                      child: ClipRRect(
-                        borderRadius: BorderRadius.circular(11),
-                        child: Container(
-                          decoration: BoxDecoration(
-                            gradient: LinearGradient(
-                              begin: Alignment(_shineAnimation.value - 0.2, 0), // ← Área más pequeña
-                              end: Alignment(_shineAnimation.value + 0.2, 0),   // ← Área más pequeña
-                              colors: const [
-                                Colors.transparent,
-                                Colors.white10, // ← Más sutil (era white24)
-                                Colors.transparent,
-                              ],
-                              stops: const [0.0, 0.5, 1.0],
-                            ),
-                          ),
-                        ),
-                      ),
-                    );
-                  },
-                ),
-              
-              // Texto del tab
-              Center(
-                child: Text(
-                  courtName,
-                  style: TextStyle(
-                    color: isSelected ? Colors.white : const Color(0xFF6C757D),
-                    fontSize: 14,
-                    fontWeight: FontWeight.w600,
+  Widget _buildTab(String courtName) {
+    final isSelected = widget.selectedCourt == courtName;
+    
+    // ✅ OBTENER colores como Color objects directamente
+    final primaryColor = _getCourtPrimaryColor(courtName);
+    final darkColor = _getCourtDarkColor(courtName);
+
+    return GestureDetector(
+      onTap: () {
+        print('🎾 Seleccionando cancha: $courtName');
+        widget.onCourtSelected(courtName);
+      },
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 250), // ✅ Más lento para Android
+        padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
+        decoration: BoxDecoration(
+          // ✅ USAR COLOR SÓLIDO en lugar de gradiente para Android
+          color: isSelected ? primaryColor : Colors.grey[100],
+          borderRadius: BorderRadius.circular(8),
+          border: isSelected
+              ? Border.all(color: darkColor, width: 2) // ✅ Borde sólido
+              : Border.all(color: Colors.grey[300]!, width: 1),
+          // ✅ SOMBRA SIMPLIFICADA para Android
+          boxShadow: isSelected
+              ? [
+                  BoxShadow(
+                    color: primaryColor.withOpacity(0.4),
+                    blurRadius: 8,
+                    offset: const Offset(0, 3),
                   ),
-                ),
-              ),
-            ],
+                ]
+              : null,
+        ),
+        child: Center(
+          child: Text(
+            courtName,
+            style: TextStyle(
+              fontSize: 14,
+              fontWeight: FontWeight.w600,
+              color: isSelected ? Colors.white : Colors.grey[700],
+            ),
+            overflow: TextOverflow.ellipsis,
           ),
         ),
       ),
     );
+  }
+
+  // ✅ MÉTODOS HELPER PARA COLORES CONSISTENTES
+  Color _getCourtPrimaryColor(String courtName) {
+    switch (courtName) {
+      case 'PITE':
+        return const Color(0xFFFF6B35); // 🟠 Naranja Intenso
+      case 'LILEN':
+        return const Color(0xFF00C851); // 🟢 Verde Esmeralda
+      case 'PLAIYA':
+        return const Color(0xFF8E44AD); // 🟣 Púrpura Vibrante
+      default:
+        return const Color(0xFF2196F3); // Azul por defecto
+    }
+  }
+
+  Color _getCourtDarkColor(String courtName) {
+    switch (courtName) {
+      case 'PITE':
+        return const Color(0xFFE55527); // Naranja más oscuro
+      case 'LILEN':
+        return const Color(0xFF007E33); // Verde más oscuro
+      case 'PLAIYA':
+        return const Color(0xFF6C3483); // Púrpura más oscuro
+      default:
+        return const Color(0xFF1976D2); // Azul oscuro por defecto
+    }
   }
 }

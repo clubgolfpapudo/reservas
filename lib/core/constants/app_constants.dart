@@ -1,4 +1,6 @@
-// lib/core/constants/app_constants.dart
+// lib/core/constants/app_constants.dart - VERSIÓN CORREGIDA
+import 'package:flutter/material.dart'; // ✅ AGREGAR este import
+
 abstract class AppConstants {
   // ═══════════════════════════════════════════════════════════════════════════
   // INFORMACIÓN DE LA APP
@@ -61,10 +63,18 @@ abstract class AppConstants {
     'PLAIYA': 3,
   };
   
+  // ✅ COLORES ACTUALIZADOS CON PROPUESTA
   static const Map<String, String> courtColors = {
-    'PITE': '#FF5722',    // Naranja
-    'LILEN': '#2196F3',   // Azul
-    'PLAIYA': '#4CAF50',  // Verde
+    'PITE': '#FF6B35',     // 🟠 Naranja Intenso
+    'LILEN': '#00C851',    // 🟢 Verde Esmeralda  
+    'PLAIYA': '#8E44AD',   // 🟣 Púrpura Vibrante
+  };
+
+  // ✅ COLORES OSCUROS PARA SOMBRAS/BORDES
+  static const Map<String, String> courtColorsDark = {
+    'PITE': '#E55527',     // Naranja más oscuro
+    'LILEN': '#007E33',    // Verde más oscuro
+    'PLAIYA': '#6C3483',   // Púrpura más oscuro
   };
   
   // ═══════════════════════════════════════════════════════════════════════════
@@ -247,12 +257,29 @@ abstract class AppConstants {
     return names[weekday] ?? '';
   }
   
-  /// Obtiene el color de una cancha
+  /// Obtiene el color de una cancha (HEX string)
   static String getCourtColor(String courtName) {
     return courtColors[courtName] ?? '#2196F3';
   }
+
+  /// ✅ NUEVO: Obtiene el color oscuro de una cancha (HEX string)
+  static String getCourtColorDark(String courtName) {
+    return courtColorsDark[courtName] ?? '#1976D2';
+  }
+
+  /// ✅ NUEVO: Convierte color hex a Color de Flutter
+  static Color getCourtColorAsColor(String courtName) {
+    final hexColor = getCourtColor(courtName);
+    return Color(int.parse(hexColor.substring(1, 7), radix: 16) + 0xFF000000);
+  }
+
+  /// ✅ NUEVO: Obtiene color oscuro como Color de Flutter
+  static Color getCourtColorDarkAsColor(String courtName) {
+    final hexColor = getCourtColorDark(courtName);
+    return Color(int.parse(hexColor.substring(1, 7), radix: 16) + 0xFF000000);
+  }
   
-  /// Obtiene el número de una cancha (método existente)
+  /// Obtiene el número de una cancha
   static int getCourtNumber(String courtName) {
     return courtNumbers[courtName] ?? 1;
   }
@@ -275,60 +302,4 @@ abstract class AppConstants {
   static String getCourtId(String courtName) {
     return courtNameToId[courtName] ?? 'court_1';
   }
-}
-
-// ═══════════════════════════════════════════════════════════════════════════════
-// CONSTANTES DE FIREBASE
-// ═══════════════════════════════════════════════════════════════════════════════
-abstract class FirebaseConstants {
-  // Colecciones
-  static const String bookingsCollection = 'bookings';
-  static const String courtsCollection = 'courts';
-  static const String usersCollection = 'users';
-  static const String settingsCollection = 'settings';
-  
-  // Documentos de configuración
-  static const String generalSettingsDoc = 'general';
-  static const String schedulesSettingsDoc = 'schedules';
-  
-  // Campos comunes para queries
-  static const String createdAtField = 'metadata.createdAt';
-  static const String updatedAtField = 'metadata.updatedAt';
-  static const String statusField = 'status';
-  static const String dateField = 'dateTime.date';
-  static const String timeField = 'dateTime.time';
-  static const String courtIdField = 'courtId';
-  static const String activePlayersCountField = 'activePlayersCount';
-  static const String roleField = 'role';
-  static const String isActiveField = 'isActive';
-  
-  // Valores de estado
-  static const String statusComplete = 'complete';
-  static const String statusIncomplete = 'incomplete';
-  static const String statusCancelled = 'cancelled';
-  
-  // Valores de rol
-  static const String roleAdmin = 'admin';
-  static const String roleSocioTitular = 'socio_titular';
-  static const String roleHijoSocio = 'hijo_socio';
-  static const String roleVisita = 'visita';
-  static const String roleFilial = 'filial';
-}
-
-// ═══════════════════════════════════════════════════════════════════════════════
-// CONSTANTES DE RUTAS
-// ═══════════════════════════════════════════════════════════════════════════════
-abstract class RouteConstants {
-  static const String splash = '/';
-  static const String home = '/home';
-  static const String login = '/login';
-  static const String register = '/register';
-  static const String booking = '/booking';
-  static const String bookingWebView = '/booking/webview';
-  static const String bookingConfirmation = '/booking/confirmation';
-  static const String profile = '/profile';
-  static const String settings = '/settings';
-  static const String dateSelection = '/date-selection';
-  static const String userManagement = '/admin/users';
-  static const String bookingManagement = '/admin/bookings';
 }
