@@ -8,6 +8,8 @@ import '../widgets/booking/animated_compact_stats.dart';
 import '../widgets/booking/time_slot_block.dart';
 import '../../core/constants/app_constants.dart';
 import '../../domain/entities/booking.dart';
+import '../widgets/booking/reservation_webview.dart';
+import '../../core/services/user_service.dart';
 
 class ReservationsPage extends StatefulWidget {
   const ReservationsPage({Key? key}) : super(key: key);
@@ -601,22 +603,29 @@ class _ReservationsPageState extends State<ReservationsPage> {
     );
   }
 
-  void _handleReserveSlot(BuildContext context, String timeSlot) {
+  void _handleReserveSlot(BuildContext context, String timeSlot) async {
     final provider = context.read<BookingProvider>();
-    final courtName = provider.selectedCourtName;
-    final date = _formatDate(provider.selectedDate);
     
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text('Reservar $courtName - $timeSlot ($date)'),
-        backgroundColor: const Color(0xFF2E7AFF),
-        action: SnackBarAction(
-          label: 'OK',
-          textColor: Colors.white,
-          onPressed: () {},
+    // Obtener email del usuario actual
+    final userEmail = await UserService.getCurrentUserEmail();
+    
+    // Abrir WebView integrado del sistema GAS
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => ReservationWebView(
+          userEmail: userEmail,
+          courtId: provider.selectedCourtId,
+          date: _formatDateForGAS(provider.selectedDate),
+          timeSlot: timeSlot,
         ),
       ),
     );
+  }
+
+  String _formatDateForGAS(DateTime date) {
+    // Formato YYYY-MM-DD que espera el sistema GAS
+    return '${date.year}-${date.month.toString().padLeft(2, '0')}-${date.day.toString().padLeft(2, '0')}';
   }
 
   void _handleSlotTap(BuildContext context, Booking? booking) {

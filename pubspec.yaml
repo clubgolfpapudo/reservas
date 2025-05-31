@@ -42,6 +42,8 @@ dependencies:
   # │ WEBVIEW - Para mostrar el sistema de reservas existente                │
   # └─────────────────────────────────────────────────────────────────────────┘
   webview_flutter: ^4.4.2              # Mostrar páginas web dentro de la app
+  url_launcher: ^6.2.1                 # ✅ NUEVO: Abrir URLs externas
+  shared_preferences: ^2.2.2           # ✅ NUEVO: Guardar datos localmente (usuario)
   
   # ┌─────────────────────────────────────────────────────────────────────────┐
   # │ UTILIDADES - Herramientas útiles                                       │
@@ -98,4 +100,3 @@ flutter:
   #     fonts:
   #       - asset: fonts/SFProDisplay-Regular.ttf
   #       - asset: fonts/SFProDisplay-Bold.ttf
-  #         weight: 700
