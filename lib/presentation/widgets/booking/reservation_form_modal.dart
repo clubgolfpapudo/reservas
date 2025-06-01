@@ -1,4 +1,4 @@
-// lib/presentation/widgets/booking/reservation_form_modal.dart
+// lib/presentation/widgets/booking/reservation_form_modal.dart - VALIDACIÓN COMPLETA
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../providers/booking_provider.dart';
@@ -27,10 +27,7 @@ class _ReservationFormModalState extends State<ReservationFormModal> {
   final _formKey = GlobalKey<FormState>();
   final _searchController = TextEditingController();
   
-  // Lista de jugadores seleccionados (incluye al usuario principal)
   List<ReservationPlayer> _selectedPlayers = [];
-  
-  // Lista filtrada de jugadores disponibles
   List<ReservationPlayer> _availablePlayers = [];
   List<ReservationPlayer> _filteredPlayers = [];
   
@@ -43,37 +40,62 @@ class _ReservationFormModalState extends State<ReservationFormModal> {
     _initializeForm();
     _searchController.addListener(_filterPlayers);
     
-    // INICIALIZAR LISTA FILTRADA DESPUÉS DE CONFIGURAR TODO
     WidgetsBinding.instance.addPostFrameCallback((_) {
+      _checkInitialSlotAvailability();
       _filterPlayers();
     });
   }
 
+  // 🔥 VALIDACIÓN INICIAL: Verificar disponibilidad al abrir modal
+  void _checkInitialSlotAvailability() {
+    final provider = context.read<BookingProvider>();
+    final playerNames = _selectedPlayers.map((p) => p.name).toList();
+    
+    final validation = provider.canCreateBooking(
+      widget.courtId, 
+      widget.date, 
+      widget.timeSlot, 
+      playerNames
+    );
+
+    if (!validation.isValid) {
+      setState(() {
+        _errorMessage = validation.reason;
+      });
+      
+      // Auto-cerrar si hay conflicto inicial
+      Future.delayed(const Duration(seconds: 3), () {
+        if (mounted) {
+          Navigator.of(context).pop();
+        }
+      });
+    }
+  }
+
   void _initializeForm() {
-    // Agregar usuario principal automáticamente
+    // Usuario principal
     _selectedPlayers.add(ReservationPlayer(
       name: 'FELIPE GARCIA',
       email: 'felipe@garciab.cl',
       isMainBooker: true,
     ));
 
-    // Simular lista de jugadores disponibles (en producción vendrá de Firebase)
+    // Lista de jugadores con algunos especiales VISITA
     _availablePlayers = [
       ReservationPlayer(name: 'ANA M BELMAR P', email: 'anita@buzeta.cl'),
       ReservationPlayer(name: 'CLARA PARDO B', email: 'clara@garciab.cl'),
       ReservationPlayer(name: 'JUAN F GONZALEZ P', email: 'fgarcia88@hotmail.com'),
       ReservationPlayer(name: 'PEDRO MARTINEZ L', email: 'pedro.martinez@example.com'),
       ReservationPlayer(name: 'PEDRO SILVA G', email: 'pedro.silva@example.com'),
-      ReservationPlayer(name: 'PEDRO JIMENEZ R', email: 'pedro.jimenez@example.com'),
       ReservationPlayer(name: 'ADRIEN GRYNBLAT B', email: 'adrien@example.com'),
       ReservationPlayer(name: 'AGUSTIN RODRIGUEZ D', email: 'agustin@example.com'),
-      ReservationPlayer(name: 'AGUSTIN VICUÑA', email: 'avicuna@example.com'),
-      ReservationPlayer(name: 'AUGUSTINA BASUALTO C', email: 'augustina@example.com'),
       ReservationPlayer(name: 'ALBERTO FRAUENBERG D', email: 'alberto@example.com'),
-      ReservationPlayer(name: 'ALEJANDRA CHAMUDES G', email: 'alejandra@example.com'),
+      // 🔥 JUGADORES ESPECIALES - Pueden estar en múltiples canchas
+      ReservationPlayer(name: 'VISITA1 PADEL', email: 'visita1@cgp.cl'),
+      ReservationPlayer(name: 'VISITA2 PADEL', email: 'visita2@cgp.cl'),
+      ReservationPlayer(name: 'VISITA3 PADEL', email: 'visita3@cgp.cl'),
+      ReservationPlayer(name: 'VISITA4 PADEL', email: 'visita4@cgp.cl'),
     ];
-    
-    // NO inicializar _filteredPlayers aquí - se hace en _filterPlayers()
   }
 
   void _filterPlayers() {
@@ -95,27 +117,58 @@ class _ReservationFormModalState extends State<ReservationFormModal> {
     });
   }
 
+  // 🔥 VALIDACIÓN AL AGREGAR JUGADOR
   void _addPlayer(ReservationPlayer player) {
-    if (_selectedPlayers.length < 4) {
+    if (_selectedPlayers.length >= 4) return;
+
+    // Validar conflictos antes de agregar
+    final provider = context.read<BookingProvider>();
+    final testPlayerNames = [..._selectedPlayers.map((p) => p.name), player.name];
+    
+    final validation = provider.canCreateBooking(
+      widget.courtId,
+      widget.date, 
+      widget.timeSlot,
+      testPlayerNames
+    );
+
+    if (!validation.isValid) {
       setState(() {
-        _selectedPlayers.add(player);
-        _searchController.clear();
-        _filterPlayers();
+        _errorMessage = validation.reason;
       });
+      
+      // Limpiar error después de unos segundos
+      Future.delayed(const Duration(seconds: 4), () {
+        if (mounted) {
+          setState(() {
+            _errorMessage = null;
+          });
+        }
+      });
+      return;
     }
+
+    setState(() {
+      _selectedPlayers.add(player);
+      _searchController.clear();
+      _errorMessage = null; // Limpiar errores previos
+      _filterPlayers();
+    });
   }
 
   void _removePlayer(ReservationPlayer player) {
     if (!player.isMainBooker) {
       setState(() {
         _selectedPlayers.remove(player);
+        _errorMessage = null; // Limpiar errores al remover
         _filterPlayers();
       });
     }
   }
 
-  bool get _canCreateReservation => _selectedPlayers.length == 4;
+  bool get _canCreateReservation => _selectedPlayers.length == 4 && _errorMessage == null;
 
+  // 🔥 CREACIÓN DE RESERVA CON VALIDACIÓN FINAL
   Future<void> _createReservation() async {
     if (!_canCreateReservation) return;
 
@@ -125,6 +178,21 @@ class _ReservationFormModalState extends State<ReservationFormModal> {
     });
 
     try {
+      final provider = context.read<BookingProvider>();
+      
+      // 🔥 VALIDACIÓN FINAL antes de crear
+      final playerNames = _selectedPlayers.map((p) => p.name).toList();
+      final validation = provider.canCreateBooking(
+        widget.courtId, 
+        widget.date, 
+        widget.timeSlot,
+        playerNames
+      );
+      
+      if (!validation.isValid) {
+        throw Exception(validation.reason!);
+      }
+
       final booking = Booking(
         courtNumber: widget.courtId,
         date: widget.date,
@@ -139,16 +207,25 @@ class _ReservationFormModalState extends State<ReservationFormModal> {
         updatedAt: DateTime.now(),
       );
 
-      final provider = context.read<BookingProvider>();
+      print('🔥 Creando reserva: ${widget.courtId} ${widget.date} ${widget.timeSlot}');
+      print('🔥 Jugadores: ${playerNames.join(", ")}');
+      
+      // Crear reserva
       await provider.createBooking(booking);
+      
+      // Actualizar UI
+      await provider.refresh();
+      
+      print('🎉 Reserva creada exitosamente - UI actualizada');
 
-      // Mostrar confirmación y cerrar modal
+      // Mostrar confirmación
       _showSuccessDialog();
       
     } catch (e) {
       setState(() {
-        _errorMessage = 'Error creando reserva: $e';
+        _errorMessage = e.toString().replaceAll('Exception: ', '');
       });
+      print('❌ Error creando reserva: $e');
     } finally {
       setState(() {
         _isLoading = false;
@@ -216,8 +293,8 @@ class _ReservationFormModalState extends State<ReservationFormModal> {
             ),
             const SizedBox(height: 12),
             Text(
-              'Se enviarán emails de confirmación a todos los jugadores.',
-              style: TextStyle(fontSize: 14, color: Colors.grey[600]),
+              'La grilla ahora debe aparecer en azul indicando "Reservada".',
+              style: TextStyle(fontSize: 14, color: Colors.grey[600], fontWeight: FontWeight.w500),
             ),
           ],
         ),
@@ -428,7 +505,7 @@ class _ReservationFormModalState extends State<ReservationFormModal> {
                 Flexible(
                   child: Container(
                     constraints: const BoxConstraints(
-                      maxHeight: 200, // Altura máxima fija para evitar overflow
+                      maxHeight: 200,
                       minHeight: 100,
                     ),
                     decoration: BoxDecoration(
@@ -455,22 +532,29 @@ class _ReservationFormModalState extends State<ReservationFormModal> {
                             itemCount: _filteredPlayers.length,
                             itemBuilder: (context, index) {
                               final player = _filteredPlayers[index];
+                              final isSpecialVisit = ['VISITA1 PADEL', 'VISITA2 PADEL', 'VISITA3 PADEL', 'VISITA4 PADEL']
+                                  .contains(player.name.toUpperCase());
+                              
                               return Container(
                                 margin: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
                                 decoration: BoxDecoration(
-                                  color: Colors.white,
+                                  color: isSpecialVisit ? Colors.orange.withOpacity(0.1) : Colors.white,
                                   borderRadius: BorderRadius.circular(8),
-                                  border: Border.all(color: Colors.grey[200]!),
+                                  border: Border.all(
+                                    color: isSpecialVisit ? Colors.orange.withOpacity(0.3) : Colors.grey[200]!
+                                  ),
                                 ),
                                 child: ListTile(
                                   contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
                                   leading: CircleAvatar(
-                                    backgroundColor: Colors.blue.withOpacity(0.1),
+                                    backgroundColor: isSpecialVisit 
+                                        ? Colors.orange.withOpacity(0.2) 
+                                        : Colors.blue.withOpacity(0.1),
                                     radius: 18,
                                     child: Text(
                                       player.name[0],
-                                      style: const TextStyle(
-                                        color: Colors.blue,
+                                      style: TextStyle(
+                                        color: isSpecialVisit ? Colors.orange[700] : Colors.blue,
                                         fontWeight: FontWeight.w600,
                                         fontSize: 14,
                                       ),
@@ -480,9 +564,19 @@ class _ReservationFormModalState extends State<ReservationFormModal> {
                                     player.name,
                                     style: const TextStyle(fontWeight: FontWeight.w500, fontSize: 14),
                                   ),
+                                  subtitle: isSpecialVisit 
+                                      ? const Text(
+                                          'Puede jugar en múltiples canchas',
+                                          style: TextStyle(fontSize: 11, color: Colors.orange),
+                                        )
+                                      : null,
                                   trailing: IconButton(
                                     onPressed: () => _addPlayer(player),
-                                    icon: const Icon(Icons.add_circle, color: Colors.green, size: 24),
+                                    icon: Icon(
+                                      Icons.add_circle, 
+                                      color: isSpecialVisit ? Colors.orange : Colors.green, 
+                                      size: 24
+                                    ),
                                   ),
                                   onTap: () => _addPlayer(player),
                                 ),
@@ -495,7 +589,7 @@ class _ReservationFormModalState extends State<ReservationFormModal> {
               
               const SizedBox(height: 16),
               
-              // Error message
+              // 🔥 MENSAJE DE ERROR MEJORADO
               if (_errorMessage != null)
                 Container(
                   padding: const EdgeInsets.all(12),
@@ -506,13 +600,31 @@ class _ReservationFormModalState extends State<ReservationFormModal> {
                     border: Border.all(color: Colors.red.withOpacity(0.3)),
                   ),
                   child: Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      const Icon(Icons.error, color: Colors.red, size: 20),
+                      const Padding(
+                        padding: EdgeInsets.only(top: 2),
+                        child: Icon(Icons.error, color: Colors.red, size: 20),
+                      ),
                       const SizedBox(width: 8),
                       Expanded(
-                        child: Text(
-                          _errorMessage!,
-                          style: const TextStyle(color: Colors.red, fontSize: 14),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            const Text(
+                              'Conflicto de horario:',
+                              style: TextStyle(
+                                color: Colors.red, 
+                                fontSize: 14, 
+                                fontWeight: FontWeight.w600
+                              ),
+                            ),
+                            const SizedBox(height: 4),
+                            Text(
+                              _errorMessage!,
+                              style: const TextStyle(color: Colors.red, fontSize: 13),
+                            ),
+                          ],
                         ),
                       ),
                     ],
@@ -566,7 +678,9 @@ class _ReservationFormModalState extends State<ReservationFormModal> {
                           : Text(
                               _canCreateReservation
                                   ? 'Confirmar Reserva'
-                                  : 'Selecciona ${4 - _selectedPlayers.length} jugadores más',
+                                  : _errorMessage != null
+                                      ? 'Resolver conflictos'
+                                      : 'Selecciona ${4 - _selectedPlayers.length} jugadores más',
                               style: TextStyle(
                                 fontSize: 16,
                                 fontWeight: FontWeight.w600,

@@ -1,5 +1,5 @@
 // ============================================================================
-// lib/data/models/booking_model.dart - CREAR/REEMPLAZAR
+// lib/data/models/booking_model.dart - CORREGIDO
 // ============================================================================
 
 import 'package:cloud_firestore/cloud_firestore.dart';
@@ -27,15 +27,24 @@ class BookingModel {
   });
 
   // ============================================================================
-  // CONVERSIÓN DESDE FIRESTORE
+  // CONVERSIÓN DESDE FIRESTORE - 🔥 CORREGIDO
   // ============================================================================
   
   factory BookingModel.fromFirestore(Map<String, dynamic> data, String id) {
+    print('🔍 FIRESTORE RAW DATA: $data');
+    
+    // 🔥 CORREGIDO: Mapear nombres correctos de campos
+    final courtNumber = data['courtNumber'] ?? data['courtId'] ?? '';
+    final date = data['date'] ?? data['dateTime']?['date'] ?? '';
+    final timeSlot = data['timeSlot'] ?? data['time'] ?? data['dateTime']?['time'] ?? '';
+    
+    print('🔍 MAPPED VALUES: courtNumber="$courtNumber", date="$date", timeSlot="$timeSlot"');
+    
     return BookingModel(
       id: id,
-      courtNumber: data['courtId'] ?? '',
-      date: data['dateTime']?['date'] ?? data['date'] ?? '',
-      timeSlot: data['dateTime']?['time'] ?? data['time'] ?? '', // ← Para Google Sheets usa dateTime.time
+      courtNumber: courtNumber,
+      date: date,
+      timeSlot: timeSlot,
       players: (data['players'] as List<dynamic>?)
           ?.map((player) => BookingPlayerModel.fromMap(player as Map<String, dynamic>))
           .toList() ?? [],
@@ -46,14 +55,14 @@ class BookingModel {
   }
 
   // ============================================================================
-  // CONVERSIÓN A FIRESTORE
+  // CONVERSIÓN A FIRESTORE - SIN CAMBIOS
   // ============================================================================
   
   Map<String, dynamic> toFirestore() {
     return {
-      'courtNumber': courtNumber,
-      'date': date,
-      'timeSlot': timeSlot,
+      'courtNumber': courtNumber,  // ← Guarda como courtNumber
+      'date': date,               // ← Guarda como date
+      'timeSlot': timeSlot,       // ← Guarda como timeSlot
       'players': players.map((player) => player.toMap()).toList(),
       'status': status,
       'createdAt': createdAt != null ? Timestamp.fromDate(createdAt!) : FieldValue.serverTimestamp(),
@@ -62,7 +71,7 @@ class BookingModel {
   }
 
   // ============================================================================
-  // CONVERSIÓN ENTITY ↔ MODEL
+  // CONVERSIÓN ENTITY ↔ MODEL - SIN CAMBIOS
   // ============================================================================
   
   factory BookingModel.fromEntity(Booking booking) {
@@ -105,7 +114,7 @@ class BookingModel {
 }
 
 // ============================================================================
-// BOOKING PLAYER MODEL
+// BOOKING PLAYER MODEL - SIN CAMBIOS
 // ============================================================================
 
 class BookingPlayerModel {
@@ -126,7 +135,7 @@ class BookingPlayerModel {
       name: map['name'] ?? '',
       phone: map['phone'],
       email: map['email'],
-      isConfirmed: map['status'] == 'confirmed', // ← Convierte 'status' a boolean
+      isConfirmed: map['isConfirmed'] ?? map['status'] == 'confirmed' ?? true,
     );
   }
 

@@ -1,4 +1,4 @@
-// lib/presentation/providers/booking_provider.dart - ACTUALIZAR
+// lib/presentation/providers/booking_provider.dart - VALIDACIÓN DE CONFLICTOS
 import 'package:flutter/material.dart';
 import 'dart:async';
 
@@ -31,6 +31,14 @@ class BookingProvider extends ChangeNotifier {
   // Streams subscriptions para limpiar recursos
   StreamSubscription? _courtsSubscription;
   StreamSubscription? _bookingsSubscription;
+
+  // 🔥 CONSTANTES DE VALIDACIÓN
+  static const List<String> _specialVisitPlayers = [
+    'VISITA1 PADEL',
+    'VISITA2 PADEL', 
+    'VISITA3 PADEL',
+    'VISITA4 PADEL'
+  ];
   
   // ============================================================================
   // GETTERS PÚBLICOS
@@ -63,24 +71,150 @@ class BookingProvider extends ChangeNotifier {
   String get selectedCourtName {
     return selectedCourt?.name ?? 'Cancha';
   }
-  
+
+  // 🔥 CORREGIDO: Filtrado de reservas por fecha Y cancha
   List<Booking> get currentBookings {
-    final bookings = _bookings.where((booking) => booking.courtNumber == _selectedCourtId).toList();
-    print('🚨🚨🚨 DEBUG RESERVAS 🚨🚨🚨');
-    print('Court seleccionada: $_selectedCourtId');
-    print('Fecha seleccionada: $_selectedDate');
-    print('Total bookings encontradas: ${bookings.length}');
-    if (bookings.isNotEmpty) {
-      print('Primera reserva: ${bookings[0].timeSlot}');
+    final selectedDateStr = _formatDateForFirebase(_selectedDate);
+    
+    print('🔍 DEBUG RESERVAS FILTRADAS:');
+    print('   Court seleccionada: $_selectedCourtId');
+    print('   Fecha seleccionada: $selectedDateStr ($_selectedDate)');
+    print('   Total bookings en _bookings: ${_bookings.length}');
+    
+    // 🔥 DEBUG: Mostrar TODAS las reservas primero
+    for (var booking in _bookings) {
+      print('   📋 ALL: ${booking.courtNumber} | ${booking.date} | ${booking.timeSlot} | ${booking.players.length} jugadores');
     }
-    return bookings;
+    
+    final filteredBookings = _bookings.where((booking) => 
+      booking.courtNumber == _selectedCourtId && 
+      booking.date == selectedDateStr
+    ).toList();
+    
+    print('   Bookings filtradas: ${filteredBookings.length}');
+    
+    for (var booking in filteredBookings) {
+      print('   ✅ FILTERED: ${booking.timeSlot} - ${booking.players.length} jugadores - ${booking.status}');
+    }
+    
+    return filteredBookings;
+  }
+
+  // 🔥 NUEVO: Obtener TODAS las reservas de una fecha (sin filtrar por cancha)
+  List<Booking> getAllBookingsForDate(DateTime date) {
+    final dateStr = _formatDateForFirebase(date);
+    final bookingsForDate = _bookings.where((booking) => booking.date == dateStr).toList();
+    
+    print('🔍 getAllBookingsForDate para $dateStr:');
+    print('   Total en _bookings: ${_bookings.length}');
+    print('   Para fecha específica: ${bookingsForDate.length}');
+    
+    for (var booking in bookingsForDate) {
+      print('   📋 ${booking.courtNumber} ${booking.timeSlot} (${booking.players.length} jugadores)');
+    }
+    
+    return bookingsForDate;
+  }
+  
+  // ============================================================================
+  // VALIDACIÓN DE CONFLICTOS DE JUGADORES
+  // ============================================================================
+
+  // 🔥 MÉTODO PRINCIPAL: Validar si se puede crear una reserva
+  ValidationResult canCreateBooking(String courtId, String date, String timeSlot, List<String> playerNames) {
+    print('\n🔍 VALIDACIÓN COMPLETA - INICIO');
+    print('   Court: $courtId');
+    print('   Fecha: $date'); 
+    print('   Hora: $timeSlot');
+    print('   Jugadores: ${playerNames.join(", ")}');
+    print('   Total reservas en memoria: ${_bookings.length}');
+
+    // 1. Verificar reserva duplicada exacta (mismo slot, misma cancha)
+    final exactDuplicates = _bookings.where(
+      (booking) => 
+        booking.courtNumber == courtId && 
+        booking.date == date && 
+        booking.timeSlot == timeSlot,
+    ).toList();
+
+    print('🔍 Verificando duplicados exactos: ${exactDuplicates.length} encontrados');
+    
+    if (exactDuplicates.isNotEmpty) {
+      final existingBooking = exactDuplicates.first;
+      print('❌ VALIDACIÓN: Reserva duplicada detectada');
+      print('   Jugadores existentes: ${existingBooking.players.map((p) => p.name).join(", ")}');
+      return ValidationResult(
+        isValid: false, 
+        reason: 'Ya existe una reserva para este horario en esta cancha.'
+      );
+    }
+
+    print('✅ Sin duplicados exactos, verificando conflictos de jugadores...');
+
+    // 2. Verificar conflictos de jugadores en otras canchas
+    final allBookingsForDate = getAllBookingsForDate(DateTime.parse(date));
+    final conflictingBookings = allBookingsForDate.where((booking) => 
+      booking.timeSlot == timeSlot && booking.courtNumber != courtId
+    ).toList();
+
+    print('🔍 Reservas en otras canchas para $timeSlot: ${conflictingBookings.length}');
+
+    for (final booking in conflictingBookings) {
+      print('   📋 Verificando ${booking.courtNumber}: ${booking.players.map((p) => p.name).join(", ")}');
+      
+      for (final existingPlayer in booking.players) {
+        for (final newPlayerName in playerNames) {
+          // Ignorar jugadores especiales VISITA
+          if (_isSpecialVisitPlayer(newPlayerName) || _isSpecialVisitPlayer(existingPlayer.name)) {
+            print('   ⚠️ Jugador VISITA detectado, omitiendo validación: $newPlayerName o ${existingPlayer.name}');
+            continue;
+          }
+
+          // Verificar conflicto de nombre (case-insensitive y limpio)
+          if (_playersMatch(existingPlayer.name, newPlayerName)) {
+            print('❌ VALIDACIÓN: Conflicto detectado!');
+            print('   Jugador: ${existingPlayer.name}');
+            print('   Ya reservado en: ${booking.courtNumber} a las $timeSlot');
+            return ValidationResult(
+              isValid: false,
+              reason: 'El jugador "${existingPlayer.name}" ya tiene una reserva a las $timeSlot en ${_getCourtDisplayName(booking.courtNumber)}.'
+            );
+          }
+        }
+      }
+    }
+
+    print('✅ VALIDACIÓN: Sin conflictos detectados - reserva permitida');
+    print('🔍 VALIDACIÓN COMPLETA - FIN\n');
+    return ValidationResult(isValid: true, reason: null);
+  }
+
+  // 🔥 HELPER: Verificar si un jugador es especial (VISITA)
+  bool _isSpecialVisitPlayer(String playerName) {
+    final cleanName = playerName.trim().toUpperCase();
+    return _specialVisitPlayers.contains(cleanName);
+  }
+
+  // 🔥 HELPER: Comparar nombres de jugadores (limpieza + case-insensitive)
+  bool _playersMatch(String name1, String name2) {
+    final clean1 = name1.trim().toUpperCase();
+    final clean2 = name2.trim().toUpperCase();
+    return clean1 == clean2;
+  }
+
+  // 🔥 HELPER: Obtener nombre amigable de cancha
+  String _getCourtDisplayName(String courtId) {
+    switch (courtId) {
+      case 'court_1': return 'PITE';
+      case 'court_2': return 'LILEN';
+      case 'court_3': return 'PLAIYA';
+      default: return courtId;
+    }
   }
   
   // ============================================================================
   // ESTADÍSTICAS PARA UI COMPACTA
   // ============================================================================
-  
-  // ✅ NUEVOS MÉTODOS que reciben horarios filtrados como parámetro:
 
   /// Calcula estadísticas basadas SOLO en los horarios visibles en pantalla
   Map<String, int> getStatsForVisibleTimeSlots(List<String> visibleTimeSlots) {
@@ -88,24 +222,17 @@ class BookingProvider extends ChangeNotifier {
     int incompleteCount = 0;
     int availableCount = 0;
     
-    print('📊 Calculando estadísticas para horarios visibles: $visibleTimeSlots');
-    
     for (final timeSlot in visibleTimeSlots) {
       final booking = getBookingForTimeSlot(timeSlot);
       
       if (booking == null) {
         availableCount++;
-        print('   - $timeSlot: DISPONIBLE');
       } else if (booking.status == BookingStatus.complete) {
         completeCount++;
-        print('   - $timeSlot: COMPLETA (${booking.players.length} jugadores)');
       } else if (booking.status == BookingStatus.incomplete) {
         incompleteCount++;
-        print('   - $timeSlot: INCOMPLETA (${booking.players.length} jugadores)');
       }
     }
-    
-    print('📊 Resultado final: $completeCount completas, $incompleteCount incompletas, $availableCount disponibles');
     
     return {
       'complete': completeCount,
@@ -114,7 +241,7 @@ class BookingProvider extends ChangeNotifier {
     };
   }
 
-  // Métodos de conveniencia que mantienen la API existente pero calculan correctamente
+  // Métodos de conveniencia que mantienen la API existente
   int getCompleteBookingsCount(List<String> visibleTimeSlots) {
     return getStatsForVisibleTimeSlots(visibleTimeSlots)['complete'] ?? 0;
   }
@@ -128,24 +255,17 @@ class BookingProvider extends ChangeNotifier {
   }
   
   // ============================================================================
-  // MÉTODOS AUXILIARES
+  // MÉTODOS AUXILIARES CORREGIDOS
   // ============================================================================
 
+  // 🔥 MÉTODO CRÍTICO CORREGIDO - Búsqueda de reserva específica
   Booking? getBookingForTimeSlot(String timeSlot) {
-    print('DEBUG: Buscando timeSlot: "$timeSlot"');
-    print('DEBUG: currentBookings count: ${currentBookings.length}');
-    print('DEBUG: currentBookings: ${currentBookings.map((b) => "${b.timeSlot} - ${b.courtNumber}").toList()}');
-    
-    try {
-      final result = currentBookings.firstWhere(
-        (booking) => booking.timeSlot == timeSlot,
-      );
-      print('DEBUG: ¡Encontrada! ${result.timeSlot} en cancha ${result.courtNumber}');
-      return result;
-    } catch (e) {
-      print('DEBUG: No encontrada para timeSlot: "$timeSlot"');
-      return null;
+    for (var booking in currentBookings) {
+      if (booking.timeSlot == timeSlot) {
+        return booking;
+      }
     }
+    return null;
   }
 
   bool isTimeSlotAvailable(String timeSlot) {
@@ -180,11 +300,6 @@ class BookingProvider extends ChangeNotifier {
     // Establecer fecha actual como la primera disponible
     _selectedDate = _availableDates[0];
     _currentDateIndex = 0;
-    
-    print('📅 Fechas disponibles generadas: ${_availableDates.length}');
-    for (var date in _availableDates) {
-      print('   - ${_formatDate(date)}');
-    }
   }
   
   // Helper para formatear fechas
@@ -196,17 +311,20 @@ class BookingProvider extends ChangeNotifier {
     
     return '${date.day} de ${months[date.month]}';
   }
+
+  // 🔥 HELPER para formatear fecha para Firebase (YYYY-MM-DD)
+  String _formatDateForFirebase(DateTime date) {
+    return '${date.year}-${date.month.toString().padLeft(2, '0')}-${date.day.toString().padLeft(2, '0')}';
+  }
   
   // ============================================================================
-  // CARGA DE DATOS DESDE FIREBASE
+  // CARGA DE DATOS DESDE FIREBASE - SIN CAMBIOS
   // ============================================================================
   
   Future<void> _loadCourts() async {
     try {
       _setLoading(true);
-      print('📋 Cargando canchas...');
       
-      // Mock data para canchas usando tu estructura completa
       final now = DateTime.now();
       _courts = [
         Court(
@@ -244,87 +362,79 @@ class BookingProvider extends ChangeNotifier {
         ),
       ];
       
-      print('✅ Canchas cargadas: ${_courts.length}');
-      for (var court in _courts) {
-        print('   - ${court.name} (${court.id}) - ${court.status}');
-      }
-      
       _setLoading(false);
       notifyListeners();
     } catch (e) {
-      print('❌ Error cargando canchas: $e');
       _setError('Error cargando canchas: $e');
     }
   }
   
+  // 🔥 CORREGIDO: Carga de reservas más robusta
   Future<void> _loadBookings() async {
     try {
-      final dateStr = '${_selectedDate.year}-${_selectedDate.month.toString().padLeft(2, '0')}-${_selectedDate.day.toString().padLeft(2, '0')}';
-      print('📋 Cargando reservas desde Firestore para fecha: $dateStr');
-      print('🔍 Fecha seleccionada original: $_selectedDate');
+      print('📋 Cargando reservas desde Firestore...');
       
       // Cancelar suscripción anterior si existe
       _bookingsSubscription?.cancel();
       
-      // Stream en tiempo real de Firestore
+      // 🔥 CARGAR RESERVAS DE LA FECHA SELECCIONADA
       _bookingsSubscription = FirestoreService.getBookingsByDate(_selectedDate).listen(
         (bookings) {
-          print('✅ Reservas cargadas: ${bookings.length}');
-          print('📊 Detalles de reservas:');
-          for (var booking in bookings) {
-            print('   - ${booking.courtNumber} ${booking.timeSlot}: ${booking.players.length} jugadores (fecha: ${booking.date})');
-          }
+          print('✅ Reservas cargadas desde Firebase: ${bookings.length}');
           
           _bookings = bookings;
+          
+          // 🔥 DEBUG: mostrar reservas cargadas CON DETALLES COMPLETOS
+          for (var booking in _bookings) {
+            print('   📋 LOADED: courtNumber="${booking.courtNumber}" | date="${booking.date}" | timeSlot="${booking.timeSlot}" | players=${booking.players.length} | status="${booking.status}"');
+            for (var player in booking.players.take(2)) {
+              print('      - ${player.name} (${player.email})');
+            }
+          }
+          
+          // 🔥 FORZAR NOTIFICACIÓN INMEDIATA PARA ACTUALIZAR COLORES
           notifyListeners();
         },
         onError: (error) {
-          print('❌ Error cargando reservas: $error');
+          print('❌ Error en stream de reservas: $error');
           _setError('Error cargando reservas: $error');
         },
       );
     } catch (e) {
-      print('❌ Error cargando reservas: $e');
+      print('❌ Error configurando stream de reservas: $e');
       _setError('Error cargando reservas: $e');
     }
   }
   
   // ============================================================================
-  // ACCIONES DEL USUARIO
+  // ACCIONES DEL USUARIO - SIN CAMBIOS MAYORES
   // ============================================================================
   
   void selectCourt(String courtId) {
     if (_selectedCourtId != courtId) {
-      print('🏓 Cambiando a cancha: $courtId');
       _selectedCourtId = courtId;
-      
-      // Notificar inmediatamente para respuesta instantánea
       notifyListeners();
     }
   }
   
   void selectDate(DateTime date) {
     if (_selectedDate != date) {
-      print('📅 Cambiando a fecha: $date');
       _selectedDate = date;
       
-      // Actualizar índice actual
       _currentDateIndex = _availableDates.indexWhere((d) => 
         d.year == date.year && d.month == date.month && d.day == date.day);
       
       if (_currentDateIndex == -1) _currentDateIndex = 0;
       
-      _loadBookings(); // Recargar reservas para nueva fecha
+      _loadBookings();
       notifyListeners();
     }
   }
   
-  // NUEVOS: Métodos para navegación de fechas
   void selectDateByIndex(int index) {
     if (index >= 0 && index < _availableDates.length && index != _currentDateIndex) {
       _currentDateIndex = index;
       _selectedDate = _availableDates[index];
-      print('📅 Cambiando a fecha por índice: $index - ${_formatDate(_selectedDate)}');
       _loadBookings();
       notifyListeners();
     }
@@ -346,32 +456,22 @@ class BookingProvider extends ChangeNotifier {
   bool get canGoToNextDate => _currentDateIndex < _availableDates.length - 1;
 
   // ============================================================================
-  // FILTRADO DE HORARIOS POR REGLA 72 HORAS
+  // FILTRADO DE HORARIOS POR REGLA 72 HORAS - SIN CAMBIOS
   // ============================================================================
   
-  /// Obtiene los horarios disponibles para mostrar según la fecha y hora actual
   List<String> getAvailableTimeSlotsForDate(DateTime date) {
     final now = DateTime.now();
     final isToday = date.year == now.year && 
                    date.month == now.month && 
                    date.day == now.day;
     
-    // Calcular si es el último día de la ventana de 72 horas
     final daysDifference = date.difference(DateTime(now.year, now.month, now.day)).inDays;
-    final isLastDay = daysDifference == 3; // Día +3 de la regla 72 horas
-    
-    print('⏰ Calculando horarios disponibles:');
-    print('   - Fecha seleccionada: $date');
-    print('   - Es hoy: $isToday');
-    print('   - Días de diferencia: $daysDifference');
-    print('   - Es último día (72h): $isLastDay');
-    print('   - Hora actual: ${now.hour}:${now.minute}');
+    final isLastDay = daysDifference == 3;
     
     final currentHour = now.hour;
     final currentMinute = now.minute;
     final currentTimeInMinutes = currentHour * 60 + currentMinute;
     
-    // Lista de horarios directa (evita conflicto de imports)
     const allTimeSlots = ['09:00', '10:30', '12:00', '13:30', '15:00', '16:30', '18:00', '19:30'];
     
     final filteredSlots = allTimeSlots.where((timeSlot) {
@@ -381,36 +481,50 @@ class BookingProvider extends ChangeNotifier {
       final slotTimeInMinutes = slotHour * 60 + slotMinute;
       
       if (isToday) {
-        // Hoy: mostrar solo horarios futuros (al menos 30 min)
         return slotTimeInMinutes > (currentTimeInMinutes);
       } else if (isLastDay) {
-        // Último día (72h): mostrar solo hasta la hora actual
         return slotTimeInMinutes <= currentTimeInMinutes;
       } else {
-        // Días intermedios: mostrar todos los horarios
         return true;
       }
     }).toList();
     
-    print('   - Horarios filtrados: ${filteredSlots.length}');
-    print('   - Horarios: $filteredSlots');
-    
     return filteredSlots;
   }
   
+  // 🔥 MEJORADO: Refresh más agresivo
   Future<void> refresh() async {
     print('🔄 Refrescando datos...');
     await _loadBookings();
+    
+    // Forzar una segunda notificación después de un pequeño delay
+    await Future.delayed(const Duration(milliseconds: 100));
+    notifyListeners();
+    print('🔄 Refresh completado - UI actualizada');
   }
   
   // ============================================================================
-  // OPERACIONES CRUD (Para futuro uso)
+  // OPERACIONES CRUD CON VALIDACIÓN COMPLETA
   // ============================================================================
   
+  // 🔥 CORREGIDO: Validación completa antes de crear reserva
   Future<void> createBooking(Booking booking) async {
     try {
       _setLoading(true);
       print('➕ Creando nueva reserva...');
+      
+      // 🔥 VALIDACIÓN COMPLETA
+      final playerNames = booking.players.map((p) => p.name).toList();
+      final validation = canCreateBooking(
+        booking.courtNumber, 
+        booking.date, 
+        booking.timeSlot, 
+        playerNames
+      );
+      
+      if (!validation.isValid) {
+        throw Exception(validation.reason!);
+      }
       
       final bookingId = await FirestoreService.createBooking(booking);
       print('✅ Reserva creada con ID: $bookingId');
@@ -418,12 +532,13 @@ class BookingProvider extends ChangeNotifier {
       _setLoading(false);
     } catch (e) {
       print('❌ Error creando reserva: $e');
-      _setError('Error creando reserva: $e');
+      _setLoading(false);
+      rethrow;
     }
   }
 
   // ============================================================================
-  // GESTIÓN DE ESTADO INTERNO
+  // GESTIÓN DE ESTADO INTERNO - SIN CAMBIOS
   // ============================================================================
   
   void _setLoading(bool loading) {
@@ -443,31 +558,18 @@ class BookingProvider extends ChangeNotifier {
     notifyListeners();
   }
   
-  // ============================================================================
-  // CLEANUP - Importante para evitar memory leaks
-  // ============================================================================
-  
   @override
   void dispose() {
-    print('🧹 Limpiando BookingProvider...');
     _courtsSubscription?.cancel();
     _bookingsSubscription?.cancel();
     super.dispose();
   }
-  
-  // ============================================================================
-  // DEBUG - Método para verificar estado
-  // ============================================================================
-  
-  void debugPrintState() {
-    print('🐛 BookingProvider State:');
-    print('   - Courts: ${_courts.length}');
-    print('   - Bookings: ${_bookings.length}');
-    print('   - Selected Court: $_selectedCourtId');
-    print('   - Selected Date: $_selectedDate');
-    print('   - Current Date Index: $_currentDateIndex');
-    print('   - Available Dates: ${_availableDates.length}');
-    print('   - Loading: $_isLoading');
-    print('   - Error: $_error');
-  }
+}
+
+// 🔥 NUEVA: Clase para resultados de validación
+class ValidationResult {
+  final bool isValid;
+  final String? reason;
+
+  ValidationResult({required this.isValid, this.reason});
 }
