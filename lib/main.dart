@@ -2,6 +2,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:firebase_core/firebase_core.dart';
+import 'presentation/pages/reservations_page.dart';
 
 // Pages
 import 'presentation/pages/reservations_page.dart';

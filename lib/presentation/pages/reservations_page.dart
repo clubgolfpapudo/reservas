@@ -1,4 +1,4 @@
-// lib/presentation/pages/reservations_page.dart - VERSIÓN CORREGIDA
+// lib/presentation/pages/reservations_page.dart - VERSIÓN COMPLETA CORREGIDA
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../providers/booking_provider.dart';
@@ -6,6 +6,7 @@ import '../widgets/common/date_navigation_header.dart';
 import '../widgets/booking/enhanced_court_tabs.dart';
 import '../widgets/booking/animated_compact_stats.dart';
 import '../widgets/booking/time_slot_block.dart';
+import '../widgets/booking/reservation_form_modal.dart';
 import '../../core/constants/app_constants.dart';
 import '../../domain/entities/booking.dart';
 import '../widgets/booking/reservation_webview.dart';
@@ -603,13 +604,31 @@ class _ReservationsPageState extends State<ReservationsPage> {
     );
   }
 
+  /// MÉTODO PRINCIPAL - Muestra el modal nativo de reservas Flutter-Firebase
   void _handleReserveSlot(BuildContext context, String timeSlot) async {
     final provider = context.read<BookingProvider>();
+    final courtName = AppConstants.getCourtName(provider.selectedCourtId);
     
-    // Obtener email del usuario actual
+    await showDialog(
+      context: context,
+      barrierDismissible: false, // Prevenir cierre accidental
+      builder: (context) => ReservationFormModal(
+        courtId: provider.selectedCourtId,
+        courtName: courtName,
+        date: _formatDateForSystem(provider.selectedDate),
+        timeSlot: timeSlot,
+      ),
+    );
+  }
+
+  /// Método original para WebView (backup - no se usa actualmente)
+  Future<void> _showGASWebView(
+    BuildContext context,
+    BookingProvider provider, 
+    String timeSlot
+  ) async {
     final userEmail = await UserService.getCurrentUserEmail();
     
-    // Abrir WebView integrado del sistema GAS
     Navigator.push(
       context,
       MaterialPageRoute(
@@ -621,6 +640,11 @@ class _ReservationsPageState extends State<ReservationsPage> {
         ),
       ),
     );
+  }
+
+  String _formatDateForSystem(DateTime date) {
+    // Formato YYYY-MM-DD para sistema interno
+    return '${date.year}-${date.month.toString().padLeft(2, '0')}-${date.day.toString().padLeft(2, '0')}';
   }
 
   String _formatDateForGAS(DateTime date) {
