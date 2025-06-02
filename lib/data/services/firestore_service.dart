@@ -1,5 +1,5 @@
 // ============================================================================
-// ARCHIVO 4: lib/data/services/firestore_service.dart
+// lib/data/services/firestore_service.dart - COMPLETO
 // ============================================================================
 
 import 'package:cloud_firestore/cloud_firestore.dart';
@@ -57,6 +57,35 @@ class FirestoreService {
      return docRef.id;
    } catch (e) {
      throw Exception('Error creando reserva: $e');
+   }
+ }
+
+ // ============================================================================
+ // MÉTODOS ADICIONALES PARA SISTEMA DE EMAILS
+ // ============================================================================
+
+ /// Obtener una reserva específica por ID
+ static Future<Booking?> getBookingById(String bookingId) async {
+   try {
+     final doc = await _firestore.collection('bookings').doc(bookingId).get();
+     if (doc.exists && doc.data() != null) {
+       return BookingModel.fromFirestore(doc.data()!, doc.id).toEntity();
+     }
+     return null;
+   } catch (e) {
+     print('❌ Error obteniendo reserva: $e');
+     return null;
+   }
+ }
+
+ /// Eliminar una reserva por ID
+ static Future<void> deleteBooking(String bookingId) async {
+   try {
+     await _firestore.collection('bookings').doc(bookingId).delete();
+     print('✅ Reserva eliminada: $bookingId');
+   } catch (e) {
+     print('❌ Error eliminando reserva: $e');
+     throw Exception('Error eliminando reserva: $e');
    }
  }
 }

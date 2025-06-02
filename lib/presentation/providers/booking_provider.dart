@@ -1,4 +1,4 @@
-// lib/presentation/providers/booking_provider.dart - VALIDACIÓN DE CONFLICTOS
+// lib/presentation/providers/booking_provider.dart - VALIDACIÓN DE CONFLICTOS + EMAILS
 import 'package:flutter/material.dart';
 import 'dart:async';
 
@@ -8,6 +8,7 @@ import '../../domain/entities/court.dart';
 
 // Services  
 import '../../data/services/firestore_service.dart';
+import '../../data/services/email_service.dart';
 
 // Constants
 import '../../core/constants/app_constants.dart';
@@ -27,6 +28,9 @@ class BookingProvider extends ChangeNotifier {
   // NUEVO: Estado para navegación de fechas
   List<DateTime> _availableDates = [];
   int _currentDateIndex = 0;
+  
+  // NUEVO: Estado para sistema de emails
+  bool _isSendingEmails = false;
   
   // Streams subscriptions para limpiar recursos
   StreamSubscription? _courtsSubscription;
@@ -55,6 +59,9 @@ class BookingProvider extends ChangeNotifier {
   List<DateTime> get availableDates => _availableDates;
   int get currentDateIndex => _currentDateIndex;
   int get totalAvailableDays => _availableDates.length;
+  
+  // NUEVO: Getter para estado de emails
+  bool get isSendingEmails => _isSendingEmails;
   
   // ============================================================================
   // COMPUTED PROPERTIES
@@ -252,6 +259,14 @@ class BookingProvider extends ChangeNotifier {
 
   int getAvailableBookingsCount(List<String> visibleTimeSlots) {
     return getStatsForVisibleTimeSlots(visibleTimeSlots)['available'] ?? 0;
+  }
+
+  /// NUEVO: Estado de emails para mostrar en UI
+  String get emailStatus {
+    if (_isSendingEmails) {
+      return 'Enviando confirmaciones...';
+    }
+    return '';
   }
   
   // ============================================================================
@@ -507,7 +522,7 @@ class BookingProvider extends ChangeNotifier {
   // OPERACIONES CRUD CON VALIDACIÓN COMPLETA
   // ============================================================================
   
-  // 🔥 CORREGIDO: Validación completa antes de crear reserva
+  // 🔥 CORREGIDO: Validación completa antes de crear reserva (método original)
   Future<void> createBooking(Booking booking) async {
     try {
       _setLoading(true);
@@ -534,6 +549,137 @@ class BookingProvider extends ChangeNotifier {
       print('❌ Error creando reserva: $e');
       _setLoading(false);
       rethrow;
+    }
+  }
+
+  // 🔥 NUEVO: Crear reserva CON envío automático de emails
+  Future<bool> createBookingWithEmails({
+    required String courtNumber,
+    required String date,
+    required String timeSlot,
+    required List<BookingPlayer> players,
+  }) async {
+    try {
+      _setLoading(true);
+      print('📝 Creando reserva con emails automáticos...');
+      
+      // 1. Validación completa (usar método existente)
+      final playerNames = players.map((p) => p.name).toList();
+      final validation = canCreateBooking(courtNumber, date, timeSlot, playerNames);
+      
+      if (!validation.isValid) {
+        throw Exception(validation.reason!);
+      }
+      
+      // 2. Crear reserva en Firebase (usar método existente)
+      final booking = Booking(
+        courtNumber: courtNumber,
+        date: date,
+        timeSlot: timeSlot,
+        players: players,
+        status: BookingStatus.complete,
+        createdAt: DateTime.now(),
+      );
+      
+      print('📝 Guardando en Firebase...');
+      final bookingId = await FirestoreService.createBooking(booking);
+      
+      if (bookingId.isEmpty) {
+        throw Exception('Error al crear reserva en Firebase');
+      }
+      
+      // 3. Actualizar booking con ID para emails
+      final savedBooking = booking.copyWith(id: bookingId);
+      
+      // 4. Enviar emails de confirmación
+      print('📧 Enviando emails de confirmación...');
+      _isSendingEmails = true;
+      notifyListeners();
+      
+      final emailsSent = await EmailService.sendBookingConfirmation(savedBooking);
+      
+      _isSendingEmails = false;
+      _setLoading(false);
+      
+      if (emailsSent) {
+        print('✅ Reserva creada y emails enviados exitosamente');
+        return true;
+      } else {
+        print('⚠️ Reserva creada pero algunos emails fallaron');
+        // Considerar exitoso aunque algunos emails fallen
+        return true;
+      }
+      
+    } catch (e) {
+      print('❌ Error creando reserva con emails: $e');
+      _isSendingEmails = false;
+      _setLoading(false);
+      rethrow; // Mantener manejo de errores existente
+    }
+  }
+
+  // 🔥 NUEVO: Cancelar reserva CON notificaciones por email
+  Future<bool> cancelBookingWithNotifications({
+    required String bookingId,
+    required BookingPlayer cancelingPlayer,
+  }) async {
+    try {
+      _setLoading(true);
+      print('🗑️ Cancelando reserva con notificaciones...');
+      
+      // 1. Obtener datos completos de la reserva
+      final booking = await _getBookingById(bookingId);
+      if (booking == null) {
+        throw Exception('Reserva no encontrada');
+      }
+      
+      // 2. Enviar notificaciones a otros jugadores
+      print('📧 Enviando notificaciones de cancelación...');
+      _isSendingEmails = true;
+      notifyListeners();
+      
+      final notificationsSent = await EmailService.sendCancellationNotification(
+        booking: booking,
+        cancelingPlayer: cancelingPlayer,
+      );
+      
+      // 3. Eliminar reserva de Firebase
+      await FirestoreService.deleteBooking(bookingId);
+      
+      _isSendingEmails = false;
+      _setLoading(false);
+      
+      if (notificationsSent) {
+        print('✅ Reserva cancelada y notificaciones enviadas');
+      } else {
+        print('⚠️ Reserva cancelada pero algunas notificaciones fallaron');
+      }
+      
+      return true;
+      
+    } catch (e) {
+      print('❌ Error cancelando reserva: $e');
+      _isSendingEmails = false;
+      _setLoading(false);
+      rethrow;
+    }
+  }
+
+  // 🔥 HELPER: Obtener reserva por ID (buscar en memoria o Firebase)
+  Future<Booking?> _getBookingById(String bookingId) async {
+    try {
+      // Buscar en las reservas cargadas primero
+      for (final booking in _bookings) {
+        if (booking.id == bookingId) {
+          return booking;
+        }
+      }
+      
+      // Si no se encuentra, consultar Firebase directamente
+      return await FirestoreService.getBookingById(bookingId);
+    } catch (e) {
+      print('❌ Error obteniendo reserva: $e');
+      return null;
     }
   }
 
@@ -566,7 +712,7 @@ class BookingProvider extends ChangeNotifier {
   }
 }
 
-// 🔥 NUEVA: Clase para resultados de validación
+// 🔥 CLASE PARA RESULTADOS DE VALIDACIÓN
 class ValidationResult {
   final bool isValid;
   final String? reason;

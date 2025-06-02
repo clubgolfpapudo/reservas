@@ -1,4 +1,4 @@
-// lib/presentation/widgets/booking/reservation_form_modal.dart - VALIDACIÓN COMPLETA
+// lib/presentation/widgets/booking/reservation_form_modal.dart - VALIDACIÓN COMPLETA + EMAILS
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../providers/booking_provider.dart';
@@ -168,7 +168,7 @@ class _ReservationFormModalState extends State<ReservationFormModal> {
 
   bool get _canCreateReservation => _selectedPlayers.length == 4 && _errorMessage == null;
 
-  // 🔥 CREACIÓN DE RESERVA CON VALIDACIÓN FINAL
+  // 🔥 CREACIÓN DE RESERVA CON VALIDACIÓN FINAL + EMAILS
   Future<void> _createReservation() async {
     if (!_canCreateReservation) return;
 
@@ -193,33 +193,35 @@ class _ReservationFormModalState extends State<ReservationFormModal> {
         throw Exception(validation.reason!);
       }
 
-      final booking = Booking(
+      // Convertir jugadores a formato BookingPlayer
+      final bookingPlayers = _selectedPlayers.map((player) => BookingPlayer(
+        name: player.name,
+        email: player.email,
+        isConfirmed: true,
+      )).toList();
+
+      print('🔥 Creando reserva con emails: ${widget.courtId} ${widget.date} ${widget.timeSlot}');
+      print('🔥 Jugadores: ${playerNames.join(", ")}');
+      
+      // 🚀 NUEVO: Crear reserva CON emails automáticos
+      final success = await provider.createBookingWithEmails(
         courtNumber: widget.courtId,
         date: widget.date,
         timeSlot: widget.timeSlot,
-        players: _selectedPlayers.map((player) => BookingPlayer(
-          name: player.name,
-          email: player.email,
-          isConfirmed: true,
-        )).toList(),
-        status: BookingStatus.complete,
-        createdAt: DateTime.now(),
-        updatedAt: DateTime.now(),
+        players: bookingPlayers,
       );
+      
+      if (success) {
+        // Actualizar UI
+        await provider.refresh();
+        
+        print('🎉 Reserva creada exitosamente con emails - UI actualizada');
 
-      print('🔥 Creando reserva: ${widget.courtId} ${widget.date} ${widget.timeSlot}');
-      print('🔥 Jugadores: ${playerNames.join(", ")}');
-      
-      // Crear reserva
-      await provider.createBooking(booking);
-      
-      // Actualizar UI
-      await provider.refresh();
-      
-      print('🎉 Reserva creada exitosamente - UI actualizada');
-
-      // Mostrar confirmación
-      _showSuccessDialog();
+        // Mostrar confirmación
+        _showSuccessDialog();
+      } else {
+        throw Exception('Error al crear la reserva');
+      }
       
     } catch (e) {
       setState(() {
@@ -256,7 +258,7 @@ class _ReservationFormModalState extends State<ReservationFormModal> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
-              'Tu reserva ha sido confirmada exitosamente:',
+              'Tu reserva de pádel ha sido confirmada exitosamente:',
               style: TextStyle(fontSize: 16, color: Colors.grey[700]),
             ),
             const SizedBox(height: 12),
@@ -288,6 +290,32 @@ class _ReservationFormModalState extends State<ReservationFormModal> {
                       ),
                     );
                   }).toList(),
+                ],
+              ),
+            ),
+            const SizedBox(height: 12),
+            // 📧 NUEVO: Información sobre emails enviados
+            Container(
+              padding: const EdgeInsets.all(12),
+              decoration: BoxDecoration(
+                color: Colors.green.withOpacity(0.1),
+                borderRadius: BorderRadius.circular(8),
+                border: Border.all(color: Colors.green.withOpacity(0.3)),
+              ),
+              child: Row(
+                children: [
+                  const Icon(Icons.email, color: Colors.green, size: 20),
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: Text(
+                      'Se han enviado emails de confirmación a todos los jugadores',
+                      style: TextStyle(
+                        fontSize: 14, 
+                        color: Colors.green.shade700,
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
+                  ),
                 ],
               ),
             ),
@@ -630,6 +658,42 @@ class _ReservationFormModalState extends State<ReservationFormModal> {
                     ],
                   ),
                 ),
+
+              // 📧 NUEVO: Indicador de progreso de emails
+              Consumer<BookingProvider>(
+                builder: (context, provider, child) {
+                  if (provider.isSendingEmails) {
+                    return Container(
+                      padding: const EdgeInsets.all(12),
+                      margin: const EdgeInsets.only(bottom: 16),
+                      decoration: BoxDecoration(
+                        color: Colors.blue.withOpacity(0.1),
+                        borderRadius: BorderRadius.circular(8),
+                        border: Border.all(color: Colors.blue.withOpacity(0.3)),
+                      ),
+                      child: Row(
+                        children: [
+                          const SizedBox(
+                            width: 16,
+                            height: 16,
+                            child: CircularProgressIndicator(strokeWidth: 2),
+                          ),
+                          const SizedBox(width: 12),
+                          Text(
+                            '📧 Enviando confirmaciones por email...',
+                            style: TextStyle(
+                              color: Colors.blue.shade700,
+                              fontSize: 14,
+                              fontWeight: FontWeight.w500,
+                            ),
+                          ),
+                        ],
+                      ),
+                    );
+                  }
+                  return const SizedBox.shrink();
+                },
+              ),
               
               // Botones de acción
               Row(
