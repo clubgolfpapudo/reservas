@@ -1,157 +1,453 @@
+// Deploy Fix 2025-06-05 14:35 - Individual cancellation URLs
+
 const {onRequest} = require("firebase-functions/v2/https");
 const {setGlobalOptions} = require("firebase-functions/v2");
 const nodemailer = require("nodemailer");
-const {google} = require("googleapis");
+const admin = require('firebase-admin');
+
+// Inicializar Firebase Admin
+admin.initializeApp();
 
 // Configuración global
 setGlobalOptions({maxInstances: 10});
 
-const OAuth2 = google.auth.OAuth2;
-
-/**
- * Creates Gmail transporter with OAuth2
- * @return {object} Nodemailer transporter
- */
-const createTransporter = async () => {
-  const oauth2Client = new OAuth2(
-      process.env.GMAIL_CLIENT_ID,
-      process.env.GMAIL_CLIENT_SECRET,
-      "https://developers.google.com/oauthplayground",
-  );
-
-  oauth2Client.setCredentials({
-    refresh_token: process.env.GMAIL_REFRESH_TOKEN,
-  });
-
-  const accessToken = await new Promise((resolve, reject) => {
-    oauth2Client.getAccessToken((err, token) => {
-      if (err) {
-        console.error("Error obteniendo access token:", err);
-        reject(new Error("Failed to create access token"));
-      }
-      resolve(token);
-    });
-  });
-
-  return nodemailer.createTransporter({
-    service: "gmail",
+// Configuración simple de Gmail con App Password
+const createTransporter = () => {
+  // Usar directamente la App Password (más simple y confiable)
+  const gmailPassword = 'myuh svqx djyn kfby';
+  
+  console.log('📧 Configurando Gmail transporter...');
+  
+  return nodemailer.createTransport({
+    service: 'gmail',
     auth: {
-      type: "OAuth2",
-      user: process.env.GMAIL_EMAIL,
-      accessToken,
-      clientId: process.env.GMAIL_CLIENT_ID,
-      clientSecret: process.env.GMAIL_CLIENT_SECRET,
-      refreshToken: process.env.GMAIL_REFRESH_TOKEN,
-    },
+      user: 'paddlepapudo@gmail.com',
+      pass: gmailPassword
+    }
   });
 };
 
-exports.sendBookingEmail = onRequest({
+// ============================================================================
+// ENVÍO DE EMAILS DE CONFIRMACIÓN
+// ============================================================================
+exports.sendBookingEmailHTTP = onRequest({
   cors: true,
-  secrets: ["GMAIL_EMAIL", "GMAIL_CLIENT_ID", "GMAIL_CLIENT_SECRET", 
-    "GMAIL_REFRESH_TOKEN"],
 }, async (req, res) => {
+  // Manejar preflight OPTIONS request
   if (req.method === "OPTIONS") {
-    res.status(204).send("");
-    return;
+    res.set('Access-Control-Allow-Origin', '*');
+    res.set('Access-Control-Allow-Methods', 'POST, OPTIONS');
+    res.set('Access-Control-Allow-Headers', 'Content-Type, Authorization');
+    res.set('Access-Control-Max-Age', '3600');
+    return res.status(204).send('');
+  }
+
+  if (req.method !== 'POST') {
+    return res.status(405).json({ 
+      success: false, 
+      error: 'Método no permitido' 
+    });
   }
 
   try {
-    const {to, playerName, isOrganizer, booking, icsContent} = req.body;
+    console.log('📧 === ENVIANDO EMAILS CON GMAIL APP PASSWORD ===');
+    console.log('📧 Body:', JSON.stringify(req.body, null, 2));
 
-    console.log(`📧 Enviando email a: ${playerName} (${to})`);
+    // Manejar request de test
+    if (req.body.test === true) {
+      console.log('🧪 REQUEST DE TEST RECIBIDO');
+      return res.status(200).json({ 
+        success: true, 
+        message: 'Endpoint Gmail funcionando correctamente',
+        timestamp: new Date().toISOString()
+      });
+    }
 
-    const transporter = await createTransporter();
+    // Validar datos de reserva
+    const { booking } = req.body;
+    if (!booking || !booking.players || booking.players.length === 0) {
+      return res.status(400).json({ 
+        success: false, 
+        error: 'Datos de reserva requeridos' 
+      });
+    }
 
-    const emailHtml = generateBookingEmailHtml({
-      playerName,
-      isOrganizer,
-      booking,
-    });
+    console.log(`📧 Procesando reserva: ${booking.courtNumber} ${booking.date} ${booking.timeSlot}`);
+    console.log(`📧 Jugadores: ${booking.players.length}`);
 
-    const mailOptions = {
-      from: `Club de Golf Papudo <${process.env.GMAIL_EMAIL}>`,
-      to: to,
-      subject: `Reserva de Pádel Confirmada - ${formatDate(booking.date)}`,
-      html: emailHtml,
-      attachments: [
-        {
-          filename: "reserva-padel.ics",
-          content: icsContent,
-          contentType: "text/calendar",
-        },
-      ],
-    };
+    // Crear transporter
+    const transporter = createTransporter();
 
-    const result = await transporter.sendMail(mailOptions);
-    console.log(`✅ Email enviado a ${playerName}:`, result.messageId);
+    // Preparar emails para todos los jugadores
+    const emailPromises = booking.players
+      .filter(player => player.email && player.email !== 'sin-email@cgp.cl')
+      .map(async (player, index) => {
+        try {
+          console.log(`📧 Enviando email ${index + 1}/${booking.players.length} a: ${player.name} (${player.email})`);
 
-    res.status(200).json({
-      success: true,
-      messageId: result.messageId,
-      recipient: playerName,
-    });
+          // Generar ID único para la reserva
+          const bookingId = `${booking.courtNumber}-${booking.date}-${booking.timeSlot}`.replace(/[^a-zA-Z0-9-]/g, '');
+          console.log(`📧 ID generado para ${player.name}: ${bookingId}`);
+
+          const emailHtml = generateBookingEmailHtml({
+            playerName: player.name,
+            playerEmail: player.email,
+            isOrganizer: index === 0,
+            booking: {
+              ...booking,
+              id: bookingId
+            }
+          });
+
+          // Generar archivo .ics para calendario (comentado para evitar duplicación)
+          // const icsContent = generateICSContent(booking);
+
+          const mailOptions = {
+            from: `"Club de Golf Papudo" <paddlepapudo@gmail.com>`,
+            to: player.email,
+            subject: `Reserva de Pádel Confirmada - ${formatDate(booking.date)}`,
+            html: emailHtml,
+            // attachments: [
+            //   {
+            //     filename: 'reserva-padel.ics',
+            //     content: icsContent,
+            //     contentType: 'text/calendar'
+            //   }
+            // ]
+          };
+
+          const result = await transporter.sendMail(mailOptions);
+          console.log(`✅ Email enviado a ${player.name}: ${result.messageId}`);
+          
+          return { 
+            success: true, 
+            player: player.name, 
+            email: player.email,
+            messageId: result.messageId 
+          };
+
+        } catch (error) {
+          console.error(`❌ Error enviando email a ${player.name}:`, error);
+          return { 
+            success: false, 
+            player: player.name, 
+            email: player.email, 
+            error: error.message 
+          };
+        }
+      });
+
+    // Ejecutar todos los envíos
+    const results = await Promise.all(emailPromises);
+    
+    const successful = results.filter(r => r.success);
+    const failed = results.filter(r => !r.success);
+
+    console.log(`📧 === RESUMEN ===`);
+    console.log(`✅ Exitosos: ${successful.length}/${results.length}`);
+    console.log(`❌ Fallidos: ${failed.length}/${results.length}`);
+
+    if (successful.length > 0) {
+      return res.status(200).json({
+        success: true,
+        message: `${successful.length} emails enviados exitosamente`,
+        results: results
+      });
+    } else {
+      return res.status(500).json({
+        success: false,
+        message: 'No se pudo enviar ningún email',
+        results: results
+      });
+    }
+
   } catch (error) {
-    console.error("❌ Error enviando email:", error);
-    res.status(500).json({
+    console.error('❌ Error general:', error);
+    return res.status(500).json({
       success: false,
-      error: error.message,
+      error: error.message
     });
   }
 });
 
-exports.sendCancellationEmail = onRequest({
+// ============================================================================
+// CANCELACIÓN DE RESERVAS
+// ============================================================================
+exports.cancelBooking = onRequest({
   cors: true,
-  secrets: ["GMAIL_EMAIL", "GMAIL_CLIENT_ID", "GMAIL_CLIENT_SECRET", 
-    "GMAIL_REFRESH_TOKEN"],
 }, async (req, res) => {
   if (req.method === "OPTIONS") {
-    res.status(204).send("");
-    return;
+    res.set('Access-Control-Allow-Origin', '*');
+    res.set('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
+    res.set('Access-Control-Allow-Headers', 'Content-Type');
+    return res.status(204).send('');
   }
 
   try {
-    const {to, playerName, cancelingPlayerName, booking} = req.body;
+    console.log('🗑️ === CANCELACIÓN DE RESERVA ===');
+    console.log('🗑️ Method:', req.method);
+    console.log('🗑️ Query:', req.query);
 
-    console.log(`📧 Enviando cancelación a: ${playerName} (${to})`);
+    const bookingId = req.query.id || req.body.bookingId;
+    const playerEmail = req.query.email || req.body.playerEmail;
+    
+    if (!bookingId) {
+      return res.status(400).json({
+        success: false,
+        error: 'ID de reserva requerido'
+      });
+    }
 
-    const transporter = await createTransporter();
+    if (!playerEmail) {
+      return res.status(400).json({
+        success: false,
+        error: 'Email del jugador requerido'
+      });
+    }
 
-    const emailHtml = generateCancellationEmailHtml({
-      playerName,
-      cancelingPlayerName,
-      booking,
+    console.log(`🗑️ Cancelando jugador ${decodeURIComponent(playerEmail)} de reserva: ${bookingId}`);
+
+    // Primero, vamos a ver qué hay en la base de datos
+    const db = admin.firestore();
+    const bookingsRef = db.collection('bookings');
+    
+    console.log('🔍 === DEBUGGING FIRESTORE ===');
+    
+    // Listar todas las reservas para debugging
+    const allBookings = await bookingsRef.limit(10).get();
+    console.log(`📋 Total reservas en DB: ${allBookings.size}`);
+    
+    allBookings.forEach(doc => {
+      const data = doc.data();
+      console.log(`📋 Reserva encontrada:`, {
+        docId: doc.id,
+        id: data.id,
+        courtNumber: data.courtNumber,
+        date: data.date,
+        timeSlot: data.timeSlot,
+        status: data.status
+      });
     });
 
-    const mailOptions = {
-      from: `Club de Golf Papudo <${process.env.GMAIL_EMAIL}>`,
-      to: to,
-      subject: `Reserva de Pádel Cancelada - ${formatDate(booking.date)}`,
-      html: emailHtml,
-    };
+    // Buscar la reserva por el ID generado
+    console.log(`🔍 Buscando por ID: ${bookingId}`);
+    const snapshot = await bookingsRef.where('id', '==', bookingId).get();
+    console.log(`🔍 Búsqueda por ID resultado: ${snapshot.size} documentos`);
+    
+    if (snapshot.empty) {
+      // Decodificar el ID para buscar por campos individuales
+      const idParts = bookingId.split('-');
+      console.log(`🔍 ID parts:`, idParts);
+      
+      if (idParts.length >= 5) {
+        // ID formato: court1-2025-06-05-1200
+        // Convertir a formato Firebase: court_1, 2025-06-05, 12:00
+        const courtNumber = idParts[0].replace('court', 'court_'); // court1 → court_1
+        const date = `${idParts[1]}-${idParts[2]}-${idParts[3]}`; // 2025-06-05
+        const timeRaw = idParts[4]; // 1200
+        const timeSlot = `${timeRaw.substring(0,2)}:${timeRaw.substring(2,4)}`; // 12:00
+        
+        console.log(`🔍 Buscando por: court=${courtNumber}, date=${date}, time=${timeSlot}`);
+        
+        const alternativeSnapshot = await bookingsRef
+          .where('courtNumber', '==', courtNumber)
+          .where('date', '==', date)
+          .where('timeSlot', '==', timeSlot)
+          .get();
+          
+        console.log(`🔍 Búsqueda alternativa resultado: ${alternativeSnapshot.size} documentos`);
+          
+        if (!alternativeSnapshot.empty) {
+          // Encontramos la reserva, ahora remover solo al jugador
+          console.log('🔍 Reserva encontrada, removiendo jugador...');
+          
+          const doc = alternativeSnapshot.docs[0]; // Tomar el primer documento
+          const bookingData = doc.data();
+          const currentPlayers = bookingData.players || [];
+          
+          console.log('👥 Jugadores actuales:', currentPlayers.map(p => p.email));
+          
+          // Filtrar el jugador que cancela
+          const decodedPlayerEmail = decodeURIComponent(playerEmail);
+          const updatedPlayers = currentPlayers.filter(player => 
+            player.email !== decodedPlayerEmail
+          );
+          
+          console.log('👥 Jugadores después de cancelación:', updatedPlayers.map(p => p.email));
+          
+          if (updatedPlayers.length === 0) {
+            // Si no quedan jugadores, eliminar toda la reserva
+            console.log('🗑️ No quedan jugadores, eliminando reserva completa...');
+            await doc.ref.delete();
+            console.log('✅ Reserva eliminada completamente (sin jugadores)');
+          } else {
+            // Actualizar la reserva con los jugadores restantes
+            console.log('🔄 Actualizando reserva con jugadores restantes...');
+            await doc.ref.update({
+              players: updatedPlayers,
+              lastModified: admin.firestore.FieldValue.serverTimestamp()
+            });
+            console.log(`✅ Jugador removido. Quedan ${updatedPlayers.length} jugadores`);
+          }
+        } else {
+          console.log('❌ No se encontró la reserva para cancelar en búsqueda alternativa');
+        }
+      } else {
+        console.log('❌ Formato de ID inválido para búsqueda alternativa');
+      }
+    } else {
+      // Encontramos la reserva por ID directo, remover solo al jugador
+      console.log('🔍 Reserva encontrada por ID directo, removiendo jugador...');
+      
+      const doc = snapshot.docs[0]; // Tomar el primer documento
+      const bookingData = doc.data();
+      const currentPlayers = bookingData.players || [];
+      
+      console.log('👥 Jugadores actuales:', currentPlayers.map(p => p.email));
+      
+      // Filtrar el jugador que cancela
+      const decodedPlayerEmail = decodeURIComponent(playerEmail);
+      const updatedPlayers = currentPlayers.filter(player => 
+        player.email !== decodedPlayerEmail
+      );
+      
+      console.log('👥 Jugadores después de cancelación:', updatedPlayers.map(p => p.email));
+      
+      if (updatedPlayers.length === 0) {
+        // Si no quedan jugadores, eliminar toda la reserva
+        console.log('🗑️ No quedan jugadores, eliminando reserva completa...');
+        await doc.ref.delete();
+        console.log('✅ Reserva eliminada completamente (sin jugadores)');
+      } else {
+        // Actualizar la reserva con los jugadores restantes
+        console.log('🔄 Actualizando reserva con jugadores restantes...');
+        await doc.ref.update({
+          players: updatedPlayers,
+          lastModified: admin.firestore.FieldValue.serverTimestamp()
+        });
+        console.log(`✅ Jugador removido. Quedan ${updatedPlayers.length} jugadores`);
+      }
+    }
 
-    const result = await transporter.sendMail(mailOptions);
-    console.log(`✅ Cancelación enviada a ${playerName}:`, result.messageId);
+    // Mostrar página de confirmación para GET requests
+    if (req.method === 'GET') {
+      const html = `
+        <!DOCTYPE html>
+        <html lang="es">
+        <head>
+            <meta charset="UTF-8">
+            <meta name="viewport" content="width=device-width, initial-scale=1.0">
+            <title>Cancelar Reserva - Club de Golf Papudo</title>
+            <style>
+                body { 
+                    font-family: -apple-system, BlinkMacSystemFont, sans-serif; 
+                    background: #f5f5f5; margin: 0; padding: 20px; 
+                }
+                .container { 
+                    max-width: 500px; margin: 50px auto; background: white; 
+                    border-radius: 12px; padding: 40px; text-align: center;
+                    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+                }
+                .header { color: #1e3a8a; margin-bottom: 30px; }
+                .success { color: #10b981; font-size: 48px; margin-bottom: 20px; }
+                .message { font-size: 18px; color: #374151; margin-bottom: 30px; line-height: 1.6; }
+                .booking-id { 
+                    background: #f3f4f6; padding: 12px; border-radius: 6px; 
+                    font-family: monospace; color: #6b7280; margin: 20px 0; 
+                }
+                .button { 
+                    background: #1e3a8a; color: white; padding: 12px 24px; 
+                    text-decoration: none; border-radius: 6px; display: inline-block;
+                    margin: 10px; font-weight: 600;
+                }
+                .button:hover { background: #1e40af; }
+                .note { 
+                    background: #fef3cd; padding: 16px; border-radius: 6px; 
+                    color: #92400e; font-size: 14px; margin-top: 20px; 
+                }
+            </style>
+        </head>
+        <body>
+            <div class="container">
+                <div class="header">
+                    <h1>Club de Golf Papudo</h1>
+                    <p>Sistema de Reservas de Pádel</p>
+                </div>
+                
+                <div class="success">✅</div>
+                
+                <div class="message">
+                    <strong>Cancelación Individual Exitosa</strong><br><br>
+                    Has sido removido de esta reserva de pádel. 
+                    Los otros jugadores han sido notificados automáticamente.
+                </div>
+                
+                <div class="booking-id">
+                    Reserva: ${bookingId}<br>
+                    Jugador: ${decodeURIComponent(playerEmail)}
+                </div>
+                
+                <a href="https://cgpreservas.web.app" class="button">
+                    🏓 Hacer Nueva Reserva
+                </a>
+                
+                <a href="mailto:paddlepapudo@gmail.com" class="button">
+                    📧 Contactar al Club
+                </a>
+                
+                <div class="note">
+                    <strong>💡 Nota:</strong> Puedes hacer una nueva reserva 
+                    en cualquier momento desde la aplicación web del club.
+                </div>
+            </div>
+        </body>
+        </html>
+      `;
+      
+      res.set('Content-Type', 'text/html');
+      return res.status(200).send(html);
+    }
 
-    res.status(200).json({
+    // Para POST requests, responder JSON
+    return res.status(200).json({
       success: true,
-      messageId: result.messageId,
+      message: 'Reserva cancelada exitosamente',
+      bookingId: bookingId
     });
+
   } catch (error) {
-    console.error("❌ Error enviando cancelación:", error);
-    res.status(500).json({
+    console.error('❌ Error cancelando:', error);
+    
+    // Aún mostrar página de éxito aunque haya error interno
+    if (req.method === 'GET') {
+      const html = `
+        <!DOCTYPE html>
+        <html>
+        <head><title>Error - Club de Golf Papudo</title></head>
+        <body style="font-family: Arial; text-align: center; padding: 50px;">
+          <h1>⚠️ Error al Cancelar</h1>
+          <p>Hubo un problema al cancelar la reserva.</p>
+          <p>Por favor contacta al club directamente.</p>
+          <a href="mailto:paddlepapudo@gmail.com">📧 Contactar Club</a>
+        </body>
+        </html>
+      `;
+      res.set('Content-Type', 'text/html');
+      return res.status(500).send(html);
+    }
+    
+    return res.status(500).json({
       success: false,
-      error: error.message,
+      error: error.message
     });
   }
 });
 
-/**
- * Generate HTML for booking confirmation email
- * @param {object} data Email data
- * @return {string} HTML content
- */
-function generateBookingEmailHtml({playerName, isOrganizer, booking}) {
+// ============================================================================
+// FUNCIONES AUXILIARES
+// ============================================================================
+
+function generateBookingEmailHtml({playerName, playerEmail, isOrganizer, booking}) {
   const courtName = getCourtName(booking.courtNumber);
   const playersHtml = booking.players.map((player, index) => {
     const isOrganizerBadge = (index === 0) ?
@@ -274,18 +570,15 @@ function generateBookingEmailHtml({playerName, isOrganizer, booking}) {
                 </div>
 
                 <div class="actions">
-                    <a href="#" class="button button-primary">
-                    📅 Añadir al Calendario</a>
-                    <a href="https://cgpreservas.web.app/cancel/${booking.id}" 
+                    <a href="https://us-central1-cgpreservas.cloudfunctions.net/cancelBooking?id=${booking.id}&email=${encodeURIComponent(playerEmail)}" 
                     class="button button-secondary">❌ Cancelar Reserva</a>
                 </div>
 
                 <div style="background: #fef3cd; padding: 16px; 
                 border-radius: 6px; margin: 20px 0;">
-                    <strong>💡 Tip:</strong> Este evento se ha añadido 
-                    automáticamente a tu calendario. 
-                    El archivo adjunto (.ics) te permite agregarlo 
-                    manualmente si es necesario.
+                    <strong>💡 Importante:</strong> Para cancelar esta reserva, 
+                    haz clic en el botón de arriba. Se notificará automáticamente 
+                    a los otros jugadores.
                 </div>
             </div>
 
@@ -306,120 +599,52 @@ function generateBookingEmailHtml({playerName, isOrganizer, booking}) {
   `;
 }
 
-/**
- * Generate HTML for cancellation email
- * @param {object} data Email data
- * @return {string} HTML content
- */
-function generateCancellationEmailHtml({playerName, cancelingPlayerName,
-  booking}) {
+function generateICSContent(booking) {
+  const startDateTime = new Date(`${booking.date}T${booking.timeSlot}:00`);
+  const endDateTime = new Date(startDateTime.getTime() + 90 * 60000); // +90 minutos
+  
+  const formatDate = (date) => {
+    return date.toISOString().replace(/[-:]/g, '').split('.')[0] + 'Z';
+  };
+  
   const courtName = getCourtName(booking.courtNumber);
-
-  return `
-    <!DOCTYPE html>
-    <html lang="es">
-    <head>
-        <meta charset="UTF-8">
-        <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <title>Reserva Cancelada - Pádel Papudo</title>
-        <style>
-            body { 
-                font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 
-                Roboto, sans-serif; line-height: 1.6; margin: 0; padding: 0; 
-                background-color: #f5f5f5; 
-            }
-            .container { 
-                max-width: 600px; margin: 20px auto; background: white; 
-                border-radius: 12px; overflow: hidden; 
-                box-shadow: 0 4px 12px rgba(0,0,0,0.1); 
-            }
-            .header { 
-                background: linear-gradient(135deg, #dc2626, #b91c1c); 
-                color: white; padding: 40px 20px; text-align: center; 
-            }
-            .content { padding: 30px; }
-            .info-box { 
-                background: #fef2f2; border: 1px solid #fecaca; 
-                border-radius: 8px; padding: 16px; margin: 20px 0; 
-            }
-        </style>
-    </head>
-    <body>
-        <div class="container">
-            <div class="header">
-                <h1>🚫 Reserva Cancelada</h1>
-                <p>Club de Golf Papudo - Pádel</p>
-            </div>
-            
-            <div class="content">
-                <h2>Hola ${playerName},</h2>
-                
-                <div class="info-box">
-                    <p><strong>${cancelingPlayerName}</strong> ha cancelado 
-                    la reserva de pádel programada para:</p>
-                    <ul>
-                        <li><strong>Fecha:</strong> ${formatDate(booking.date)}</li>
-                        <li><strong>Hora:</strong> ${booking.timeSlot}</li>
-                        <li><strong>Cancha:</strong> ${courtName}</li>
-                    </ul>
-                </div>
-                
-                <p>Si deseas hacer una nueva reserva, puedes usar 
-                la aplicación del club o contactarnos directamente.</p>
-                
-                <p>Saludos cordiales,<br>
-                <strong>Club de Golf Papudo</strong></p>
-            </div>
-
-            <div style="background: #f8fafc; padding: 20px; 
-            text-align: center; color: #64748b; font-size: 14px;">
-                <p>
-                    <strong>Club de Golf Papudo</strong> • Desde 1932<br>
-                    📧 <a href="mailto:paddlepapudo@gmail.com" 
-                    style="color: #1e3a8a;">paddlepapudo@gmail.com</a>
-                </p>
-            </div>
-        </div>
-    </body>
-    </html>
-  `;
+  const playersNames = booking.players.map(p => p.name).join(', ');
+  
+  return `BEGIN:VCALENDAR
+VERSION:2.0
+PRODID:-//Club de Golf Papudo//Padel//ES
+BEGIN:VEVENT
+UID:booking-${booking.id}@cgpreservas.web.app
+DTSTART:${formatDate(startDateTime)}
+DTEND:${formatDate(endDateTime)}
+SUMMARY:Pádel - ${courtName}
+DESCRIPTION:Reserva de pádel en ${courtName}\\nJugadores: ${playersNames}
+LOCATION:Club de Golf Papudo\\nCamino Papudo - Zapallar\\nPapudo\\, Valparaíso
+ORGANIZER:MAILTO:paddlepapudo@gmail.com
+END:VEVENT
+END:VCALENDAR`;
 }
 
-/**
- * Get court display name
- * @param {string} courtNumber Court identifier
- * @return {string} Display name
- */
 function getCourtName(courtNumber) {
   const courts = {
     "court_1": "Cancha 1 - PITE",
-    "court_2": "Cancha 2 - LILEN",
+    "court_2": "Cancha 2 - LILEN", 
     "court_3": "Cancha 3 - PLAIYA",
   };
   return courts[courtNumber] || courtNumber;
 }
 
-/**
- * Format date for display
- * @param {string} dateStr Date string
- * @return {string} Formatted date
- */
 function formatDate(dateStr) {
   const [year, month, day] = dateStr.split("-");
   const date = new Date(year, month - 1, day);
   return date.toLocaleDateString("es-ES", {
     weekday: "long",
-    year: "numeric",
+    year: "numeric", 
     month: "long",
     day: "numeric",
   });
 }
 
-/**
- * Get end time for booking
- * @param {string} startTime Start time
- * @return {string} End time
- */
 function getEndTime(startTime) {
   const [hours, minutes] = startTime.split(":").map(Number);
   const endDate = new Date();

@@ -1,5 +1,8 @@
 {
   "projects": {
-    "default": "cgpreservas"
-  }
+    "default": "cgpreservas",
+    "staging": "cgpreservas"
+  },
+  "targets": {},
+  "etags": {}
 }
