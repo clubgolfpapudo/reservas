@@ -1,0 +1,24 @@
+{
+  "date": "2025-06-08",
+  "timeSlot": "14:00",
+  "courtNumber": 1,
+  "organizerEmail": "felipe@garciab.cl",
+  "players": [
+    {
+      "name": "FELIPE GARCIA",
+      "email": "felipe@garciab.cl"
+    },
+    {
+      "name": "FELIPE BENITEZ G.",
+      "email": "fgarciabenitez@gmail.com"
+    },
+    {
+      "name": "CLARA PARDO BUZETA",
+      "email": "fgarciabenitez@gmail.com"
+    },
+    {
+      "name": "ANA MARIA BELMAR PLAZA",
+      "email": "fgarciabenitez@gmail.com"
+    }
+  ]
+}

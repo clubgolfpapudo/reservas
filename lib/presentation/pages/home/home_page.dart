@@ -7,6 +7,7 @@ import '../../widgets/booking/time_slot_block.dart';
 import '../../widgets/booking/court_tab_button.dart';
 import '../../widgets/booking/date_selector.dart';
 import '../../widgets/common/app_loading_indicator.dart';
+import '../../widgets/user_selector_widget.dart';
 import '../../../core/theme/app_theme.dart';
 import '../../../core/constants/app_constants.dart';
 
@@ -31,29 +32,25 @@ class _HomePageState extends State<HomePage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: AppColors.backgroundGray,
-      body: SafeArea(
-        child: Consumer2<BookingProvider, UserProvider>(
-          builder: (context, bookingProvider, userProvider, child) {
-            return Column(
-              children: [
-                // Header con título y información del usuario
-                _buildHeader(userProvider),
-                
-                // Selector de fecha
-                _buildDateSelector(bookingProvider),
-                
-                // Selector de cancha
-                _buildCourtSelector(bookingProvider),
-                
-                // Lista de horarios
-                Expanded(
-                  child: _buildTimeSlotsList(bookingProvider, userProvider),
-                ),
-              ],
-            );
-          },
-        ),
+      // ... tu AppBar actual (no cambiar) ...
+      
+      body: Column(
+        children: [
+          // 🔥 NUEVO: Selector de usuario
+          UserSelectorWidget(
+            onUserChanged: () {
+              setState(() {
+                print('✅ Usuario cambiado, refrescando...');
+              });
+            },
+          ),
+          
+          // 🔥 TU CONTENIDO ACTUAL (envolver en Expanded)
+          Expanded(
+            child: /* AQUÍ VA TODO TU CÓDIGO ACTUAL DEL BODY */
+            // No cambies nada de tu código actual, solo envuélvelo en Expanded
+          ),
+        ],
       ),
     );
   }

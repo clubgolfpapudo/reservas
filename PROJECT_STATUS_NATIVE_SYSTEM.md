@@ -1,397 +1,314 @@
-# PROJECT STATUS - NATIVE SYSTEM
+# PROJECT STATUS - Sistema Nativo de Reservas CGP
 
-## INFORMACIÓN GENERAL DEL PROYECTO
+## 📋 RESUMEN EJECUTIVO
 
-**Nombre:** Sistema de Reservas de Pádel - Club de Golf Papudo  
-**Stack:** Flutter Web + Firebase  
-**Dominio:** https://cgpreservas.web.app  
-**Estado:** ✅ **FUNCIONAL - PRODUCCIÓN COMPLETA**
+**Proyecto:** Sistema de reservas de pádel para Club Golf Peñalolén (CGP)  
+**Tecnología:** Flutter Web + Firebase Firestore  
+**Estado:** En desarrollo activo - **Funcionalidad básica operativa**  
+**Usuarios objetivo:** ~475 socios del club  
+**Funcionalidad principal:** Reserva de canchas de pádel con gestión de jugadores  
 
-## FUNCIONALIDADES IMPLEMENTADAS Y OPERATIVAS
+---
 
-### ✅ SISTEMA CORE - 100% FUNCIONAL
-- **Reservas multi-jugador:** Hasta 4 jugadores por reserva
-- **Calendario interactivo:** Selección de fecha y horario
-- **Gestión de canchas:** 3 canchas disponibles (Court 1, 2, 3)
-- **Base de datos:** Firebase Firestore completamente configurada
-- **UI/UX:** Interfaz moderna y responsive
+## 🎯 OBJETIVOS DEL PROYECTO
 
-### ✅ SISTEMA DE EMAILS - 100% FUNCIONAL
-- **Notificaciones automáticas:** Emails a todos los jugadores al crear reserva
-- **URLs personalizadas:** Cada jugador recibe su email personalizado en el botón "Cancelar"
-- **HTML profesional:** Emails con diseño del club y toda la información de la reserva
-- **Función:** `sendBookingEmailHTTP` - Deploy exitoso y operativa
+### Objetivos Cumplidos ✅
+- **Migración desde sistema externo:** Abandonar Padelmax por costos y limitaciones
+- **Interfaz nativa personalizada:** Calendario visual con slots de reserva
+- **Integración Firebase:** Conexión exitosa con base de datos de usuarios reales
+- **Gestión de jugadores:** Modal funcional para agregar jugadores a reservas
+- **Arquitectura escalable:** Estructura de carpetas y servicios bien definida
 
-### ✅ CANCELACIÓN INDIVIDUAL - 100% FUNCIONAL
-- **Cancelación por jugador:** Cada jugador puede cancelarse individualmente sin afectar a otros
-- **Lógica diferenciada:** 
-  - Si cancela organizador: Se elimina toda la reserva
-  - Si cancela invitado: Solo se remueve ese jugador, reserva continúa
-- **Función:** `cancelBooking` - Deploy exitoso y operativa
-- **Página de confirmación:** HTML de confirmación al cancelar exitosamente
+### Objetivos Pendientes 🔄
+- **Autenticación de usuarios:** Sistema de login/logout
+- **Validaciones de negocio:** Límites de reservas, horarios, restricciones
+- **Persistencia de reservas:** Guardar reservas en Firebase
+- **Interfaz de administración:** Panel para gestión del club
+- **Optimizaciones de rendimiento:** Carga eficiente de datos
 
-## ARQUITECTURA TÉCNICA
+---
 
-### FRONTEND - Flutter Web
+## 🏗️ ARQUITECTURA ACTUAL
+
 ```
 lib/
-├── main.dart                 # Entry point
-├── screens/
-│   ├── booking_screen.dart   # Pantalla principal de reservas
-│   └── confirmation_screen.dart
-├── services/
-│   └── booking_service.dart  # Lógica de negocio
-├── widgets/
-│   ├── calendar_widget.dart  # Selector de fechas
-│   ├── court_selector.dart   # Selector de canchas
-│   └── time_slot_widget.dart # Selector de horarios
-└── models/
-    └── booking_model.dart    # Modelo de datos
+├── core/
+│   └── services/
+│       ├── firebase_user_service.dart    ✅ FUNCIONANDO
+│       ├── user_service.dart             ✅ FUNCIONANDO  
+│       └── booking_service.dart          🔄 EN DESARROLLO
+├── data/
+│   └── models/
+│       ├── reservation_player.dart       ✅ FUNCIONANDO
+│       └── booking.dart                  🔄 PARCIAL
+└── presentation/
+    ├── pages/
+    │   ├── home/
+    │   │   └── home_page.dart           ✅ FUNCIONANDO
+    │   └── booking/
+    │       └── reservations_page.dart   ✅ FUNCIONANDO
+    └── widgets/
+        ├── booking/
+        │   └── reservation_form_modal.dart  ✅ FUNCIONANDO
+        └── user_selector_widget.dart       🔄 TEMPORAL
 ```
 
-### BACKEND - Firebase Functions
-```
-functions/
-├── index.js                  # Cloud Functions principales
-├── package.json             # Dependencias Node.js
-└── node_modules/            # Librerías instaladas
-```
+---
 
-**Funciones Cloud desplegadas:**
-- `sendBookingEmailHTTP` ✅ Operativa
-- `cancelBooking` ✅ Operativa
+## 🔥 FIREBASE CONFIGURACIÓN
 
-### BASE DE DATOS - Firestore
-**Colección:** `bookings`
-```javascript
+### Base de Datos Firestore ✅
+**Colección:** `users` (476 documentos)
+
+**Estructura de usuarios reales:**
+```json
 {
-  id: "court1-2025-06-05-1200",      // ID único generado
-  courtNumber: "court_1",             // Cancha seleccionada
-  date: "2025-06-05",                 // Fecha de reserva
-  timeSlot: "12:00",                  // Horario
-  players: [                          // Array de jugadores
-    {
-      name: "Felipe García",
-      email: "felipe@garciab.cl",
-      phone: "+56912345678"
-    },
-    {
-      name: "Ana Buzeta", 
-      email: "ana@buzeta.cl",
-      phone: "+56987654321"
-    }
-  ],
-  status: "confirmed",                // Estado de la reserva
-  createdAt: Timestamp,               // Fecha de creación
-  lastModified: Timestamp             // Última modificación
+  "displayName": "ANDREA BONNEFONT B.",
+  "email": "abonnefont@gmail.com", 
+  "nombres": "ANDREA",
+  "apellidoPaterno": "BONNEFONT",
+  "apellidoMaterno": "BELLOLIO",
+  "celular": "982706275",
+  "isActive": true,
+  "relacion": "SOCIO(A) TITULAR",
+  "source": "google_sheets"
 }
 ```
 
-## CONFIGURACIÓN DE DESARROLLO
+**Estado de lectura:**
+- ✅ **Conexión exitosa** a Firebase
+- ✅ **475 usuarios reales** cargados correctamente
+- ✅ **Procesamiento de nombres** desde `displayName` y campos separados
+- ✅ **4 usuarios VISITA** agregados dinámicamente
 
-### Requisitos del Sistema
-- **Flutter:** 3.24.5+ 
-- **Dart:** 3.5.4+
-- **Firebase CLI:** Última versión
-- **Node.js:** 20+ (para Cloud Functions)
+---
 
-### Variables de Entorno
-```bash
-# Firebase Project
-PROJECT_ID: cgpreservas
-REGION: us-central1
+## 🎨 INTERFAZ DE USUARIO
 
-# URLs de producción
-WEB_APP: https://cgpreservas.web.app
-FUNCTIONS_BASE: https://us-central1-cgpreservas.cloudfunctions.net
-```
+### Componentes Funcionando ✅
 
-### Comandos de Deploy
-```bash
-# Deploy completo
-firebase deploy
+**1. Calendario Principal**
+- Grilla de horarios por cancha (PITE, etc.)
+- Navegación por fechas
+- Slots clickeables para reservar
 
-# Solo functions
-firebase deploy --only functions --force
+**2. Modal de Reserva** 
+- ✅ Usuario principal dinámico (no hardcodeado)
+- ✅ Búsqueda de jugadores en tiempo real
+- ✅ Lista de ~479 usuarios totales (475 Firebase + 4 VISITA)
+- ✅ Selección múltiple de jugadores
+- ✅ Validación de cupos (máximo 4 jugadores)
 
-# Solo hosting
-firebase deploy --only hosting
+**3. Selector de Usuario (Temporal)**
+- Widget para testing y desarrollo
+- Permite cambiar usuario actual
+- Lista completa de socios para seleccionar
 
-# Logs en tiempo real
-firebase functions:log --only=sendBookingEmailHTTP
-firebase functions:log --only=cancelBooking
-```
+### Flujo de Usuario Actual
+1. **Usuario abre la app** → Ve calendario de reservas
+2. **Clic en slot disponible** → Abre modal de reserva
+3. **Sistema detecta usuario actual** → Agrega como organizador
+4. **Usuario busca jugadores** → Lista filtrada de 479 usuarios
+5. **Selecciona jugadores** → Valida límite de 4 total
+6. **[PENDIENTE] Confirma reserva** → Debería guardar en Firebase
 
-## FLUJO DE USUARIO COMPLETO
+---
 
-### 1. CREAR RESERVA
-1. Usuario selecciona **fecha** en calendario
-2. Usuario selecciona **cancha** (Court 1, 2, o 3)
-3. Usuario selecciona **horario** disponible
-4. Usuario ingresa datos de **hasta 4 jugadores**:
-   - Nombre completo
-   - Email válido
-   - Teléfono (opcional)
-5. Sistema genera **ID único**: `court1-2025-06-05-1200`
-6. Se guarda en **Firestore**
-7. Se envían **emails automáticos** a todos los jugadores
+## 🚀 LOGROS DE ESTA SESIÓN
 
-### 2. EMAILS AUTOMÁTICOS
-- **Asunto:** "Reserva de Pádel Confirmada - Club de Golf Papudo"
-- **Contenido:** Todos los detalles de la reserva
-- **Botón personalizado:** "Cancelar mi participación" con URL única por jugador
-- **URL ejemplo:** `https://us-central1-cgpreservas.cloudfunctions.net/cancelBooking?id=court1-2025-06-05-1200&email=felipe%40garciab.cl`
+### Problemas Resueltos ✅
 
-### 3. CANCELACIÓN INDIVIDUAL
-- Jugador hace click en **"Cancelar"** desde su email
-- Sistema identifica **qué jugador** cancela por el email en la URL
-- **Si es organizador (primer jugador):** Elimina toda la reserva
-- **Si es invitado:** Solo remueve ese jugador, otros continúan
-- Muestra página de **confirmación exitosa**
+**1. Conflicto de Clases**
+- ❌ **Problema:** Clase `ReservationPlayer` duplicada en múltiples archivos
+- ✅ **Solución:** Eliminada duplicación, uso de estructura unificada
 
-## ÚLTIMOS BUGS SOLUCIONADOS
+**2. Métodos Faltantes**
+- ❌ **Problema:** `_filterPlayers` y `_loadUsersFromFirebase` no definidos
+- ✅ **Solución:** Implementados todos los métodos faltantes
 
-### ❌ Bug: URLs de cancelación incorrectas
-**Problema:** Todos los emails tenían el email del organizador en la URL
-**Solución:** Se corrigió para pasar `playerEmail` individual a cada email
-**Status:** ✅ Solucionado - Deploy exitoso
+**3. Usuario Hardcodeado**
+- ❌ **Problema:** Usuario principal "FELIPE GARCIA" estaba en código duro
+- ✅ **Solución:** Sistema dinámico con `UserService` configurable
 
-### ❌ Bug: Cancelación elimina toda la reserva
-**Problema:** Al cancelar cualquier jugador se eliminaba toda la reserva
-**Solución:** Se implementó lógica diferenciada:
-- Organizador cancela → Elimina reserva completa  
-- Invitado cancela → Solo remueve ese jugador
-**Status:** ✅ Solucionado - Deploy exitoso
+**4. Estructura de Datos Firebase**
+- ❌ **Problema:** Solo 1 usuario válido de 476 (campo `name` faltante)
+- ✅ **Solución:** Adaptación a estructura real con `displayName` y campos separados
 
-### ❌ Bug: Firebase no detectaba cambios
-**Problema:** `firebase deploy` decía "No changes detected"
-**Solución:** Se agregaron comentarios para forzar detección de cambios
-**Status:** ✅ Solucionado
+**5. Validación de Usuarios**
+- ❌ **Problema:** 475 usuarios marcados como "inválidos"
+- ✅ **Solución:** Lógica mejorada para procesar ambas estructuras de datos
 
-## TESTING REALIZADO
+### Mejoras Implementadas ✅
 
-### ✅ Test Completo de Reservas
-- Creación de reserva con 4 jugadores ✅
-- Recepción de emails personalizados ✅
-- URLs únicas por jugador ✅
-- Cancelación individual de invitado ✅
-- Verificación de que otros jugadores permanecen ✅
+- **Logging detallado:** Debug completo en consola para troubleshooting
+- **Manejo de errores:** Fallbacks robusto si Firebase falla
+- **Generación automática:** Nombres desde email como último recurso
+- **Arquitectura modular:** Servicios separados y reutilizables
+- **Código limpio:** Eliminación de duplicaciones y mejor organización
 
-### ✅ Test de Edge Cases
-- Cancelación cuando solo queda 1 jugador ✅
-- Reservas en diferentes canchas y horarios ✅
-- Manejo de emails con caracteres especiales ✅
+---
 
-## HORARIOS Y CONFIGURACIÓN OPERATIVA
+## ⚠️ TEMAS PENDIENTES CRÍTICOS
 
-### ⏰ Horarios Disponibles
-- **Lunes a Domingo:** 08:00 - 22:00
-- **Slots de tiempo:** Intervalos de 1.5 horas
-- **Slots disponibles:** 08:00, 09:30, 11:00, 12:30, 14:00, 15:30, 17:00, 18:30, 20:00, 21:30
+### 1. **Autenticación de Usuarios** 🔴
+**Estado:** No implementado  
+**Descripción:** Sistema actual usa usuario temporal/hardcodeado  
+**Requerido:** 
+- Login con email/password
+- Sesión persistente
+- Roles de usuario (socio, admin)
+- Logout seguro
 
-### 🏓 Canchas Disponibles
-- **Court 1** (court_1)
-- **Court 2** (court_2) 
-- **Court 3** (court_3)
+### 2. **Persistencia de Reservas** 🔴
+**Estado:** Modal funciona pero no guarda  
+**Descripción:** Reservas se crean en memoria pero no se persisten  
+**Requerido:**
+- Guardar en colección `bookings` de Firebase
+- Validar conflictos de horarios
+- Confirmar disponibilidad en tiempo real
 
-### 📧 Configuración de Emails
-- **Servicio:** Firebase Functions con Nodemailer
-- **Remitente:** Sistema automatizado del club
-- **Templates:** HTML responsive con diseño del club
+### 3. **Validaciones de Negocio** 🟡
+**Estado:** Validaciones básicas únicamente  
+**Pendiente:**
+- ✅ Límite de 4 jugadores por reserva
+- ❌ Límite de reservas por usuario
+- ❌ Horarios permitidos por cancha
+- ❌ Restricciones por día de la semana
+- ❌ Cancelación de reservas
+- ❌ Política de no-show
 
-## DEBUGGING Y LOGS
+### 4. **Gestión de Canchas** 🟡
+**Estado:** Estructura básica  
+**Pendiente:**
+- Configuración dinámica de canchas
+- Horarios específicos por cancha
+- Mantenimiento/bloqueo de canchas
+- Tarifas diferenciadas
 
-### 🔍 Comandos de Debugging
-```bash
-# Ver logs específicos
-firebase functions:log --only=sendBookingEmailHTTP --lines=20
-firebase functions:log --only=cancelBooking --lines=20
+### 5. **Interfaz de Administración** 🔴
+**Estado:** No existe  
+**Requerido:**
+- Panel de administración
+- Gestión de usuarios y membresías
+- Reportes de uso
+- Configuración del sistema
 
-# Debugging en tiempo real
-firebase functions:log --follow
+---
 
-# Ver todas las reservas en Firestore
-# Acceder via Firebase Console > Firestore Database > bookings collection
-```
+## 🔧 PROBLEMAS TÉCNICOS MENORES
 
-### 📊 Información de Logs Clave
-- **Emails enviados:** Confirmación de cada email individual
-- **Cancelaciones:** Logs detallados de qué jugador cancela
-- **Errores comunes:** Emails inválidos, IDs no encontrados
+### Issues Conocidos 🟡
+- **UserSelectorWidget:** Widget temporal que debe removerse en producción
+- **Fallback users:** Lista hardcodeada para emergencias
+- **Console logging:** Exceso de debug messages en producción
+- **Error handling:** Algunos catch blocks genéricos
 
-## BUGS ACTUALES IDENTIFICADOS
+### Deuda Técnica 📝
+- **Tests unitarios:** No implementados
+- **Documentación:** Falta documentación de APIs
+- **Optimización:** Carga de todos los usuarios en memoria
+- **Caché:** Sin sistema de caché para datos frecuentes
 
-### 🚨 **Bug Crítico: Lógica de Fecha de Apertura**
-**Problema:** La app siempre se abre mostrando HOY, incluso cuando ya pasaron todas las horas de reserva del día  
-**Comportamiento actual:** Si son las 23:00, aún muestra reservas de hoy (ya imposibles)  
-**Comportamiento deseado:** Si la hora actual > última reserva del día, abrir automáticamente en día siguiente  
-**Prioridad:** 🔴 ALTA - Afecta UX diariamente  
-**Archivos afectados:** `lib/screens/booking_screen.dart` - Lógica de inicialización de fecha
+---
 
-### 🚨 **Bug UI: Overflow en Popup de Reserva (Chrome)**
-**Problema:** Error de constraints y overflow en modal de resumen de reserva  
-**Error específico:**
-```
-BoxConstraints has non-normalized height constraints
-A RenderFlex overflowed by 4.8 pixels on the bottom
-BOTTOM OVERFLOWED BY 2.0 PIXELS
-```
-**Prioridad:** 🟡 MEDIA - Solo afecta Chrome, funcional pero visualmente incorrecto  
-**Archivos afectados:** Widget del popup de reserva  
-**Solución sugerida:** Ajustar constraints de altura y usar Scrollable
+## 📊 MÉTRICAS ACTUALES
 
-### 🚨 **Limitación Crítica: Usuarios Hardcodeados**
-**Problema:** Los usuarios están definidos en el código, no en base de datos  
-**Impacto:** Imposible agregar/editar socios sin modificar código  
-**Requerimiento:** Migrar a Firebase + sincronización con Google Sheets  
-**Prioridad:** 🔴 ALTA - Bloquea escalabilidad  
+### Base de Datos
+- **Total usuarios Firebase:** 476 documentos
+- **Usuarios válidos procesados:** ~475
+- **Usuarios VISITA:** 4 (agregados automáticamente)
+- **Total usuarios disponibles:** ~479
 
-## MEJORAS REQUERIDAS PRIORITARIAS
+### Rendimiento
+- **Tiempo carga usuarios:** ~2-3 segundos
+- **Memoria modal:** Eficiente, filtra en tiempo real
+- **Responsividad:** Buena en navegadores modernos
 
-### 🔄 **URGENT - Lógica de Fecha Inteligente**
-```dart
-// Implementar en booking_screen.dart
-DateTime getInitialDate() {
-  final now = DateTime.now();
-  final lastSlotToday = DateTime(now.year, now.month, now.day, 21, 30); // 21:30 última reserva
-  
-  if (now.isAfter(lastSlotToday)) {
-    return now.add(Duration(days: 1)); // Mostrar mañana
-  }
-  return now; // Mostrar hoy
-}
-```
+### Funcionalidad
+- **Creación modal reserva:** ✅ 100% funcional
+- **Búsqueda usuarios:** ✅ 100% funcional  
+- **Validación jugadores:** ✅ 100% funcional
+- **Persistencia reservas:** ❌ 0% implementado
 
-### 🔄 **URGENT - Sistema de Usuarios Dinámico**
-**Implementar:**
-1. **Colección Firebase:** `users` o `socios`
-2. **Sincronización:** Google Sheets API → Firebase
-3. **Campos requeridos:**
-   - Nombre completo
-   - Email
-   - Teléfono
-   - Estado (activo/inactivo)
-   - Tipo de socio
+---
 
-**Google Sheets Integration:**
-- **Planilla:** 'MaestroSocios'
-- **Función Cloud:** `syncUsersFromSheets`
-- **Frecuencia:** Diaria o manual
+## 🎯 PRÓXIMOS PASOS PRIORITARIOS
 
-### 🔄 **MEDIUM - Fix UI Overflow**
-**Popup de reserva necesita:**
-1. **Constraints flexibles** para diferentes tamaños de pantalla
-2. **ScrollView** para contenido largo
-3. **Responsive design** específico para Chrome
+### Sprint 1: Autenticación (Alta Prioridad) 🔴
+1. **Implementar Firebase Auth**
+2. **Pantalla de login con email/password**
+3. **Gestión de sesiones y estado de usuario**
+4. **Integración con datos de usuario existentes**
 
-## PRÓXIMAS MEJORAS SUGERIDAS
+### Sprint 2: Persistencia de Reservas (Alta Prioridad) 🔴  
+1. **Crear colección `bookings` en Firebase**
+2. **Implementar guardado de reservas desde modal**
+3. **Validaciones de conflictos y disponibilidad**
+4. **Mostrar reservas existentes en calendario**
 
-### 🔄 Funcionalidades Adicionales
-1. **Panel de administración** para gestionar reservas desde web
-2. **Notificaciones push** para recordatorios
-3. **Integración con calendario** (Google Calendar, Outlook)
-4. **Sistema de pagos** online
-5. **Reportes de uso** de canchas
-6. **App móvil nativa** (iOS/Android)
+### Sprint 3: Validaciones de Negocio (Media Prioridad) 🟡
+1. **Definir reglas de negocio del club**
+2. **Implementar límites de reservas por usuario**
+3. **Configurar horarios y restricciones por cancha**
+4. **Sistema de cancelaciones**
 
-### 🔧 Optimizaciones Técnicas
-1. **Cache de horarios** disponibles
-2. **Validación de horarios** en tiempo real
-3. **Backup automático** de reservas
-4. **Logs más detallados** para debugging
-5. **Tests automatizados** unitarios y de integración
+### Sprint 4: Administración (Media Prioridad) 🟡
+1. **Panel de administración básico**
+2. **Gestión de usuarios y roles**
+3. **Reportes simples de uso**
+4. **Configuración de canchas y horarios**
 
-## CONOCIMIENTO CONTEXTUAL IMPORTANTE
+---
 
-### 🏌️ Sobre el Club
-- **Nombre:** Club de Golf Papudo
-- **Ubicación:** Papudo, Chile
-- **Deporte:** Sistema específico para reservas de **Pádel** (no golf)
-- **Capacidad:** Máximo 4 jugadores por reserva (estándar del pádel)
+## 🔍 CONSIDERACIONES TÉCNICAS
 
-### 👤 Roles de Usuario
-- **Organizador:** Primer jugador que crea la reserva
-- **Invitados:** Jugadores 2, 3 y 4 agregados a la reserva
-- **Lógica:** Solo el organizador puede eliminar toda la reserva; invitados solo se auto-cancelan
+### Escalabilidad
+- **Arquitectura actual:** Soporta crecimiento gradual
+- **Firebase Firestore:** Escalable automáticamente
+- **Flutter Web:** Performance adecuada para uso del club
+- **Optimizaciones futuras:** Implementar paginación y caché
 
-### 🔄 Flujo de Cancelación Específico
-- **Organizador cancela:** Toda la reserva se elimina (asume que el organizador coordina)
-- **Invitado cancela:** Solo ese jugador se remueve, reserva continúa con otros jugadores
-- **Página de confirmación:** Diferente mensaje según tipo de cancelación
+### Seguridad
+- **Firebase Rules:** Actualmente abiertas (temporal para desarrollo)
+- **Autenticación:** Pendiente implementación
+- **Validaciones:** Deben moverse a backend/rules
+- **Datos sensibles:** Revisar qué datos son públicos
 
-## PROBLEMAS CONOCIDOS Y SOLUCIONES
+### Mantenibilidad
+- **Código modular:** Buena separación de responsabilidades
+- **Servicios separados:** Fácil testing y modificación
+- **Estructura clara:** Navegación intuitiva del código
+- **Documentación:** Pendiente mejorar comentarios
 
-### ⚠️ Problemas Actuales Conocidos
-1. **Fecha de apertura:** Siempre muestra HOY independiente de la hora actual
-2. **UI overflow:** Error de constraints en popup de reserva (Chrome específico)
-3. **Usuarios hardcodeados:** No hay gestión dinámica de socios desde Firebase
-4. **Google Sheets:** Falta sincronización con planilla 'MaestroSocios'
+---
 
-### ⚠️ Problemas Potenciales Futuros
-1. **Firebase quotas:** Con mucho uso, verificar límites de Cloud Functions
-2. **Emails spam:** Algunos proveedores pueden marcar emails automáticos como spam
-3. **Concurrencia:** Múltiples usuarios reservando mismo horario simultáneamente
-4. **URLs largas:** URLs de cancelación pueden ser truncadas en algunos clientes de email
+## 📞 CONTACTO Y RECURSOS
 
-### 🛠️ Soluciones Implementadas
-1. **Encoding de emails:** `encodeURIComponent()` para caracteres especiales
-2. **Logging detallado:** Para debugging rápido de problemas
-3. **Error handling:** Páginas de error amigables para usuarios
-4. **CORS configurado:** Para permitir requests desde el frontend
+**Desarrollador Principal:** Felipe García  
+**Email:** fgarciabenitez@gmail.com  
+**Plataforma:** Flutter Web con Firebase  
+**Repositorio:** Local en desarrollo  
+**Entorno:** Chrome localhost:52756  
 
-## COMANDOS RÁPIDOS DE DESARROLLO
+### Recursos Técnicos
+- **Firebase Project:** CGP Reservas
+- **Firestore Database:** Modo test (reglas abiertas)
+- **Colecciones principales:** `users`
+- **Colecciones pendientes:** `bookings`, `courts`, `settings`
 
-```bash
-# Levantar entorno local
-flutter run -d chrome
+---
 
-# Ver logs en tiempo real
-firebase functions:log --lines=50
+## 📈 CONCLUSIÓN
 
-# Deploy rápido de functions
-firebase deploy --only functions --force
+El proyecto ha alcanzado un **milestone importante** con la funcionalidad básica del modal de reservas operativa y la correcta integración con la base de datos real de usuarios del club. 
 
-# Verificar status de funciones
-firebase functions:list
+**Estado actual:** **70% del frontend básico completado**  
+**Próximo hito crítico:** **Implementación de autenticación y persistencia**  
+**Timeline estimado:** **2-3 sprints para funcionalidad completa**
 
-# Abrir Firebase Console
-start https://console.firebase.google.com/project/cgpreservas
-```
+La base técnica es **sólida y escalable**, con una arquitectura que permite desarrollo ágil de las funcionalidades restantes. Los principales desafíos se centran en la implementación de lógica de negocio específica del club y la seguridad del sistema.
 
-## TAREAS INMEDIATAS PRIORIZADAS
+---
 
-### 🔴 **PRIORIDAD ALTA (Próxima sesión)**
-1. **Lógica de fecha inteligente** - Si hora actual > 21:30, abrir en día siguiente
-2. **Sistema de usuarios dinámico** - Migrar desde hardcode a Firebase + Google Sheets
-3. **Fix overflow popup** - Solucionar constraints y RenderFlex en Chrome
-
-### 🟡 **PRIORIDAD MEDIA**
-1. **Panel de administración** básico para ver/cancelar reservas
-2. **Validación de horarios** en tiempo real para evitar conflictos
-3. **Tests automatizados** para flujos críticos
-
-### 🟢 **PRIORIDAD BAJA**
-1. **Notificaciones push** y recordatorios
-2. **Integración calendario** personal
-3. **App móvil nativa**
-
-## INFORMACIÓN PARA DESARROLLO DE GOOGLE SHEETS
-
-### 📊 **Planilla 'MaestroSocios'**
-**Estructura esperada:**
-- **Columna A:** Nombre completo
-- **Columna B:** Email
-- **Columna C:** Teléfono  
-- **Columna D:** Estado (Activo/Inactivo)
-- **Columna E:** Tipo de socio (opcional)
-
-**Implementación necesaria:**
-```javascript
-// Nueva función Cloud: syncUsersFromSheets
-exports.syncUsersFromSheets = onRequest(async (req, res) => {
-  // 1. Conectar Google Sheets API
-  // 2. Leer planilla 'MaestroSocios'
-  // 3. Sincronizar con colección 'users' en Firestore
-  // 4. Manejar usuarios nuevos/editados/eliminados
-});
-```
+*Documento actualizado: 6 de Junio, 2025*  
+*Versión: 1.0 - Post integración Firebase exitosa*

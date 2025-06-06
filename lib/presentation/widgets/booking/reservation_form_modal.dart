@@ -3,6 +3,8 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../providers/booking_provider.dart';
 import '../../../core/constants/app_constants.dart';
+import '../../../core/services/firebase_user_service.dart';
+import '../../../core/services/user_service.dart';
 import '../../../domain/entities/booking.dart';
 
 class ReservationFormModal extends StatefulWidget {
@@ -72,33 +74,132 @@ class _ReservationFormModalState extends State<ReservationFormModal> {
     }
   }
 
-  void _initializeForm() {
-    // Usuario principal
-    _selectedPlayers.add(ReservationPlayer(
-      name: 'FELIPE GARCIA',
-      email: 'felipe@garciab.cl',
-      isMainBooker: true,
-    ));
+  // Reemplaza tu método _initializeForm() con este:
 
-    // Lista de jugadores con algunos especiales VISITA
-    _availablePlayers = [
-      ReservationPlayer(name: 'ANA M BELMAR P', email: 'anita@buzeta.cl'),
-      ReservationPlayer(name: 'CLARA PARDO B', email: 'clara@garciab.cl'),
-      ReservationPlayer(name: 'JUAN F GONZALEZ P', email: 'fgarcia88@hotmail.com'),
-      ReservationPlayer(name: 'FELIPE BENITEZ G', email: 'fgarciabenitez@gmail.com'),
-      ReservationPlayer(name: 'PEDRO MARTINEZ L', email: 'pedro.martinez@example.com'),
-      ReservationPlayer(name: 'PEDRO SILVA G', email: 'pedro.silva@example.com'),
-      ReservationPlayer(name: 'ADRIEN GRYNBLAT B', email: 'adrien@example.com'),
-      ReservationPlayer(name: 'AGUSTIN RODRIGUEZ D', email: 'agustin@example.com'),
-      ReservationPlayer(name: 'ALBERTO FRAUENBERG D', email: 'alberto@example.com'),
-      // 🔥 JUGADORES ESPECIALES - Pueden estar en múltiples canchas
-      ReservationPlayer(name: 'VISITA1 PADEL', email: 'visita1@cgp.cl'),
-      ReservationPlayer(name: 'VISITA2 PADEL', email: 'visita2@cgp.cl'),
-      ReservationPlayer(name: 'VISITA3 PADEL', email: 'visita3@cgp.cl'),
-      ReservationPlayer(name: 'VISITA4 PADEL', email: 'visita4@cgp.cl'),
-    ];
+  // REEMPLAZA estos métodos en tu reservation_form_modal.dart:
+
+  void _initializeForm() {
+    print('🚀 MODAL: Inicializando formulario...');
+    
+    // Inicializar listas vacías
+    _availablePlayers = [];
+    _filteredPlayers = [];
+    
+    // 🔥 USUARIO DINÁMICO: Configurar usuario actual primero
+    _setCurrentUser().then((_) {
+      print('✅ MODAL: Usuario principal configurado, cargando desde Firebase...');
+      // Después cargar usuarios desde Firebase
+      _loadUsersFromFirebase();
+    });
   }
 
+  /// 🔥 NUEVO: Configurar usuario actual dinámicamente
+  Future<void> _setCurrentUser() async {
+    try {
+      // Obtener usuario actual del servicio
+      final currentEmail = await UserService.getCurrentUserEmail();
+      final currentName = await UserService.getCurrentUserName();
+      
+      print('✅ MODAL: Usuario actual - $currentName ($currentEmail)');
+      
+      // Agregar como usuario principal (organizador)
+      _selectedPlayers.add(ReservationPlayer(
+        name: currentName,
+        email: currentEmail,
+        isMainBooker: true,
+      ));
+      
+    } catch (e) {
+      print('❌ MODAL: Error obteniendo usuario actual: $e');
+      
+      // Fallback de emergencia
+      _selectedPlayers.add(ReservationPlayer(
+        name: 'USUARIO TEMPORAL',
+        email: 'temp@cgp.cl',
+        isMainBooker: true,
+      ));
+    }
+  }
+
+  /// 🔥 CARGAR USUARIOS DESDE FIREBASE
+  Future<void> _loadUsersFromFirebase() async {
+    print('🚀 MODAL: Iniciando carga de usuarios desde Firebase...');
+    
+    try {
+      setState(() {
+        _isLoading = true;
+      });
+
+      // Cargar usuarios reales desde Firebase
+      print('🔥 MODAL: Llamando a FirebaseUserService.getAllUsers()...');
+      final usersData = await FirebaseUserService.getAllUsers();
+      
+      print('🔥 MODAL: Recibidos ${usersData.length} usuarios de Firebase');
+      
+      // Convertir a ReservationPlayer
+      final users = usersData.map((userData) {
+        return ReservationPlayer(
+          name: userData['name'],
+          email: userData['email'],
+          isMainBooker: false,
+        );
+      }).toList();
+      
+      print('🔥 MODAL: Convertidos ${users.length} usuarios a ReservationPlayer');
+      
+      // Agregar usuarios especiales VISITA al final
+      final visitUsers = [
+        ReservationPlayer(name: 'VISITA1 PADEL', email: 'visita1@cgp.cl'),
+        ReservationPlayer(name: 'VISITA2 PADEL', email: 'visita2@cgp.cl'),
+        ReservationPlayer(name: 'VISITA3 PADEL', email: 'visita3@cgp.cl'),
+        ReservationPlayer(name: 'VISITA4 PADEL', email: 'visita4@cgp.cl'),
+      ];
+
+      final allUsers = [...users, ...visitUsers];
+      
+      setState(() {
+        _availablePlayers = allUsers;
+        _isLoading = false;
+      });
+
+      print('✅ MODAL: ${allUsers.length} usuarios cargados en total (${users.length} Firebase + ${visitUsers.length} VISITA)');
+      
+      // Filtrar inmediatamente para mostrar usuarios
+      _filterPlayers();
+      
+    } catch (e) {
+      print('❌ MODAL: Error cargando usuarios: $e');
+      
+      // Fallback: usar usuarios de prueba EXPANDIDOS
+      final fallbackUsers = [
+        ReservationPlayer(name: 'ANA M BELMAR P', email: 'ana@buzeta.cl'),
+        ReservationPlayer(name: 'CLARA PARDO B', email: 'clara@garciab.cl'),
+        ReservationPlayer(name: 'JUAN F GONZALEZ P', email: 'juan@hotmail.com'),
+        ReservationPlayer(name: 'FELIPE BENITEZ G', email: 'fgarciabenitez@gmail.com'),
+        ReservationPlayer(name: 'PEDRO MARTINEZ L', email: 'pedro.martinez@example.com'),
+        ReservationPlayer(name: 'MARIA GONZALEZ R', email: 'maria.gonzalez@example.com'),
+        ReservationPlayer(name: 'CARLOS RODRIGUEZ M', email: 'carlos.rodriguez@example.com'),
+        ReservationPlayer(name: 'LUIS FERNANDEZ B', email: 'luis.fernandez@example.com'),
+        ReservationPlayer(name: 'SOFIA MARTINEZ T', email: 'sofia.martinez@example.com'),
+        ReservationPlayer(name: 'DIEGO SANCHEZ L', email: 'diego.sanchez@example.com'),
+        // Usuarios VISITA
+        ReservationPlayer(name: 'VISITA1 PADEL', email: 'visita1@cgp.cl'),
+        ReservationPlayer(name: 'VISITA2 PADEL', email: 'visita2@cgp.cl'),
+        ReservationPlayer(name: 'VISITA3 PADEL', email: 'visita3@cgp.cl'),
+        ReservationPlayer(name: 'VISITA4 PADEL', email: 'visita4@cgp.cl'),
+      ];
+      
+      setState(() {
+        _availablePlayers = fallbackUsers;
+        _isLoading = false;
+      });
+      
+      print('🔄 MODAL: Usando ${fallbackUsers.length} usuarios de fallback');
+      _filterPlayers();
+    }
+  }
+
+  // 🔥 MÉTODO FALTANTE: _filterPlayers
   void _filterPlayers() {
     final query = _searchController.text.toLowerCase().trim();
     setState(() {
