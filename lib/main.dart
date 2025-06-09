@@ -1,4 +1,4 @@
-// lib/main.dart - CONFIGURACIÓN REAL DE FIREBASE
+// lib/main.dart - CONFIGURACIÓN REAL DE FIREBASE 2
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:firebase_core/firebase_core.dart';
