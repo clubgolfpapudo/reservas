@@ -988,9 +988,8 @@ function generateBookingEmailHtml({playerName, playerEmail, isOrganizer, booking
 
                 <div style="background: #fef3cd; padding: 16px; 
                 border-radius: 6px; margin: 20px 0;">
-                    <strong>💡 Importante:</strong> Para cancelar esta reserva, 
-                    haz clic en el botón de arriba. Se notificará automáticamente 
-                    a los otros jugadores.
+                    <strong>💡 Importante:</strong> Si no has reservado, no estás al tanto de esta invitación,
+                     o no puedes asistir, cancela esta reserva. Para cancelar, haz clic en el botón de arriba. Se notificará automáticamente a los otros jugadores.
                 </div>
             </div>
 
@@ -1000,7 +999,7 @@ function generateBookingEmailHtml({playerName, playerEmail, isOrganizer, booking
                     <strong>Club de Golf Papudo</strong> • Desde 1932<br>
                     📧 <a href="mailto:paddlepapudo@gmail.com" 
                     style="color: #1e3a8a;">paddlepapudo@gmail.com</a><br>
-                    📍 Camino Papudo - Zapallar, Papudo, Valparaíso<br>
+                    📍 Miraflores s/n - Papudo, Valparaíso<br>
                     🌐 <a href="https://clubgolfpapudo.cl" 
                     style="color: #1e3a8a;">clubgolfpapudo.cl</a>
                 </p>
