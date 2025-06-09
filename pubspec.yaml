@@ -79,7 +79,7 @@ dev_dependencies:
   # │ TESTING - Para probar que tu código funciona                           │
   # └─────────────────────────────────────────────────────────────────────────┘
   mockito: ^5.4.2                      # Crear objetos "falsos" para testing
-  flutter_lints: ^5.0.0                # Reglas de buenas prácticas
+  flutter_lints: ^3.0.0                # Reglas de buenas prácticas
 
 # ═══════════════════════════════════════════════════════════════════════════════
 # CONFIGURACIÓN DE FLUTTER
