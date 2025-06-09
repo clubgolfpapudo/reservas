@@ -1,7 +1,6 @@
-// ACTUALIZA user_service.dart para que sea dinámico:
-
 // lib/core/services/user_service.dart
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'dart:html' as html; // 🔥 NUEVO: Para leer parámetros de URL
 
 class UserService {
   // 🔥 USUARIO ACTUAL CONFIGURABLE (no hardcodeado)
@@ -15,13 +14,30 @@ class UserService {
     print('✅ Usuario actual configurado: $name ($email)');
   }
 
-  /// Obtiene el email del usuario actual
+  /// 🔥 ACTUALIZADO: Obtiene el email del usuario actual
+  /// Primero intenta leer de la URL, luego usa el configurado, luego fallback
   static Future<String> getCurrentUserEmail() async {
+    // 1. 🔥 NUEVO: Intentar leer email de la URL primero
+    try {
+      final uri = Uri.parse(html.window.location.href);
+      final emailFromUrl = uri.queryParameters['email'];
+      
+      if (emailFromUrl != null && emailFromUrl.isNotEmpty) {
+        print('✅ Email obtenido de URL: $emailFromUrl');
+        _currentUserEmail = emailFromUrl; // Guardarlo en memoria
+        return emailFromUrl;
+      }
+    } catch (e) {
+      print('⚠️ Error leyendo URL: $e');
+    }
+    
+    // 2. Si ya está configurado en memoria, usarlo
     if (_currentUserEmail != null) {
+      print('✅ Email obtenido de memoria: $_currentUserEmail');
       return _currentUserEmail!;
     }
     
-    // 🔄 Fallback temporal para desarrollo
+    // 3. 🔄 Fallback temporal para desarrollo
     print('⚠️ Usuario no configurado, usando fallback');
     return 'fgarciabenitez@gmail.com';
   }
@@ -80,11 +96,36 @@ class UserService {
     }
   }
 
+  /// 🔥 NUEVO: Inicializar usuario desde URL (llamar en main.dart)
+  static Future<void> initializeFromUrl() async {
+    try {
+      final email = await getCurrentUserEmail();
+      print('🚀 Inicializando usuario desde URL: $email');
+      
+      // Intentar buscar el usuario en Firebase o usar datos de prueba
+      final userData = await getUserByEmail(email);
+      if (userData != null) {
+        setCurrentUser(userData['email']!, userData['name']!);
+      } else {
+        // Si no existe en Firebase, buscar en usuarios de prueba
+        final testName = testUsers[email];
+        if (testName != null) {
+          setCurrentUser(email, testName);
+        } else {
+          setCurrentUser(email, email.split('@')[0].toUpperCase());
+        }
+      }
+    } catch (e) {
+      print('❌ Error inicializando usuario desde URL: $e');
+    }
+  }
+
   /// Lista de usuarios de prueba (mantener para compatibilidad)
   static const Map<String, String> testUsers = {
     'felipe@garciab.cl': 'FELIPE GARCIA',
     'ana@buzeta.cl': 'ANA M BELMAR P',
     'clara@garciab.cl': 'CLARA PARDO B',
     'juan@hotmail.com': 'JUAN F GONZALEZ P',
+    'test@gmail.com': 'USUARIO DE PRUEBA', // Para testing
   };
 }
