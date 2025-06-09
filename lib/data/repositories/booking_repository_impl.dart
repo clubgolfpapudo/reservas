@@ -213,7 +213,7 @@ class BookingRepositoryImpl implements BookingRepository {
           .toSet();
 
       // Filtrar horarios disponibles
-      final allTimes = AppConstants.allTimeSlots;
+      final allTimes = AppConstants.getAllTimeSlots(date);
       return allTimes.where((time) => !bookedTimes.contains(time)).toList();
     } catch (e) {
       throw Exception('Error al obtener horarios disponibles: $e');

@@ -7,7 +7,7 @@ abstract class AppConstants {
   // ═══════════════════════════════════════════════════════════════════════════
   static const String appName = 'CGP Reservas';
   static const String appVersion = '1.0.0';
-  static const String clubName = 'Club de Golf y Pádel';
+  static const String clubName = 'Club de Golf Papudo';
   
   // ═══════════════════════════════════════════════════════════════════════════
   // CONFIGURACIÓN DE RESERVAS
@@ -19,9 +19,11 @@ abstract class AppConstants {
   static const int childAgeLimit = 25; // Límite edad hijos de socios
   
   // ═══════════════════════════════════════════════════════════════════════════
-  // HORARIOS DISPONIBLES
+  // HORARIOS DISPONIBLES - DINÁMICOS POR TEMPORADA
   // ═══════════════════════════════════════════════════════════════════════════
-  static const List<String> allTimeSlots = [
+  
+  // Horarios base (invierno)
+  static const List<String> winterTimeSlots = [
     '09:00',
     '10:30',
     '12:00',
@@ -31,6 +33,33 @@ abstract class AppConstants {
     '18:00',
     '19:30',
   ];
+  
+  // Horarios extendidos (verano) - incluye 21:00
+  static const List<String> summerTimeSlots = [
+    '09:00',
+    '10:30',
+    '12:00',
+    '13:30',
+    '15:00',
+    '16:30',
+    '18:00',
+    '19:30',
+    '21:00',  // ← NUEVO horario de verano
+  ];
+  
+  // ✅ MÉTODO DINÁMICO: Obtiene horarios según temporada
+  static List<String> getAllTimeSlots([DateTime? date]) {
+    date ??= DateTime.now();
+    final month = date.month;
+    
+    // Verano en Chile: octubre a marzo
+    final isSummer = (month >= 10 || month <= 3);
+    
+    return isSummer ? summerTimeSlots : winterTimeSlots;
+  }
+  
+  // Mantener compatibilidad con código existente
+  static const List<String> allTimeSlots = winterTimeSlots;
   
   // Horarios restringidos para visitas
   static const List<String> visitTimeSlots = [
@@ -157,7 +186,7 @@ abstract class AppConstants {
   // ═══════════════════════════════════════════════════════════════════════════
   static const String webViewBaseUrl = 'https://tu-sistema-gas.com';
   static const String supportEmail = 'soporte@cgpreservas.com';
-  static const String clubWebsite = 'https://clubgolfpadel.com';
+  static const String clubWebsite = 'https://clubgolfpapudo.com';
   static const String whatsappSupport = '+56912345678';
   
   // ═══════════════════════════════════════════════════════════════════════════
@@ -221,7 +250,7 @@ abstract class AppConstants {
   };
 
   // Horarios disponibles para reservas (alias de allTimeSlots)
-  static const List<String> availableTimeSlots = allTimeSlots;
+  static List<String> get availableTimeSlots => getAllTimeSlots();
 
   // Duraciones de animación
   static const Duration defaultAnimationDuration = Duration(milliseconds: 300);

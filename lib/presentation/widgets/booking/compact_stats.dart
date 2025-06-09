@@ -4,12 +4,17 @@ import '../../../domain/entities/booking.dart';
 // import '../../../data/mock/mock_data.dart';
 import '../../../core/constants/app_constants.dart';
 
+// Agregar después de los imports existentes
+
 class CompactStats extends StatelessWidget {
   final List<Booking> bookings;
+
+  final DateTime? selectedDate; // 🔥 NUEVO: fecha para calcular horarios correctos
 
   const CompactStats({
     Key? key,
     required this.bookings,
+    this.selectedDate, // 🔥 NUEVO parámetro
   }) : super(key: key);
 
   @override
@@ -22,7 +27,9 @@ class CompactStats extends StatelessWidget {
         .where((booking) => booking.status == BookingStatus.incomplete)
         .length;
     
-    final availableCount = AppConstants.availableTimeSlots.length - bookings.length;
+    // 🔥 USAR HORARIOS DINÁMICOS según la fecha
+    final totalTimeSlots = AppConstants.getAllTimeSlots(selectedDate);
+    final availableCount = totalTimeSlots.length - bookings.length;
 
     return Container(
       margin: const EdgeInsets.fromLTRB(8, 8, 8, 8),

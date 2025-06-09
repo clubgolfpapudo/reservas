@@ -13,6 +13,9 @@ import '../../data/services/email_service.dart';
 // Constants
 import '../../core/constants/app_constants.dart';
 
+// Importar ScheduleService
+import '../../core/services/schedule_service.dart';
+
 class BookingProvider extends ChangeNotifier {
   // ============================================================================
   // ESTADO PRIVADO
@@ -302,19 +305,28 @@ class BookingProvider extends ChangeNotifier {
     await _loadBookings();
   }
   
-  // NUEVO: Generar fechas disponibles (regla 72 horas)
+  // 🔥 MEJORADO: Generar fechas disponibles usando ScheduleService
   void _generateAvailableDates() {
     _availableDates.clear();
-    final now = DateTime.now();
+    
+    // 🔥 USAR FECHA INTELIGENTE en lugar de DateTime.now()
+    final startDate = ScheduleService.getDefaultDisplayDate();
+    
+    print('🔥 ScheduleService determinó fecha de inicio: $startDate');
+    final debugInfo = ScheduleService.getScheduleDebugInfo();
+    print('🔥 Info debug horarios: $debugInfo');
     
     for (int i = 0; i < 4; i++) {
-      final date = DateTime(now.year, now.month, now.day + i);
+      final date = DateTime(startDate.year, startDate.month, startDate.day + i);
       _availableDates.add(date);
     }
     
-    // Establecer fecha actual como la primera disponible
+    // Establecer fecha inicial como la determinada por ScheduleService
     _selectedDate = _availableDates[0];
     _currentDateIndex = 0;
+    
+    print('✅ Fechas disponibles generadas: ${_availableDates.length}');
+    print('✅ Fecha seleccionada inicial: $_selectedDate');
   }
   
   // Helper para formatear fechas
@@ -487,7 +499,8 @@ class BookingProvider extends ChangeNotifier {
     final currentMinute = now.minute;
     final currentTimeInMinutes = currentHour * 60 + currentMinute;
     
-    const allTimeSlots = ['09:00', '10:30', '12:00', '13:30', '15:00', '16:30', '18:00', '19:30'];
+    // 🔥 USAR HORARIOS DINÁMICOS según la fecha seleccionada
+    final allTimeSlots = AppConstants.getAllTimeSlots(date);
     
     final filteredSlots = allTimeSlots.where((timeSlot) {
       final parts = timeSlot.split(':');

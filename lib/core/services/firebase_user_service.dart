@@ -2,7 +2,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 
 class FirebaseUserService {
-  static const String _defaultEmail = 'fgarciabenitez@gmail.com';
+  static const String _defaultEmail = 'felipe@garciab.cl';
   static const String _defaultName = 'FELIPE GARCIA';
 
   /// Obtiene el email del usuario actual
@@ -175,7 +175,7 @@ class FirebaseUserService {
       {'name': 'ANA M BELMAR P', 'email': 'ana@buzeta.cl'},
       {'name': 'CLARA PARDO B', 'email': 'clara@garciab.cl'},
       {'name': 'JUAN F GONZALEZ P', 'email': 'juan@hotmail.com'},
-      {'name': 'FELIPE BENITEZ G', 'email': 'fgarciabenitez@gmail.com'},
+      {'name': 'FELIPE BENITEZ G', 'email': 'felipe@garciab.cl'},
       {'name': 'PEDRO MARTINEZ L', 'email': 'pedro.martinez@example.com'},
       {'name': 'MARIA GONZALEZ R', 'email': 'maria.gonzalez@example.com'},
       {'name': 'CARLOS RODRIGUEZ M', 'email': 'carlos.rodriguez@example.com'},

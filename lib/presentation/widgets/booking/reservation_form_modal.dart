@@ -74,10 +74,6 @@ class _ReservationFormModalState extends State<ReservationFormModal> {
     }
   }
 
-  // Reemplaza tu método _initializeForm() con este:
-
-  // REEMPLAZA estos métodos en tu reservation_form_modal.dart:
-
   void _initializeForm() {
     print('🚀 MODAL: Inicializando formulario...');
     
@@ -487,157 +483,155 @@ class _ReservationFormModalState extends State<ReservationFormModal> {
       child: Container(
         width: MediaQuery.of(context).size.width * 0.95,
         constraints: BoxConstraints(
-          maxHeight: MediaQuery.of(context).size.height * 0.85,
-          minHeight: 400,
+          maxHeight: MediaQuery.of(context).size.height * 0.75,
+          minHeight: 350,
         ),
-        padding: const EdgeInsets.all(20),
+        padding: const EdgeInsets.all(16),
         child: Form(
           key: _formKey,
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              // Header
-              Row(
-                children: [
-                  Icon(
-                    Icons.sports_tennis,
-                    color: AppConstants.getCourtColorAsColor(widget.courtName),
-                    size: 28,
-                  ),
-                  const SizedBox(width: 12),
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          widget.courtName,
-                          style: const TextStyle(
-                            fontSize: 20,
-                            fontWeight: FontWeight.w700,
-                            color: Colors.black87,
-                          ),
-                        ),
-                        Text(
-                          '${_formatDisplayDate()} • ${widget.timeSlot}',
-                          style: TextStyle(
-                            fontSize: 14,
-                            color: Colors.grey[600],
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                  IconButton(
-                    onPressed: () => Navigator.of(context).pop(),
-                    icon: const Icon(Icons.close, color: Colors.grey),
-                  ),
-                ],
-              ),
-              
-              const SizedBox(height: 24),
-              
-              // Jugadores seleccionados
-              Container(
-                padding: const EdgeInsets.all(16),
-                decoration: BoxDecoration(
-                  color: Colors.green.withOpacity(0.1),
-                  borderRadius: BorderRadius.circular(12),
-                  border: Border.all(color: Colors.green.withOpacity(0.3)),
-                ),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
+          child: SingleChildScrollView(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                // Header
+                Row(
                   children: [
-                    Text(
-                      'Jugadores (${_selectedPlayers.length}/4)',
-                      style: const TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.w600,
-                        color: Colors.black87,
+                    Icon(
+                      Icons.sports_tennis,
+                      color: AppConstants.getCourtColorAsColor(widget.courtName),
+                      size: 28,
+                    ),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            widget.courtName,
+                            style: const TextStyle(
+                              fontSize: 20,
+                              fontWeight: FontWeight.w700,
+                              color: Colors.black87,
+                            ),
+                          ),
+                          Text(
+                            '${_formatDisplayDate()} • ${widget.timeSlot}',
+                            style: TextStyle(
+                              fontSize: 14,
+                              color: Colors.grey[600],
+                            ),
+                          ),
+                        ],
                       ),
                     ),
-                    const SizedBox(height: 12),
-                    ..._selectedPlayers.asMap().entries.map((entry) {
-                      final index = entry.key;
-                      final player = entry.value;
-                      return Padding(
-                        padding: const EdgeInsets.only(bottom: 8),
-                        child: Row(
-                          children: [
-                            Container(
-                              width: 24,
-                              height: 24,
-                              decoration: BoxDecoration(
-                                color: player.isMainBooker ? Colors.blue : Colors.green,
-                                shape: BoxShape.circle,
-                              ),
-                              child: Center(
-                                child: Text(
-                                  '${index + 1}',
-                                  style: const TextStyle(
-                                    color: Colors.white,
-                                    fontSize: 12,
-                                    fontWeight: FontWeight.w600,
+                    IconButton(
+                      onPressed: () => Navigator.of(context).pop(),
+                      icon: const Icon(Icons.close, color: Colors.grey),
+                    ),
+                  ],
+                ),
+                
+                const SizedBox(height: 24),
+                
+                // Jugadores seleccionados
+                Container(
+                  padding: const EdgeInsets.all(16),
+                  decoration: BoxDecoration(
+                    color: Colors.green.withOpacity(0.1),
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border.all(color: Colors.green.withOpacity(0.3)),
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        'Jugadores (${_selectedPlayers.length}/4)',
+                        style: const TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.w600,
+                          color: Colors.black87,
+                        ),
+                      ),
+                      const SizedBox(height: 12),
+                      ..._selectedPlayers.asMap().entries.map((entry) {
+                        final index = entry.key;
+                        final player = entry.value;
+                        return Padding(
+                          padding: const EdgeInsets.only(bottom: 8),
+                          child: Row(
+                            children: [
+                              Container(
+                                width: 24,
+                                height: 24,
+                                decoration: BoxDecoration(
+                                  color: player.isMainBooker ? Colors.blue : Colors.green,
+                                  shape: BoxShape.circle,
+                                ),
+                                child: Center(
+                                  child: Text(
+                                    '${index + 1}',
+                                    style: const TextStyle(
+                                      color: Colors.white,
+                                      fontSize: 12,
+                                      fontWeight: FontWeight.w600,
+                                    ),
                                   ),
                                 ),
                               ),
-                            ),
-                            const SizedBox(width: 12),
-                            Expanded(
-                              child: Text(
-                                player.name,
-                                style: const TextStyle(
-                                  fontWeight: FontWeight.w500,
-                                  fontSize: 14,
+                              const SizedBox(width: 12),
+                              Expanded(
+                                child: Text(
+                                  player.name,
+                                  style: const TextStyle(
+                                    fontWeight: FontWeight.w500,
+                                    fontSize: 14,
+                                  ),
                                 ),
                               ),
-                            ),
-                            if (!player.isMainBooker)
-                              IconButton(
-                                onPressed: () => _removePlayer(player),
-                                icon: const Icon(Icons.remove_circle, color: Colors.red, size: 20),
-                              ),
-                          ],
-                        ),
-                      );
-                    }).toList(),
-                  ],
-                ),
-              ),
-              
-              if (_selectedPlayers.length < 4) ...[
-                const SizedBox(height: 16),
-                
-                // Campo de búsqueda
-                Text(
-                  'Buscar jugador ${_selectedPlayers.length + 1} de 4:',
-                  style: const TextStyle(
-                    fontSize: 16,
-                    fontWeight: FontWeight.w600,
-                    color: Colors.black87,
-                  ),
-                ),
-                const SizedBox(height: 8),
-                TextField(
-                  controller: _searchController,
-                  decoration: InputDecoration(
-                    hintText: 'Buscar por nombre...',
-                    prefixIcon: const Icon(Icons.search),
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(8),
-                    ),
-                    contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                              if (!player.isMainBooker)
+                                IconButton(
+                                  onPressed: () => _removePlayer(player),
+                                  icon: const Icon(Icons.remove_circle, color: Colors.red, size: 20),
+                                ),
+                            ],
+                          ),
+                        );
+                      }).toList(),
+                    ],
                   ),
                 ),
                 
-                const SizedBox(height: 12),
-                
-                // Lista de jugadores disponibles
-                Flexible(
-                  child: Container(
-                    constraints: const BoxConstraints(
-                      maxHeight: 200,
-                      minHeight: 100,
+                if (_selectedPlayers.length < 4) ...[
+                  const SizedBox(height: 16),
+                  
+                  // Campo de búsqueda
+                  Text(
+                    'Buscar jugador ${_selectedPlayers.length + 1} de 4:',
+                    style: const TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.w600,
+                      color: Colors.black87,
                     ),
+                  ),
+                  const SizedBox(height: 8),
+                  TextField(
+                    controller: _searchController,
+                    decoration: InputDecoration(
+                      hintText: 'Buscar por nombre...',
+                      prefixIcon: const Icon(Icons.search),
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                    ),
+                  ),
+                  
+                  const SizedBox(height: 12),
+                  
+                  // Lista de jugadores disponibles
+                  Container(
+                    height: 100,
                     decoration: BoxDecoration(
                       border: Border.all(color: Colors.grey[300]!),
                       borderRadius: BorderRadius.circular(8),
@@ -714,150 +708,150 @@ class _ReservationFormModalState extends State<ReservationFormModal> {
                             },
                           ),
                   ),
-                ),
-              ],
-              
-              const SizedBox(height: 16),
-              
-              // 🔥 MENSAJE DE ERROR MEJORADO
-              if (_errorMessage != null)
-                Container(
-                  padding: const EdgeInsets.all(12),
-                  margin: const EdgeInsets.only(bottom: 16),
-                  decoration: BoxDecoration(
-                    color: Colors.red.withOpacity(0.1),
-                    borderRadius: BorderRadius.circular(8),
-                    border: Border.all(color: Colors.red.withOpacity(0.3)),
-                  ),
-                  child: Row(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      const Padding(
-                        padding: EdgeInsets.only(top: 2),
-                        child: Icon(Icons.error, color: Colors.red, size: 20),
-                      ),
-                      const SizedBox(width: 8),
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            const Text(
-                              'Conflicto de horario:',
-                              style: TextStyle(
-                                color: Colors.red, 
-                                fontSize: 14, 
-                                fontWeight: FontWeight.w600
+                ],
+                
+                const SizedBox(height: 16),
+                
+                // 🔥 MENSAJE DE ERROR MEJORADO
+                if (_errorMessage != null)
+                  Container(
+                    padding: const EdgeInsets.all(12),
+                    margin: const EdgeInsets.only(bottom: 16),
+                    decoration: BoxDecoration(
+                      color: Colors.red.withOpacity(0.1),
+                      borderRadius: BorderRadius.circular(8),
+                      border: Border.all(color: Colors.red.withOpacity(0.3)),
+                    ),
+                    child: Row(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        const Padding(
+                          padding: EdgeInsets.only(top: 2),
+                          child: Icon(Icons.error, color: Colors.red, size: 20),
+                        ),
+                        const SizedBox(width: 8),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              const Text(
+                                'Conflicto de horario:',
+                                style: TextStyle(
+                                  color: Colors.red, 
+                                  fontSize: 14, 
+                                  fontWeight: FontWeight.w600
+                                ),
                               ),
+                              const SizedBox(height: 4),
+                              Text(
+                                _errorMessage!,
+                                style: const TextStyle(color: Colors.red, fontSize: 13),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+
+                // 📧 NUEVO: Indicador de progreso de emails
+                Consumer<BookingProvider>(
+                  builder: (context, provider, child) {
+                    if (provider.isSendingEmails) {
+                      return Container(
+                        padding: const EdgeInsets.all(12),
+                        margin: const EdgeInsets.only(bottom: 16),
+                        decoration: BoxDecoration(
+                          color: Colors.blue.withOpacity(0.1),
+                          borderRadius: BorderRadius.circular(8),
+                          border: Border.all(color: Colors.blue.withOpacity(0.3)),
+                        ),
+                        child: Row(
+                          children: [
+                            const SizedBox(
+                              width: 16,
+                              height: 16,
+                              child: CircularProgressIndicator(strokeWidth: 2),
                             ),
-                            const SizedBox(height: 4),
+                            const SizedBox(width: 12),
                             Text(
-                              _errorMessage!,
-                              style: const TextStyle(color: Colors.red, fontSize: 13),
+                              '📧 Enviando confirmaciones por email...',
+                              style: TextStyle(
+                                color: Colors.blue.shade700,
+                                fontSize: 14,
+                                fontWeight: FontWeight.w500,
+                              ),
                             ),
                           ],
                         ),
-                      ),
-                    ],
-                  ),
+                      );
+                    }
+                    return const SizedBox.shrink();
+                  },
                 ),
-
-              // 📧 NUEVO: Indicador de progreso de emails
-              Consumer<BookingProvider>(
-                builder: (context, provider, child) {
-                  if (provider.isSendingEmails) {
-                    return Container(
-                      padding: const EdgeInsets.all(12),
-                      margin: const EdgeInsets.only(bottom: 16),
-                      decoration: BoxDecoration(
-                        color: Colors.blue.withOpacity(0.1),
-                        borderRadius: BorderRadius.circular(8),
-                        border: Border.all(color: Colors.blue.withOpacity(0.3)),
-                      ),
-                      child: Row(
-                        children: [
-                          const SizedBox(
-                            width: 16,
-                            height: 16,
-                            child: CircularProgressIndicator(strokeWidth: 2),
+                
+                // Botones de acción
+                Row(
+                  children: [
+                    Expanded(
+                      child: TextButton(
+                        onPressed: () => Navigator.of(context).pop(),
+                        style: TextButton.styleFrom(
+                          padding: const EdgeInsets.symmetric(vertical: 12),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(8),
+                            side: BorderSide(color: Colors.grey[300]!),
                           ),
-                          const SizedBox(width: 12),
-                          Text(
-                            '📧 Enviando confirmaciones por email...',
-                            style: TextStyle(
-                              color: Colors.blue.shade700,
-                              fontSize: 14,
-                              fontWeight: FontWeight.w500,
-                            ),
-                          ),
-                        ],
-                      ),
-                    );
-                  }
-                  return const SizedBox.shrink();
-                },
-              ),
-              
-              // Botones de acción
-              Row(
-                children: [
-                  Expanded(
-                    child: TextButton(
-                      onPressed: () => Navigator.of(context).pop(),
-                      style: TextButton.styleFrom(
-                        padding: const EdgeInsets.symmetric(vertical: 12),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(8),
-                          side: BorderSide(color: Colors.grey[300]!),
+                        ),
+                        child: const Text(
+                          'Cancelar',
+                          style: TextStyle(fontSize: 16, color: Colors.grey),
                         ),
                       ),
-                      child: const Text(
-                        'Cancelar',
-                        style: TextStyle(fontSize: 16, color: Colors.grey),
-                      ),
                     ),
-                  ),
-                  const SizedBox(width: 12),
-                  Expanded(
-                    flex: 2,
-                    child: ElevatedButton(
-                      onPressed: _canCreateReservation && !_isLoading
-                          ? _createReservation
-                          : null,
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: _canCreateReservation
-                            ? const Color(0xFF2E7AFF)
-                            : Colors.grey[300],
-                        padding: const EdgeInsets.symmetric(vertical: 12),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(8),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      flex: 2,
+                      child: ElevatedButton(
+                        onPressed: _canCreateReservation && !_isLoading
+                            ? _createReservation
+                            : null,
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: _canCreateReservation
+                              ? const Color(0xFF2E7AFF)
+                              : Colors.grey[300],
+                          padding: const EdgeInsets.symmetric(vertical: 12),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(8),
+                          ),
                         ),
+                        child: _isLoading
+                            ? const SizedBox(
+                                height: 20,
+                                width: 20,
+                                child: CircularProgressIndicator(
+                                  strokeWidth: 2,
+                                  valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                                ),
+                              )
+                            : Text(
+                                _canCreateReservation
+                                    ? 'Confirmar Reserva'
+                                    : _errorMessage != null
+                                        ? 'Resolver conflictos'
+                                        : 'Selecciona ${4 - _selectedPlayers.length} jugadores más',
+                                style: TextStyle(
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.w600,
+                                  color: _canCreateReservation ? Colors.white : Colors.grey[600],
+                                ),
+                              ),
                       ),
-                      child: _isLoading
-                          ? const SizedBox(
-                              height: 20,
-                              width: 20,
-                              child: CircularProgressIndicator(
-                                strokeWidth: 2,
-                                valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
-                              ),
-                            )
-                          : Text(
-                              _canCreateReservation
-                                  ? 'Confirmar Reserva'
-                                  : _errorMessage != null
-                                      ? 'Resolver conflictos'
-                                      : 'Selecciona ${4 - _selectedPlayers.length} jugadores más',
-                              style: TextStyle(
-                                fontSize: 16,
-                                fontWeight: FontWeight.w600,
-                                color: _canCreateReservation ? Colors.white : Colors.grey[600],
-                              ),
-                            ),
                     ),
-                  ),
-                ],
-              ),
-            ],
+                  ],
+                ),
+              ],
+            ),
           ),
         ),
       ),

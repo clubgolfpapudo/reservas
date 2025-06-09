@@ -166,7 +166,7 @@ class CourtRepositoryImpl implements CourtRepository {
       }
 
       // Usar horarios estándar
-      return AppConstants.allTimeSlots;
+      return AppConstants.getAllTimeSlots(date);
     } catch (e) {
       throw Exception('Error al obtener horarios disponibles: $e');
     }

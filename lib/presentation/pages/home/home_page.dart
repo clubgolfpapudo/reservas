@@ -218,9 +218,11 @@ class _HomePageState extends State<HomePage> {
       onRefresh: () => bookingProvider.refresh(),
       child: ListView.builder(
         padding: const EdgeInsets.all(AppSizes.spacingM),
-        itemCount: AppConstants.allTimeSlots.length,
+        // 🔥 USAR HORARIOS DINÁMICOS según la fecha seleccionada
+        itemCount: AppConstants.getAllTimeSlots(bookingProvider.selectedDate).length,
         itemBuilder: (context, index) {
-          final timeSlot = AppConstants.allTimeSlots[index];
+          final availableTimeSlots = AppConstants.getAllTimeSlots(bookingProvider.selectedDate);
+          final timeSlot = availableTimeSlots[index];
           final booking = bookingProvider.getBookingForTimeSlot(timeSlot);
           final status = bookingProvider.getTimeSlotStatus(timeSlot);
           
