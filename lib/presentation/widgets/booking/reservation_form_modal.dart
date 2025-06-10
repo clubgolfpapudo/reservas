@@ -670,20 +670,20 @@ class _ReservationFormModalState extends State<ReservationFormModal> {
                                 ),
                                 child: ListTile(
                                   contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
-                                  leading: CircleAvatar(
-                                    backgroundColor: isSpecialVisit 
-                                        ? Colors.orange.withOpacity(0.2) 
-                                        : Colors.blue.withOpacity(0.1),
-                                    radius: 18,
-                                    child: Text(
-                                      player.name[0],
-                                      style: TextStyle(
-                                        color: isSpecialVisit ? Colors.orange[700] : Colors.blue,
-                                        fontWeight: FontWeight.w600,
-                                        fontSize: 14,
-                                      ),
-                                    ),
-                                  ),
+//                                  leading: CircleAvatar(
+//                                    backgroundColor: isSpecialVisit 
+//                                        ? Colors.orange.withOpacity(0.2) 
+//                                        : Colors.blue.withOpacity(0.1),
+//                                    radius: 18,
+//                                    child: Text(
+//                                      player.name[0],
+//                                      style: TextStyle(
+//                                        color: isSpecialVisit ? Colors.orange[700] : Colors.blue,
+//                                        fontWeight: FontWeight.w600,
+//                                        fontSize: 14,
+//                                      ),
+//                                    ),
+//                                  ),
                                   title: Text(
                                     player.name,
                                     style: const TextStyle(fontWeight: FontWeight.w500, fontSize: 14),

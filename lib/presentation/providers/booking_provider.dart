@@ -1,20 +1,20 @@
 // lib/presentation/providers/booking_provider.dart - VALIDACIÓN DE CONFLICTOS + EMAILS
-import 'package:flutter/material.dart';
 import 'dart:async';
+import 'package:flutter/material.dart';
 
 // Entities
-import '../../domain/entities/booking.dart';
 import '../../domain/entities/court.dart';
+import '../../domain/entities/booking.dart';
 
-// Services  
-import '../../data/services/firestore_service.dart';
+// Services
+import '../../core/services/firebase_user_service.dart';
+import '../../core/services/schedule_service.dart';
+import '../../core/services/user_service.dart';
 import '../../data/services/email_service.dart';
+import '../../data/services/firestore_service.dart';
 
 // Constants
 import '../../core/constants/app_constants.dart';
-
-// Importar ScheduleService
-import '../../core/services/schedule_service.dart';
 
 class BookingProvider extends ChangeNotifier {
   // ============================================================================
@@ -303,8 +303,38 @@ class BookingProvider extends ChangeNotifier {
     _generateAvailableDates();
     await _loadCourts();
     await _loadBookings();
+    
+    // 🔥 AGREGAR ESTA LÍNEA:
+    await initializeCurrentUser();
   }
-  
+
+  /// 🔥 NUEVO: Inicializar usuario actual para auto-completado
+  Future<void> initializeCurrentUser() async {
+    try {
+      final email = await UserService.getCurrentUserEmail();
+      final name = await UserService.getCurrentUserName();
+      
+      print('🔥 Auto-completando primer jugador: $name ($email)');
+      
+      // Exponer usuario actual para formularios
+      _currentUserEmail = email;
+      _currentUserName = name;
+      
+      notifyListeners();
+    } catch (e) {
+      print('❌ Error inicializando usuario actual: $e');
+    }
+  }
+
+  // Agregar estas propiedades privadas al inicio de la clase
+  String? _currentUserEmail;
+  String? _currentUserName;
+
+  // Agregar estos getters públicos
+  String? get currentUserEmail => _currentUserEmail;
+  String? get currentUserName => _currentUserName;
+  bool get hasCurrentUser => _currentUserEmail != null && _currentUserName != null;
+
   // 🔥 MEJORADO: Generar fechas disponibles usando ScheduleService
   void _generateAvailableDates() {
     _availableDates.clear();
