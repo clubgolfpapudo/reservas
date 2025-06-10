@@ -20,12 +20,22 @@ class UserService {
     // 1. 🔥 NUEVO: Intentar leer email de la URL primero
     try {
       final uri = Uri.parse(html.window.location.href);
+      
+      // 🐛 DEBUG DETALLADO - AGREGAR ESTAS LÍNEAS:
+      print('🔍 URL completa: ${html.window.location.href}');
+      print('🔍 URI parseada: $uri');
+      print('🔍 Query string: ${uri.query}');
+      print('🔍 Todos los parámetros: ${uri.queryParameters}');
+      print('🔍 Parámetro email específico: ${uri.queryParameters['email']}');
+      
       final emailFromUrl = uri.queryParameters['email'];
       
       if (emailFromUrl != null && emailFromUrl.isNotEmpty) {
         print('✅ Email obtenido de URL: $emailFromUrl');
         _currentUserEmail = emailFromUrl; // Guardarlo en memoria
         return emailFromUrl;
+      } else {
+        print('❌ Email no encontrado en URL o está vacío');
       }
     } catch (e) {
       print('⚠️ Error leyendo URL: $e');
@@ -39,18 +49,20 @@ class UserService {
     
     // 3. 🔄 Fallback temporal para desarrollo
     print('⚠️ Usuario no configurado, usando fallback');
-    return 'fgarciabenitez@gmail.com';
+    return 'felipe@garciab.cl';
   }
 
-  /// Obtiene el nombre del usuario actual
+  /// 🔥 CORREGIDO: Obtiene el nombre del usuario actual
   static Future<String> getCurrentUserName() async {
     if (_currentUserName != null) {
       return _currentUserName!;
     }
     
-    // 🔄 Fallback temporal para desarrollo
-    print('⚠️ Usuario no configurado, usando fallback');
-    return 'FELIPE GARCIA';
+    // Si no hay nombre, intentar obtenerlo del email
+    final email = await getCurrentUserEmail();
+    _currentUserName = await _getUserNameFromEmail(email);
+    
+    return _currentUserName ?? 'USUARIO';
   }
 
   /// 🔥 NUEVO: Buscar usuario por email en Firebase
@@ -96,7 +108,7 @@ class UserService {
     }
   }
 
-  /// 🔥 NUEVO: Inicializar usuario desde URL (llamar en main.dart)
+  /// 🔥 CORREGIDO: Inicializar usuario desde URL (llamar en main.dart)
   static Future<void> initializeFromUrl() async {
     try {
       final email = await getCurrentUserEmail();
@@ -107,17 +119,27 @@ class UserService {
       if (userData != null) {
         setCurrentUser(userData['email']!, userData['name']!);
       } else {
-        // Si no existe en Firebase, buscar en usuarios de prueba
-        final testName = testUsers[email];
-        if (testName != null) {
-          setCurrentUser(email, testName);
-        } else {
-          setCurrentUser(email, email.split('@')[0].toUpperCase());
-        }
+        // Si no existe en Firebase, buscar en mapeo local
+        final mappedName = await _getUserNameFromEmail(email);
+        setCurrentUser(email, mappedName);
       }
     } catch (e) {
       print('❌ Error inicializando usuario desde URL: $e');
     }
+  }
+
+  /// 🔥 NUEVO: Buscar nombre basado en email
+  static Future<String> _getUserNameFromEmail(String email) async {
+    // Mapeo de emails conocidos
+    final emailToName = {
+      'anita@buzeta.cl': 'ANA M. BELMAR P.',
+      'felipe@garciab.cl': 'FELIPE GARCIA B.',
+      'clara@garciab.cl': 'CLARA PARDO B.',
+      'fgarcia88@hotmail.com': 'JUAN F. GONZALEZ P.',
+      'fgarciabenitez@gmail.com': 'FELIPE GARCIA',
+    };
+    
+    return emailToName[email] ?? email.split('@')[0].toUpperCase();
   }
 
   /// Lista de usuarios de prueba (mantener para compatibilidad)
