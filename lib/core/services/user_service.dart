@@ -79,7 +79,7 @@ class UserService {
       if (snapshot.docs.isNotEmpty) {
         final data = snapshot.docs.first.data() as Map<String, dynamic>;
         return {
-          'name': data['name']?.toString() ?? '',
+          'name': data['displayName']?.toString() ?? data['name']?.toString() ?? '',
           'email': data['email']?.toString() ?? '',
         };
       }
