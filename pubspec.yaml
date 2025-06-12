@@ -59,6 +59,7 @@ dependencies:
   flutter_svg: ^2.0.9                  # Soporte para imágenes SVG
   cached_network_image: ^3.3.0         # Imágenes de internet con caché
   shimmer: ^3.0.0                      # Efecto de "carga" (skeleton)
+  flutter_launcher_icons: ^0.14.4
 
 # ═══════════════════════════════════════════════════════════════════════════════
 # DEPENDENCIAS DE DESARROLLO (solo para cuando estás programando)
@@ -94,6 +95,14 @@ flutter:
     - assets/images/                   # Carpeta de imágenes
     - assets/icons/                    # Carpeta de iconos
   
+# 🔥 AGREGAR TODA ESTA SECCIÓN AL FINAL:
+flutter_launcher_icons:
+  web:
+    generate: true
+    image_path: "assets/icon/icon.png"
+    background_color: "#ffffff"
+    theme_color: "#2E7AFF"
+
   # Fuentes personalizadas (opcional)
   # fonts:
   #   - family: SFProDisplay

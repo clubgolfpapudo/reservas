@@ -1,5 +1,6 @@
 // lib/presentation/widgets/booking/reservation_form_modal.dart - VALIDACIÓN COMPLETA + EMAILS
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import '../../providers/booking_provider.dart';
 import '../../../core/constants/app_constants.dart';
@@ -478,381 +479,467 @@ class _ReservationFormModalState extends State<ReservationFormModal> {
 
   @override
   Widget build(BuildContext context) {
+    // 🔥 TEMPORAL - CONFIRMAR QUE SE USA ESTE ARCHIVO
+    print("🚀 MODAL V3 OPTIMIZADO! Sin overflow, compacto y funcional");
+
     return Dialog(
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
       child: Container(
         width: MediaQuery.of(context).size.width * 0.95,
         constraints: BoxConstraints(
-          maxHeight: MediaQuery.of(context).size.height * 0.75,
-          minHeight: 350,
+          maxHeight: MediaQuery.of(context).size.height * 0.70, // 🔧 Reducido de 0.75 a 0.70
+          minHeight: 300, // 🔧 Reducido de 350 a 300
         ),
-        padding: const EdgeInsets.all(16),
-        child: Form(
-          key: _formKey,
-          child: SingleChildScrollView(
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                // Header
-                Row(
-                  children: [
-                    Icon(
-                      Icons.sports_tennis,
-                      color: AppConstants.getCourtColorAsColor(widget.courtName),
-                      size: 28,
-                    ),
-                    const SizedBox(width: 12),
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            widget.courtName,
-                            style: const TextStyle(
-                              fontSize: 20,
-                              fontWeight: FontWeight.w700,
-                              color: Colors.black87,
-                            ),
-                          ),
-                          Text(
-                            '${_formatDisplayDate()} • ${widget.timeSlot}',
-                            style: TextStyle(
-                              fontSize: 14,
-                              color: Colors.grey[600],
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                    IconButton(
-                      onPressed: () => Navigator.of(context).pop(),
-                      icon: const Icon(Icons.close, color: Colors.grey),
-                    ),
-                  ],
-                ),
-                
-                const SizedBox(height: 24),
-                
-                // Jugadores seleccionados
-                Container(
-                  padding: const EdgeInsets.all(16),
-                  decoration: BoxDecoration(
-                    color: Colors.green.withOpacity(0.1),
-                    borderRadius: BorderRadius.circular(12),
-                    border: Border.all(color: Colors.green.withOpacity(0.3)),
-                  ),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        'Jugadores (${_selectedPlayers.length}/4)',
-                        style: const TextStyle(
-                          fontSize: 16,
-                          fontWeight: FontWeight.w600,
-                          color: Colors.black87,
-                        ),
-                      ),
-                      const SizedBox(height: 12),
-                      ..._selectedPlayers.asMap().entries.map((entry) {
-                        final index = entry.key;
-                        final player = entry.value;
-                        return Padding(
-                          padding: const EdgeInsets.only(bottom: 8),
-                          child: Row(
-                            children: [
-                              Container(
-                                width: 24,
-                                height: 24,
-                                decoration: BoxDecoration(
-                                  color: player.isMainBooker ? Colors.blue : Colors.green,
-                                  shape: BoxShape.circle,
-                                ),
-                                child: Center(
-                                  child: Text(
-                                    '${index + 1}',
-                                    style: const TextStyle(
-                                      color: Colors.white,
-                                      fontSize: 12,
-                                      fontWeight: FontWeight.w600,
-                                    ),
-                                  ),
-                                ),
-                              ),
-                              const SizedBox(width: 12),
-                              Expanded(
-                                child: Text(
-                                  player.name,
-                                  style: const TextStyle(
-                                    fontWeight: FontWeight.w500,
-                                    fontSize: 14,
-                                  ),
-                                ),
-                              ),
-                              if (!player.isMainBooker)
-                                IconButton(
-                                  onPressed: () => _removePlayer(player),
-                                  icon: const Icon(Icons.remove_circle, color: Colors.red, size: 20),
-                                ),
-                            ],
-                          ),
-                        );
-                      }).toList(),
-                    ],
-                  ),
-                ),
-                
-                if (_selectedPlayers.length < 4) ...[
-                  const SizedBox(height: 16),
-                  
-                  // Campo de búsqueda
-                  Text(
-                    'Buscar jugador ${_selectedPlayers.length + 1} de 4:',
-                    style: const TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.w600,
-                      color: Colors.black87,
-                    ),
-                  ),
-                  const SizedBox(height: 8),
-                  TextField(
-                    controller: _searchController,
-                    decoration: InputDecoration(
-                      hintText: 'Buscar por nombre...',
-                      prefixIcon: const Icon(Icons.search),
-                      border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(8),
-                      ),
-                      contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-                    ),
-                  ),
-                  
-                  const SizedBox(height: 12),
-                  
-                  // Lista de jugadores disponibles
-                  Container(
-                    height: 100,
-                    decoration: BoxDecoration(
-                      border: Border.all(color: Colors.grey[300]!),
-                      borderRadius: BorderRadius.circular(8),
-                    ),
-                    child: _filteredPlayers.isEmpty
-                        ? Center(
-                            child: Padding(
-                              padding: const EdgeInsets.all(20),
-                              child: Text(
-                                _searchController.text.isEmpty
-                                    ? 'Escribe para buscar jugadores'
-                                    : 'No se encontraron jugadores',
-                                style: TextStyle(
-                                  color: Colors.grey[600],
-                                  fontSize: 16,
-                                ),
-                              ),
-                            ),
-                          )
-                        : ListView.builder(
-                            padding: const EdgeInsets.symmetric(vertical: 4),
-                            itemCount: _filteredPlayers.length,
-                            itemBuilder: (context, index) {
-                              final player = _filteredPlayers[index];
-                              final isSpecialVisit = ['VISITA1 PADEL', 'VISITA2 PADEL', 'VISITA3 PADEL', 'VISITA4 PADEL']
-                                  .contains(player.name.toUpperCase());
-                              
-                              return Container(
-                                margin: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
-                                decoration: BoxDecoration(
-                                  color: isSpecialVisit ? Colors.orange.withOpacity(0.1) : Colors.white,
-                                  borderRadius: BorderRadius.circular(8),
-                                  border: Border.all(
-                                    color: isSpecialVisit ? Colors.orange.withOpacity(0.3) : Colors.grey[200]!
-                                  ),
-                                ),
-                                child: ListTile(
-                                  contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
-//                                  leading: CircleAvatar(
-//                                    backgroundColor: isSpecialVisit 
-//                                        ? Colors.orange.withOpacity(0.2) 
-//                                        : Colors.blue.withOpacity(0.1),
-//                                    radius: 18,
-//                                    child: Text(
-//                                      player.name[0],
-//                                      style: TextStyle(
-//                                        color: isSpecialVisit ? Colors.orange[700] : Colors.blue,
-//                                        fontWeight: FontWeight.w600,
-//                                        fontSize: 14,
-//                                      ),
-//                                    ),
-//                                  ),
-                                  title: Text(
-                                    player.name,
-                                    style: const TextStyle(fontWeight: FontWeight.w500, fontSize: 14),
-                                  ),
-                                  subtitle: isSpecialVisit 
-                                      ? const Text(
-                                          'Puede jugar en múltiples canchas',
-                                          style: TextStyle(fontSize: 11, color: Colors.orange),
-                                        )
-                                      : null,
-                                  trailing: IconButton(
-                                    onPressed: () => _addPlayer(player),
-                                    icon: Icon(
-                                      Icons.add_circle, 
-                                      color: isSpecialVisit ? Colors.orange : Colors.green, 
-                                      size: 24
-                                    ),
-                                  ),
-                                  onTap: () => _addPlayer(player),
-                                ),
-                              );
-                            },
-                          ),
-                  ),
-                ],
-                
-                const SizedBox(height: 16),
-                
-                // 🔥 MENSAJE DE ERROR MEJORADO
-                if (_errorMessage != null)
-                  Container(
-                    padding: const EdgeInsets.all(12),
-                    margin: const EdgeInsets.only(bottom: 16),
-                    decoration: BoxDecoration(
-                      color: Colors.red.withOpacity(0.1),
-                      borderRadius: BorderRadius.circular(8),
-                      border: Border.all(color: Colors.red.withOpacity(0.3)),
-                    ),
+        child: Column(
+          children: [
+            // Header inline optimizado
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+              decoration: BoxDecoration(
+                color: AppConstants.getCourtColorAsColor(widget.courtName),
+                borderRadius: const BorderRadius.vertical(top: Radius.circular(16)),
+              ),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Expanded(
                     child: Row(
-                      crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        const Padding(
-                          padding: EdgeInsets.only(top: 2),
-                          child: Icon(Icons.error, color: Colors.red, size: 20),
+                        const Text(
+                          '🎾 ',
+                          style: TextStyle(fontSize: 18),
                         ),
-                        const SizedBox(width: 8),
-                        Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              const Text(
-                                'Conflicto de horario:',
-                                style: TextStyle(
-                                  color: Colors.red, 
-                                  fontSize: 14, 
-                                  fontWeight: FontWeight.w600
-                                ),
-                              ),
-                              const SizedBox(height: 4),
-                              Text(
-                                _errorMessage!,
-                                style: const TextStyle(color: Colors.red, fontSize: 13),
-                              ),
-                            ],
+                        Text(
+                          widget.courtName,
+                          style: const TextStyle(
+                            color: Colors.white,
+                            fontSize: 18,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                        Flexible(
+                          child: Text(
+                            ' • ${_formatDisplayDate()} • ${widget.timeSlot}',
+                            style: const TextStyle(
+                              color: Colors.white70,
+                              fontSize: 14,
+                            ),
+                            overflow: TextOverflow.ellipsis,
                           ),
                         ),
                       ],
                     ),
                   ),
-
-                // 📧 NUEVO: Indicador de progreso de emails
-                Consumer<BookingProvider>(
-                  builder: (context, provider, child) {
-                    if (provider.isSendingEmails) {
-                      return Container(
-                        padding: const EdgeInsets.all(12),
-                        margin: const EdgeInsets.only(bottom: 16),
-                        decoration: BoxDecoration(
-                          color: Colors.blue.withOpacity(0.1),
-                          borderRadius: BorderRadius.circular(8),
-                          border: Border.all(color: Colors.blue.withOpacity(0.3)),
+                  IconButton(
+                    icon: const Icon(Icons.close, color: Colors.white, size: 22),
+                    onPressed: () => Navigator.of(context).pop(),
+                  ),
+                ],
+              ),
+            ),
+            
+            // Body con padding optimizado
+            Expanded(
+              child: Form(
+                key: _formKey,
+                child: Padding(
+                  padding: const EdgeInsets.fromLTRB(16, 12, 16, 12), // 🔧 Reducido padding
+                  child: SingleChildScrollView(
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        // 🔧 Jugadores seleccionados SUPER COMPACTA
+                        Container(
+                          padding: const EdgeInsets.all(12), // ✅ Aumentado de 8 a 12
+                          margin: const EdgeInsets.only(bottom: 12), // ✅ Aumentado de 8 a 12
+                          constraints: const BoxConstraints(
+                            minHeight: 60, // ✅ NUEVO: Altura mínima
+                            maxHeight: 80, // ✅ Aumentado de 45 a 80
+                          ),
+                          decoration: BoxDecoration(
+                            color: Colors.green.withOpacity(0.1),
+                            borderRadius: BorderRadius.circular(8),
+                            border: Border.all(color: Colors.green.withOpacity(0.3)),
+                          ),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                'Jugadores (${_selectedPlayers.length}/4)',
+                                style: const TextStyle(
+                                  fontSize: 15, // ✅ Aumentado de 14 a 15
+                                  fontWeight: FontWeight.w600,
+                                  color: Colors.black87,
+                                ),
+                              ),
+                              const SizedBox(height: 8), // ✅ Aumentado de 4 a 8
+                              
+                              // 🔧 JUGADORES EN HORIZONTAL - CORREGIDO
+                              Expanded(
+                                child: SingleChildScrollView(
+                                  scrollDirection: Axis.horizontal,
+                                  child: Row(
+                                    children: _selectedPlayers.asMap().entries.map((entry) {
+                                      final index = entry.key;
+                                      final player = entry.value;
+                                      return Container(
+                                        margin: const EdgeInsets.only(right: 12), // ✅ Aumentado margen
+                                        padding: const EdgeInsets.symmetric(
+                                          horizontal: 8, 
+                                          vertical: 4
+                                        ), // ✅ NUEVO: Padding interno
+                                        decoration: BoxDecoration(
+                                          color: Colors.white,
+                                          borderRadius: BorderRadius.circular(6),
+                                          border: Border.all(
+                                            color: player.isMainBooker 
+                                                ? Colors.blue.withOpacity(0.3) 
+                                                : Colors.green.withOpacity(0.3)
+                                          ),
+                                        ),
+                                        child: Row(
+                                          mainAxisSize: MainAxisSize.min,
+                                          children: [
+                                            // 🔧 CÍRCULO CON NÚMERO - MÁS GRANDE
+                                            Container(
+                                              width: 22, // ✅ Aumentado de 18 a 22
+                                              height: 22, // ✅ Aumentado de 18 a 22
+                                              decoration: BoxDecoration(
+                                                color: player.isMainBooker ? Colors.blue : Colors.green,
+                                                shape: BoxShape.circle,
+                                              ),
+                                              child: Center(
+                                                child: Text(
+                                                  '${index + 1}',
+                                                  style: const TextStyle(
+                                                    color: Colors.white,
+                                                    fontSize: 12, // ✅ Aumentado de 10 a 12
+                                                    fontWeight: FontWeight.w600,
+                                                  ),
+                                                ),
+                                              ),
+                                            ),
+                                            const SizedBox(width: 8), // ✅ Aumentado spacing
+                                            
+                                            // 🔧 NOMBRE DEL JUGADOR - MEJORADO
+                                            ConstrainedBox(
+                                              constraints: const BoxConstraints(maxWidth: 100), // ✅ NUEVO: Ancho máximo
+                                              child: Text(
+                                                player.name.length > 15 
+                                                    ? '${player.name.substring(0, 15)}...' // ✅ Aumentado de 12 a 15 caracteres
+                                                    : player.name,
+                                                style: TextStyle(
+                                                  fontWeight: FontWeight.w500,
+                                                  fontSize: 12, // ✅ Aumentado de 11 a 12
+                                                  color: player.isMainBooker ? Colors.blue.shade700 : Colors.black87,
+                                                ),
+                                                overflow: TextOverflow.ellipsis,
+                                              ),
+                                            ),
+                                            
+                                            // 🔧 BOTÓN REMOVER - MÁS GRANDE Y VISIBLE
+                                            if (!player.isMainBooker) ...[
+                                              const SizedBox(width: 6),
+                                              InkWell(
+                                                onTap: () => _removePlayer(player),
+                                                borderRadius: BorderRadius.circular(12),
+                                                child: Container(
+                                                  padding: const EdgeInsets.all(2), // ✅ NUEVO: Padding para área táctil
+                                                  child: const Icon(
+                                                    Icons.remove_circle, 
+                                                    color: Colors.red, 
+                                                    size: 18 // ✅ Aumentado de 14 a 18
+                                                  ),
+                                                ),
+                                              ),
+                                            ],
+                                            
+                                            // 🔧 INDICADOR DE ORGANIZADOR
+                                            if (player.isMainBooker) ...[
+                                              const SizedBox(width: 4),
+                                              const Icon(
+                                                Icons.star, 
+                                                color: Colors.amber, 
+                                                size: 14
+                                              ),
+                                            ],
+                                          ],
+                                        ),
+                                      );
+                                    }).toList(),
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
                         ),
-                        child: Row(
-                          children: [
-                            const SizedBox(
-                              width: 16,
-                              height: 16,
-                              child: CircularProgressIndicator(strokeWidth: 2),
+
+                        // 🔧 OPCIONAL: Agregar indicador de scroll si hay muchos jugadores
+                        if (_selectedPlayers.length > 3)
+                          Padding(
+                            padding: const EdgeInsets.only(bottom: 8),
+                            child: Row(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                Icon(
+                                  Icons.swipe,
+                                  size: 16,
+                                  color: Colors.grey[600],
+                                ),
+                                const SizedBox(width: 4),
+                                Text(
+                                  'Desliza para ver todos los jugadores',
+                                  style: TextStyle(
+                                    fontSize: 11,
+                                    color: Colors.grey[600],
+                                    fontStyle: FontStyle.italic,
+                                  ),
+                                ),
+                              ],
                             ),
-                            const SizedBox(width: 12),
-                            Text(
-                              '📧 Enviando confirmaciones por email...',
-                              style: TextStyle(
-                                color: Colors.blue.shade700,
-                                fontSize: 14,
-                                fontWeight: FontWeight.w500,
+                          ),                        
+                        if (_selectedPlayers.length < 4) ...[
+                          // Campo de búsqueda
+                          Text(
+                            'Buscar jugador ${_selectedPlayers.length + 1} de 4:',
+                            style: const TextStyle(
+                              fontSize: 14, // 🔧 Reducido de 16 a 14
+                              fontWeight: FontWeight.w600,
+                              color: Colors.black87,
+                            ),
+                          ),
+                          const SizedBox(height: 6), // 🔧 Reducido de 8 a 6
+                          TextField(
+                            controller: _searchController,
+                            decoration: InputDecoration(
+                              hintText: 'Buscar por nombre...',
+                              prefixIcon: const Icon(Icons.search),
+                              border: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(8),
+                              ),
+                              contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10), // 🔧 Reducido padding
+                            ),
+                          ),
+                          
+                          const SizedBox(height: 8), // 🔧 Reducido de 12 a 8
+                          
+                          // 🔧 Lista de jugadores disponibles MÁS COMPACTA
+                          Container(
+                            height: 150, // 🔧 Reducido de 200 a 150
+                            decoration: BoxDecoration(
+                              border: Border.all(color: Colors.grey[300]!),
+                              borderRadius: BorderRadius.circular(8),
+                            ),
+                            child: _filteredPlayers.isEmpty
+                                ? Center(
+                                    child: Padding(
+                                      padding: const EdgeInsets.all(20),
+                                      child: Text(
+                                        _searchController.text.isEmpty
+                                            ? 'Escribe para buscar jugadores'
+                                            : 'No se encontraron jugadores',
+                                        style: TextStyle(
+                                          color: Colors.grey[600],
+                                          fontSize: 14, // 🔧 Reducido de 16 a 14
+                                        ),
+                                      ),
+                                    ),
+                                  )
+                                : ListView.builder(
+                                    padding: const EdgeInsets.symmetric(vertical: 2), // 🔧 Reducido padding
+                                    itemCount: _filteredPlayers.length,
+                                    itemBuilder: (context, index) {
+                                      final player = _filteredPlayers[index];
+                                      final isSpecialVisit = ['VISITA1 PADEL', 'VISITA2 PADEL', 'VISITA3 PADEL', 'VISITA4 PADEL']
+                                          .contains(player.name.toUpperCase());
+                                      
+                                      return Container(
+                                        margin: const EdgeInsets.symmetric(horizontal: 6, vertical: 1), // 🔧 Reducido margins
+                                        decoration: BoxDecoration(
+                                          color: isSpecialVisit ? Colors.orange.withOpacity(0.1) : Colors.white,
+                                          borderRadius: BorderRadius.circular(6), // 🔧 Reducido border radius
+                                          border: Border.all(
+                                            color: isSpecialVisit ? Colors.orange.withOpacity(0.3) : Colors.grey[200]!
+                                          ),
+                                        ),
+                                        child: ListTile(
+                                          dense: true, // 🔧 NUEVO: Hacer más compacto
+                                          contentPadding: const EdgeInsets.symmetric(horizontal: 10, vertical: 2), // 🔧 Reducido padding
+                                          title: Text(
+                                            player.name,
+                                            style: const TextStyle(fontWeight: FontWeight.w500, fontSize: 13), // 🔧 Reducido font
+                                          ),
+                                          subtitle: isSpecialVisit 
+                                              ? const Text(
+                                                  'Puede jugar en múltiples canchas',
+                                                  style: TextStyle(fontSize: 10, color: Colors.orange), // 🔧 Reducido font
+                                                )
+                                              : null,
+                                          trailing: IconButton(
+                                            onPressed: () => _addPlayer(player),
+                                            icon: Icon(
+                                              Icons.add_circle, 
+                                              color: isSpecialVisit ? Colors.orange : Colors.green, 
+                                              size: 20 // 🔧 Reducido de 24 a 20
+                                            ),
+                                            constraints: const BoxConstraints(minWidth: 30, minHeight: 30), // 🔧 Constraints más pequeños
+                                          ),
+                                          onTap: () => _addPlayer(player),
+                                        ),
+                                      );
+                                    },
+                                  ),
+                          ),
+                        ],
+                        
+                        const SizedBox(height: 8), // 🔧 Reducido de 12 a 8
+                        
+                        // 🔥 MENSAJE DE ERROR MEJORADO
+                        if (_errorMessage != null)
+                          Container(
+                            padding: const EdgeInsets.all(10), // 🔧 Reducido padding
+                            margin: const EdgeInsets.only(bottom: 12), // 🔧 Reducido margin
+                            decoration: BoxDecoration(
+                              color: Colors.red.withOpacity(0.1),
+                              borderRadius: BorderRadius.circular(8),
+                              border: Border.all(color: Colors.red.withOpacity(0.3)),
+                            ),
+                            child: Row(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                const Padding(
+                                  padding: EdgeInsets.only(top: 2),
+                                  child: Icon(Icons.error, color: Colors.red, size: 18), // 🔧 Reducido tamaño
+                                ),
+                                const SizedBox(width: 6), // 🔧 Reducido spacing
+                                Expanded(
+                                  child: Column(
+                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    children: [
+                                      const Text(
+                                        'Conflicto de horario:',
+                                        style: TextStyle(
+                                          color: Colors.red, 
+                                          fontSize: 13, // 🔧 Reducido font
+                                          fontWeight: FontWeight.w600
+                                        ),
+                                      ),
+                                      const SizedBox(height: 2), // 🔧 Reducido spacing
+                                      Text(
+                                        _errorMessage!,
+                                        style: const TextStyle(color: Colors.red, fontSize: 12), // 🔧 Reducido font
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+
+                        // 📧 NUEVO: Indicador de progreso de emails
+                        Consumer<BookingProvider>(
+                          builder: (context, provider, child) {
+                            if (provider.isSendingEmails) {
+                              return Container(
+                                padding: const EdgeInsets.all(10), // 🔧 Reducido padding
+                                margin: const EdgeInsets.only(bottom: 12), // 🔧 Reducido margin
+                                decoration: BoxDecoration(
+                                  color: Colors.blue.withOpacity(0.1),
+                                  borderRadius: BorderRadius.circular(8),
+                                  border: Border.all(color: Colors.blue.withOpacity(0.3)),
+                                ),
+                                child: Row(
+                                  children: [
+                                    const SizedBox(
+                                      width: 14, // 🔧 Reducido tamaño
+                                      height: 14, // 🔧 Reducido tamaño
+                                      child: CircularProgressIndicator(strokeWidth: 2),
+                                    ),
+                                    const SizedBox(width: 10), // 🔧 Reducido spacing
+                                    Text(
+                                      '📧 Enviando confirmaciones por email...',
+                                      style: TextStyle(
+                                        color: Colors.blue.shade700,
+                                        fontSize: 13, // 🔧 Reducido font
+                                        fontWeight: FontWeight.w500,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              );
+                            }
+                            return const SizedBox.shrink();
+                          },
+                        ),
+                        
+                        // Botones de acción
+                        Row(
+                          children: [
+                            Expanded(
+                              child: TextButton(
+                                onPressed: () => Navigator.of(context).pop(),
+                                style: TextButton.styleFrom(
+                                  padding: const EdgeInsets.symmetric(vertical: 8), // 🔧 Reducido padding
+                                  shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(8),
+                                    side: BorderSide(color: Colors.grey[300]!),
+                                  ),
+                                ),
+                                child: const Text(
+                                  'Cancelar',
+                                  style: TextStyle(fontSize: 14, color: Colors.grey), // 🔧 Reducido font
+                                ),
+                              ),
+                            ),
+                            const SizedBox(width: 10), // 🔧 Reducido spacing
+                            Expanded(
+                              flex: 2,
+                              child: ElevatedButton(
+                                onPressed: _canCreateReservation && !_isLoading
+                                    ? _createReservation
+                                    : null,
+                                style: ElevatedButton.styleFrom(
+                                  backgroundColor: _canCreateReservation
+                                      ? const Color(0xFF2E7AFF)
+                                      : Colors.grey[300],
+                                  padding: const EdgeInsets.symmetric(vertical: 8), // 🔧 Reducido padding
+                                  shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(8),
+                                  ),
+                                ),
+                                child: _isLoading
+                                    ? const SizedBox(
+                                        height: 16, // 🔧 Reducido tamaño
+                                        width: 16, // 🔧 Reducido tamaño
+                                        child: CircularProgressIndicator(
+                                          strokeWidth: 2,
+                                          valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                                        ),
+                                      )
+                                    : Text(
+                                        _canCreateReservation
+                                            ? 'Confirmar Reserva'
+                                            : _errorMessage != null
+                                                ? 'Resolver conflictos'
+                                                : 'Elije + ${4 - _selectedPlayers.length} players +',
+                                        style: TextStyle(
+                                          fontSize: 14, // 🔧 Reducido font
+                                          fontWeight: FontWeight.w600,
+                                          color: _canCreateReservation ? Colors.white : Colors.grey[600],
+                                        ),
+                                      ),
                               ),
                             ),
                           ],
                         ),
-                      );
-                    }
-                    return const SizedBox.shrink();
-                  },
-                ),
-                
-                // Botones de acción
-                Row(
-                  children: [
-                    Expanded(
-                      child: TextButton(
-                        onPressed: () => Navigator.of(context).pop(),
-                        style: TextButton.styleFrom(
-                          padding: const EdgeInsets.symmetric(vertical: 12),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(8),
-                            side: BorderSide(color: Colors.grey[300]!),
-                          ),
-                        ),
-                        child: const Text(
-                          'Cancelar',
-                          style: TextStyle(fontSize: 16, color: Colors.grey),
-                        ),
-                      ),
+                      ],
                     ),
-                    const SizedBox(width: 12),
-                    Expanded(
-                      flex: 2,
-                      child: ElevatedButton(
-                        onPressed: _canCreateReservation && !_isLoading
-                            ? _createReservation
-                            : null,
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: _canCreateReservation
-                              ? const Color(0xFF2E7AFF)
-                              : Colors.grey[300],
-                          padding: const EdgeInsets.symmetric(vertical: 12),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(8),
-                          ),
-                        ),
-                        child: _isLoading
-                            ? const SizedBox(
-                                height: 20,
-                                width: 20,
-                                child: CircularProgressIndicator(
-                                  strokeWidth: 2,
-                                  valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
-                                ),
-                              )
-                            : Text(
-                                _canCreateReservation
-                                    ? 'Confirmar Reserva'
-                                    : _errorMessage != null
-                                        ? 'Resolver conflictos'
-                                        : 'Selecciona ${4 - _selectedPlayers.length} jugadores más',
-                                style: TextStyle(
-                                  fontSize: 16,
-                                  fontWeight: FontWeight.w600,
-                                  color: _canCreateReservation ? Colors.white : Colors.grey[600],
-                                ),
-                              ),
-                      ),
-                    ),
-                  ],
+                  ),
                 ),
-              ],
+              ),
             ),
-          ),
+          ],
         ),
       ),
     );

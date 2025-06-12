@@ -894,12 +894,56 @@ function generateBookingEmailHtml({playerName, playerEmail, isOrganizer, booking
             .header { 
                 background: linear-gradient(135deg, #1e3a8a, #1e40af); 
                 color: white; padding: 40px 20px; text-align: center; 
+                position: relative;
             }
-            .logo { 
-                width: 80px; height: 80px; margin: 0 auto 15px auto; 
-                background: white; border-radius: 50%; display: flex; 
-                align-items: center; justify-content: center; 
-                box-shadow: 0 4px 12px rgba(0,0,0,0.2); 
+            .header-content {
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                gap: 20px;
+                margin-bottom: 20px;
+                flex-wrap: wrap;
+            }
+            .logo-circle { 
+                width: 80px; height: 80px; 
+                background: white; border-radius: 50%; 
+                display: flex; align-items: center; justify-content: center; 
+                box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+                flex-shrink: 0;
+                font-weight: bold;
+                color: #1e3a8a;
+                font-size: 18px;
+                text-align: center;
+                line-height: 1.2;
+            }
+            .title-section {
+                flex: 1;
+                min-width: 200px;
+            }
+            .title-section h1 {
+                margin: 0; 
+                font-size: 28px; 
+                font-weight: bold;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                gap: 10px;
+            }
+            .padel-icon {
+                background: rgba(255,255,255,0.2);
+                border-radius: 50%;
+                width: 40px;
+                height: 40px;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                font-size: 24px;
+                flex-shrink: 0;
+            }
+            .subtitle {
+                margin: 10px 0 0 0;
+                font-size: 16px;
+                opacity: 0.9;
             }
             .content { padding: 30px; }
             .booking-card { 
@@ -934,23 +978,41 @@ function generateBookingEmailHtml({playerName, playerEmail, isOrganizer, booking
             }
             .button-primary { background: #10b981; color: white; }
             .button-secondary { background: #ef4444; color: white; }
+            
+            /* Responsive adjustments */
             @media (max-width: 600px) { 
-                .players-grid { grid-template-columns: 1fr; } 
-                .button { display: block; margin: 8px 0; } 
+                .header-content { 
+                    flex-direction: column; 
+                    gap: 20px; 
+                }
+                .players-grid { 
+                    grid-template-columns: 1fr; 
+                } 
+                .button { 
+                    display: block; 
+                    margin: 8px 0; 
+                } 
             }
         </style>
     </head>
     <body>
         <div class="container">
             <div class="header">
-                <div class="logo">
-                    <div style="font-weight: bold; color: #1e3a8a; 
-                    font-size: 10px; text-align: center;">
-                    CLUB<br>GOLF<br>PAPUDO<br>
-                    <small style="font-size: 7px;">1932</small></div>
+                <div class="header-content">
+                    <!-- Logo Textual del Club -->
+                    <div class="logo-circle">
+                        CLUB<br>GOLF<br>PAPUDO<br><small>1932</small>
+                    </div>
+                    
+                    <!-- Título con icono de pádel -->
+                    <div class="title-section">
+                        <h1>
+                            <div class="padel-icon" style="font-family: Arial, sans-serif; font-weight: bold; font-size: 20px;">P</div>
+                            Reserva Confirmada
+                        </h1>
+                        <p class="subtitle">Club de Golf Papudo - Pádel • Desde 1932</p>
+                    </div>
                 </div>
-                <h1>🏓 Reserva Confirmada</h1>
-                <p>Club de Golf Papudo - Pádel • Desde 1932</p>
             </div>
             
             <div class="content">
@@ -964,12 +1026,11 @@ function generateBookingEmailHtml({playerName, playerEmail, isOrganizer, booking
                         <span class="detail-value">${formatDate(booking.date)}</span>
                     </div>
                     <div class="detail-row">
-                        <span class="detail-label">⏰ Hora</span>
-                        <span class="detail-value">${booking.timeSlot} - 
-                        ${getEndTime(booking.timeSlot)}</span>
+                        <span class="detail-label">⏰ Hora&nbsp;</span>
+                        <span class="detail-value">${booking.timeSlot} - ${getEndTime(booking.timeSlot)}</span>
                     </div>
                     <div class="detail-row">
-                        <span class="detail-label">🎾 Cancha</span>
+                        <span class="detail-label">🎾 Cancha&nbsp;</span>
                         <span class="detail-value">${courtName}</span>
                     </div>
                 </div>
@@ -986,22 +1047,17 @@ function generateBookingEmailHtml({playerName, playerEmail, isOrganizer, booking
                     class="button button-secondary">❌ Cancelar Reserva</a>
                 </div>
 
-                <div style="background: #fef3cd; padding: 16px; 
-                border-radius: 6px; margin: 20px 0;">
-                    <strong>💡 Importante:</strong> Si no has reservado, no estás al tanto de esta invitación,
-                     o no puedes asistir, cancela esta reserva. Para cancelar, haz clic en el botón de arriba. Se notificará automáticamente a los otros jugadores.
+                <div style="background: #fef3cd; padding: 16px; border-radius: 6px; margin: 20px 0;">
+                    <strong>💡 Importante:</strong> Si no has reservado, no estás al tanto de esta invitación, o no puedes asistir, <strong>cancela</strong> esta reserva. Para cancelar, haz clic en el botón de arriba. Se notificará automáticamente a los otros jugadores.
                 </div>
             </div>
 
-            <div style="background: #f8fafc; padding: 20px; 
-            text-align: center; color: #64748b; font-size: 14px;">
+            <div style="background: #f8fafc; padding: 20px; text-align: center; color: #64748b; font-size: 14px;">
                 <p>
                     <strong>Club de Golf Papudo</strong> • Desde 1932<br>
-                    📧 <a href="mailto:paddlepapudo@gmail.com" 
-                    style="color: #1e3a8a;">paddlepapudo@gmail.com</a><br>
+                    📧 <a href="mailto:paddlepapudo@gmail.com" style="color: #1e3a8a;">paddlepapudo@gmail.com</a><br>
                     📍 Miraflores s/n - Papudo, Valparaíso<br>
-                    🌐 <a href="https://clubgolfpapudo.cl" 
-                    style="color: #1e3a8a;">clubgolfpapudo.cl</a>
+                    🌐 <a href="https://clubgolfpapudo.cl" style="color: #1e3a8a;">clubgolfpapudo.cl</a>
                 </p>
             </div>
         </div>
