@@ -3,12 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'presentation/pages/reservations_page.dart';
-import 'core/services/user_service.dart'; // 🔥 NUEVO: Importar UserService
-
-// Pages
-import 'presentation/pages/reservations_page.dart';
-
-// Providers
+import 'core/services/user_service.dart';
 import 'presentation/providers/booking_provider.dart';
 
 void main() async {

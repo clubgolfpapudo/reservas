@@ -1,0 +1,86 @@
+{
+    "name": "CGP Reservas - Club de Golf Papudo",
+    "short_name": "CGP Reservas",
+    "description": "Sistema de reservas para canchas de pádel del Club de Golf y Pádel",
+    "start_url": "/",
+    "display": "standalone",
+    "background_color": "#ffffff",
+    "theme_color": "#2E7AFF",
+    "orientation": "portrait-primary",
+    "scope": "/",
+    "lang": "es",
+    "categories": [
+        "sports",
+        "business",
+        "productivity"
+    ],
+    "screenshots": [
+        {
+            "src": "icons/screenshot-mobile.png",
+            "sizes": "390x844",
+            "type": "image/png",
+            "form_factor": "narrow"
+        },
+        {
+            "src": "icons/screenshot-desktop.png",
+            "sizes": "1920x1080",
+            "type": "image/png",
+            "form_factor": "wide"
+        }
+    ],
+    "shortcuts": [
+        {
+            "name": "Nueva Reserva",
+            "short_name": "Reservar",
+            "description": "Crear una nueva reserva de cancha",
+            "url": "/reservar",
+            "icons": [
+                {
+                    "src": "icons/shortcut-reserve.png",
+                    "sizes": "96x96"
+                }
+            ]
+        },
+        {
+            "name": "Mis Reservas",
+            "short_name": "Mis Reservas",
+            "description": "Ver mis reservas actuales",
+            "url": "/mis-reservas",
+            "icons": [
+                {
+                    "src": "icons/shortcut-my-bookings.png",
+                    "sizes": "96x96"
+                }
+            ]
+        }
+    ],
+    "related_applications": [],
+    "prefer_related_applications": false,
+    "edge_side_panel": {
+        "preferred_width": 480
+    },
+    "icons": [
+        {
+            "src": "icons/Icon-192.png",
+            "sizes": "192x192",
+            "type": "image/png"
+        },
+        {
+            "src": "icons/Icon-512.png",
+            "sizes": "512x512",
+            "type": "image/png"
+        },
+        {
+            "src": "icons/Icon-maskable-192.png",
+            "sizes": "192x192",
+            "type": "image/png",
+            "purpose": "maskable"
+        },
+        {
+            "src": "icons/Icon-maskable-512.png",
+            "sizes": "512x512",
+            "type": "image/png",
+            "purpose": "maskable"
+        }
+    ]
+}
