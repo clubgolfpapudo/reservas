@@ -47,6 +47,14 @@ class UserService {
         print('🔍 Todos los parámetros: ${uri.queryParameters}');
         print('🔍 Parámetro email específico: ${uri.queryParameters['email']}');
         
+        // 🚀 NUEVO DEBUG EXTRA - Agregar estas líneas:
+        print('🔍 Location search: ${html.window.location.search}');
+        print('🔍 Location href: ${html.window.location.href}');
+        print('🔍 Hash: ${html.window.location.hash}');
+        uri.queryParameters.forEach((key, value) {
+          print('🔍 Parámetro encontrado: "$key" = "$value"');
+        });
+
         final emailFromUrl = uri.queryParameters['email'];
         if (emailFromUrl != null && emailFromUrl.isNotEmpty) {
           _currentUserEmail = emailFromUrl; // Actualizar usuario actual
@@ -77,16 +85,55 @@ class UserService {
     return fallbackEmail;
   }
 
-  /// 🔥 ACTUALIZADO: Obtiene el nombre del usuario actual
+  static Future<String> getDisplayNameFromFirestore(String email) async {
+    try {
+      print('🔍 Consultando Firestore para email: $email');
+      
+      final doc = await FirebaseFirestore.instance
+          .collection('users')
+          .doc(email)
+          .get();
+      
+      if (doc.exists) {
+        final data = doc.data() as Map<String, dynamic>;
+        final displayName = data['displayName'] as String?;
+        
+        if (displayName != null && displayName.isNotEmpty) {
+          print('✅ DisplayName encontrado: $displayName');
+          return displayName;
+        }
+      }
+      
+      print('⚠️ Usuario no encontrado en Firestore: $email');
+      return 'USUARIO NO ENCONTRADO';
+      
+    } catch (e) {
+      print('❌ Error consultando Firestore: $e');
+      return 'ERROR DE CONEXIÓN';
+    }
+  }
+
   static Future<String> getCurrentUserName() async {
-    // 1. 🔥 NUEVO: Intentar leer nombre de la URL primero (SOLO EN WEB)
+    print('🎯 DEBUG getName: Iniciando getCurrentUserName()');
+    
+    // 1. Obtener email primero
+    final email = await getCurrentUserEmail();
+    print('🎯 DEBUG getName: Email obtenido: "$email"');
+    
+    // 2. Si hay usuario configurado manualmente, usarlo
+    if (_currentUserName != null && _currentUserName!.isNotEmpty) {
+      print('✅ Nombre desde configuración manual: $_currentUserName');
+      return _currentUserName!;
+    }
+
+    // 3. Intentar leer nombre de la URL primero (SOLO EN WEB)
     if (kIsWeb) {
       try {
         final uri = Uri.parse(html.window.location.href);
         final nameFromUrl = uri.queryParameters['name'];
         if (nameFromUrl != null && nameFromUrl.isNotEmpty) {
           final decodedName = Uri.decodeComponent(nameFromUrl).toUpperCase();
-          _currentUserName = decodedName; // Actualizar usuario actual
+          _currentUserName = decodedName;
           print('✅ Nombre obtenido de URL: $decodedName');
           return decodedName;
         }
@@ -95,22 +142,25 @@ class UserService {
       }
     }
 
-    // 2. Si hay usuario configurado manualmente, usarlo
-    if (_currentUserName != null && _currentUserName!.isNotEmpty) {
-      print('✅ Nombre desde configuración manual: $_currentUserName');
-      return _currentUserName!;
+    // 4. 🔥 NUEVO: Consultar Firestore por email
+    if (email != null && email.isNotEmpty && email != 'unknown') {
+      final displayName = await getDisplayNameFromFirestore(email);
+      if (displayName != 'USUARIO NO ENCONTRADO' && displayName != 'ERROR DE CONEXIÓN') {
+        _currentUserName = displayName;
+        print('🔥 Nombre obtenido de Firestore: $displayName');
+        return displayName;
+      }
     }
 
-    // 3. 📱 FALLBACK ANDROID/MÓVIL: Generar desde email
+    // 5. Fallback para móvil
     if (!kIsWeb) {
       const fallbackName = 'USUARIO ANDROID';
-      print('📱 Android: Usando nombre por defecto: $fallbackName');
       return fallbackName;
     }
 
-    // 4. Fallback final para web
-    const fallbackName = 'FELIPE BENITEZ G';
-    print('🔄 Usando nombre fallback: $fallbackName');
+    // 6. Fallback final
+    const fallbackName = 'USUARIO DESCONOCIDO';
+    print('⚠️ Usando fallback: $fallbackName');
     return fallbackName;
   }
 

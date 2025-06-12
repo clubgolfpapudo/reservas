@@ -32,6 +32,8 @@ class UserRepositoryImpl implements UserRepository {
   @override
   Future<User?> getUserByEmail(String email) async {
     try {
+      print('🔍 DEBUG: Buscando usuario con email: "${email.toLowerCase()}"');
+      
       final query = await _firestore
           .collection(_collection)
           .where('email', isEqualTo: email.toLowerCase())
@@ -39,11 +41,24 @@ class UserRepositoryImpl implements UserRepository {
           .limit(1)
           .get();
 
+      print('📊 DEBUG: Documentos encontrados: ${query.docs.length}');
+      print('📊 DEBUG: Collection usada: $_collection');
+      
       if (query.docs.isNotEmpty) {
-        return UserModel.fromFirestore(query.docs.first);
+        final doc = query.docs.first;
+        final userData = doc.data() as Map<String, dynamic>;
+        print('👤 DEBUG: Usuario encontrado: $userData');
+        print('✅ DEBUG: Email en DB: "${userData['email']}"');
+        print('✅ DEBUG: DisplayName: "${userData['displayName']}"');
+        print('✅ DEBUG: IsActive: ${userData['isActive']}');
+        
+        return UserModel.fromFirestore(doc);
       }
+      
+      print('❌ DEBUG: No se encontró usuario con email: "${email.toLowerCase()}"');
       return null;
     } catch (e) {
+      print('🚨 DEBUG: Error en getUserByEmail: $e');
       throw Exception('Error al buscar usuario por email: $e');
     }
   }
