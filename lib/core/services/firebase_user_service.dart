@@ -174,8 +174,8 @@ class FirebaseUserService {
     return [
       {'name': 'ANA M BELMAR P', 'email': 'ana@buzeta.cl'},
       {'name': 'CLARA PARDO B', 'email': 'clara@garciab.cl'},
-      {'name': 'JUAN F GONZALEZ P', 'email': 'juan@hotmail.com'},
-      {'name': 'FELIPE BENITEZ G', 'email': 'felipe@garciab.cl'},
+      {'name': 'JUAN F GONZALEZ P', 'email': 'fgarcia88@hotmail.com'},
+      {'name': 'FELIPE GARCIA B', 'email': 'felipe@garciab.cl'},
       {'name': 'PEDRO MARTINEZ L', 'email': 'pedro.martinez@example.com'},
       {'name': 'MARIA GONZALEZ R', 'email': 'maria.gonzalez@example.com'},
       {'name': 'CARLOS RODRIGUEZ M', 'email': 'carlos.rodriguez@example.com'},

@@ -172,7 +172,7 @@ class _ReservationFormModalState extends State<ReservationFormModal> {
         ReservationPlayer(name: 'ANA M BELMAR P', email: 'ana@buzeta.cl'),
         ReservationPlayer(name: 'CLARA PARDO B', email: 'clara@garciab.cl'),
         ReservationPlayer(name: 'JUAN F GONZALEZ P', email: 'juan@hotmail.com'),
-        ReservationPlayer(name: 'FELIPE BENITEZ G', email: 'fgarciabenitez@gmail.com'),
+        ReservationPlayer(name: 'PEDRO ALVEAR B.', email: 'fgarciabenitez@gmail.com'),
         ReservationPlayer(name: 'PEDRO MARTINEZ L', email: 'pedro.martinez@example.com'),
         ReservationPlayer(name: 'MARIA GONZALEZ R', email: 'maria.gonzalez@example.com'),
         ReservationPlayer(name: 'CARLOS RODRIGUEZ M', email: 'carlos.rodriguez@example.com'),

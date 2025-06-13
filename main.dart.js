@@ -7137,7 +7137,7 @@ ay_(){var s,r
 A.af("\ud83d\udd04 Usando usuarios de fallback (Firebase no disponible)...")
 s=t.N
 r=t.z
-return A.b([A.ab(["name","ANA M BELMAR P","email","ana@buzeta.cl"],s,r),A.ab(["name","CLARA PARDO B","email","clara@garciab.cl"],s,r),A.ab(["name","JUAN F GONZALEZ P","email","juan@hotmail.com"],s,r),A.ab(["name","FELIPE BENITEZ G","email","felipe@garciab.cl"],s,r),A.ab(["name","PEDRO MARTINEZ L","email","pedro.martinez@example.com"],s,r),A.ab(["name","MARIA GONZALEZ R","email","maria.gonzalez@example.com"],s,r),A.ab(["name","CARLOS RODRIGUEZ M","email","carlos.rodriguez@example.com"],s,r),A.ab(["name","LUIS FERNANDEZ B","email","luis.fernandez@example.com"],s,r),A.ab(["name","SOFIA MARTINEZ T","email","sofia.martinez@example.com"],s,r),A.ab(["name","DIEGO SANCHEZ L","email","diego.sanchez@example.com"],s,r),A.ab(["name","CAMILA TORRES V","email","camila.torres@example.com"],s,r),A.ab(["name","ALEJANDRO RUIZ P","email","alejandro.ruiz@example.com"],s,r),A.ab(["name","VALENTINA MORALES G","email","valentina.morales@example.com"],s,r),A.ab(["name","SEBASTIAN CASTRO H","email","sebastian.castro@example.com"],s,r),A.ab(["name","ISIDORA SILVA M","email","isidora.silva@example.com"],s,r)],t.H7)},
+return A.b([A.ab(["name","ANA M BELMAR P","email","ana@buzeta.cl"],s,r),A.ab(["name","CLARA PARDO B","email","clara@garciab.cl"],s,r),A.ab(["name","JUAN F GONZALEZ P","email","juan@hotmail.com"],s,r),A.ab(["name","FELIPE GARCIA B.","email","felipe@garciab.cl"],s,r),A.ab(["name","PEDRO MARTINEZ L","email","pedro.martinez@example.com"],s,r),A.ab(["name","MARIA GONZALEZ R","email","maria.gonzalez@example.com"],s,r),A.ab(["name","CARLOS RODRIGUEZ M","email","carlos.rodriguez@example.com"],s,r),A.ab(["name","LUIS FERNANDEZ B","email","luis.fernandez@example.com"],s,r),A.ab(["name","SOFIA MARTINEZ T","email","sofia.martinez@example.com"],s,r),A.ab(["name","DIEGO SANCHEZ L","email","diego.sanchez@example.com"],s,r),A.ab(["name","CAMILA TORRES V","email","camila.torres@example.com"],s,r),A.ab(["name","ALEJANDRO RUIZ P","email","alejandro.ruiz@example.com"],s,r),A.ab(["name","VALENTINA MORALES G","email","valentina.morales@example.com"],s,r),A.ab(["name","SEBASTIAN CASTRO H","email","sebastian.castro@example.com"],s,r),A.ab(["name","ISIDORA SILVA M","email","isidora.silva@example.com"],s,r)],t.H7)},
 a3e:function a3e(){},
 a3b:function a3b(){},
 a3c:function a3c(){},
@@ -25644,8 +25644,8 @@ l=$.auG
 l.toString
 q=l
 s=1
-break}A.af("\ud83d\udd04 Usando nombre fallback: FELIPE BENITEZ G")
-q="FELIPE BENITEZ G"
+break}A.af("\ud83d\udd04 Usando nombre fallback: PEDRO ALVEAR B.")
+q="PEDRO ALVEAR B."
 s=1
 break
 case 1:return A.N(q,r)}})
@@ -40437,7 +40437,7 @@ case 3:q=2
 c=p.pop()
 i=A.ah(c)
 A.af("\u274c MODAL: Error cargando usuarios: "+A.l(i))
-h=A.b([new A.c0("ANA M BELMAR P","ana@buzeta.cl",!1),new A.c0("CLARA PARDO B","clara@garciab.cl",!1),new A.c0("JUAN F GONZALEZ P","juan@hotmail.com",!1),new A.c0("FELIPE BENITEZ G","fgarciabenitez@gmail.com",!1),new A.c0("PEDRO MARTINEZ L","pedro.martinez@example.com",!1),new A.c0("MARIA GONZALEZ R","maria.gonzalez@example.com",!1),new A.c0("CARLOS RODRIGUEZ M","carlos.rodriguez@example.com",!1),new A.c0("LUIS FERNANDEZ B","luis.fernandez@example.com",!1),new A.c0("SOFIA MARTINEZ T","sofia.martinez@example.com",!1),new A.c0("DIEGO SANCHEZ L","diego.sanchez@example.com",!1),new A.c0("VISITA1 PADEL","visita1@cgp.cl",!1),new A.c0("VISITA2 PADEL","visita2@cgp.cl",!1),new A.c0("VISITA3 PADEL","visita3@cgp.cl",!1),new A.c0("VISITA4 PADEL","visita4@cgp.cl",!1)],t.KS)
+h=A.b([new A.c0("ANA M BELMAR P","ana@buzeta.cl",!1),new A.c0("CLARA PARDO B","clara@garciab.cl",!1),new A.c0("JUAN F GONZALEZ P","juan@hotmail.com",!1),new A.c0("PEDRO ALVEAR B.","fgarciabenitez@gmail.com",!1),new A.c0("PEDRO MARTINEZ L","pedro.martinez@example.com",!1),new A.c0("MARIA GONZALEZ R","maria.gonzalez@example.com",!1),new A.c0("CARLOS RODRIGUEZ M","carlos.rodriguez@example.com",!1),new A.c0("LUIS FERNANDEZ B","luis.fernandez@example.com",!1),new A.c0("SOFIA MARTINEZ T","sofia.martinez@example.com",!1),new A.c0("DIEGO SANCHEZ L","diego.sanchez@example.com",!1),new A.c0("VISITA1 PADEL","visita1@cgp.cl",!1),new A.c0("VISITA2 PADEL","visita2@cgp.cl",!1),new A.c0("VISITA3 PADEL","visita3@cgp.cl",!1),new A.c0("VISITA4 PADEL","visita4@cgp.cl",!1)],t.KS)
 o.am(new A.ao0(o,h))
 A.af("\ud83d\udd04 MODAL: Usando "+J.bp(h)+" usuarios de fallback")
 o.od()

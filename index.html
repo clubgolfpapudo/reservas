@@ -33,6 +33,32 @@
   <link rel="manifest" href="manifest.json">
 </head>
 <body>
+  <!-- Firebase Configuration -->
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+  
+  <script>
+    // Your web app's Firebase configuration
+    const firebaseConfig = {
+      apiKey: "AIzaSyDdXsf0ZxA8IS7GD9pDAnAwkJFOsq6YVRE",
+      authDomain: "cgpreservas.firebaseapp.com",
+      projectId: "cgpreservas",
+      storageBucket: "cgpreservas.firebasestorage.app",
+      messagingSenderId: "577498054078",
+      appId: "1:577498054078:web:fb7b12b9e355065d3d0def"
+    };
+
+    // Initialize Firebase and make it globally available
+    firebase.initializeApp(firebaseConfig);
+    
+    // Debug: Verify Firebase is loaded
+    console.log("🔥 Firebase loaded:", typeof firebase);
+    console.log("🔥 Firestore available:", typeof firebase.firestore);
+    
+    // Make Firestore globally available for Flutter
+    window.firebaseDb = firebase.firestore();
+  </script>
+
   <script src="flutter_bootstrap.js" async></script>
 </body>
 </html>
