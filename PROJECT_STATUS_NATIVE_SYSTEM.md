@@ -1147,6 +1147,8 @@ https://console.firebase.google.com/project/cgpreservas ✅ OPERATIVO
 
 Firebase Functions (Backend):
 https://us-central1-cgpreservas.cloudfunctions.net/ ✅ OPERATIVO
+https://us-central1-cgpreservas.cloudfunctions.net/listVisitorIssues ✅ OPERATIVO
+https://us-central1-cgpreservas.cloudfunctions.net/cleanupVisitorNames ✅ OPERATIVO
 
 GitHub Repository (Deploy automático Web):
 https://github.com/paddlepapudo/cgp_reservas ✅ OPERATIVO
@@ -1695,3 +1697,110 @@ El proyecto representa un **éxito técnico y de negocio significativo** para el
 - **Debugging guides:** Incluidos en secciones de troubleshooting
 
 **El proyecto está listo para la fase final de completación al 100%.**
+
+
+PROYECTO CGP RESERVAS - RESUMEN DE AVANCES Y PENDIENTES actualización: 13 de Junio 2025 14:50
+✅ COMPLETADO EXITOSAMENTE
+Issue #1: Nuevo Header de Emails
+ESTADO: ✅ RESUELTO COMPLETAMENTE
+
+Problema Original: Header complejo con elementos fuera de posición en Gmail/Thunderbird
+Solución Implementada:
+
+Nuevo diseño horizontal con color azul #4285f4
+Círculo blanco con "CLUB/GOLF/PAPUDO" (17px, perfectamente centrado)
+Círculo azul con "P" grande (32px)
+Título "Reserva Confirmada" a la derecha
+Layout responsive para móviles (vertical en pantallas pequeñas)
+
+
+Código: Función generateBookingEmailHtml() actualizada en functions/index.js
+Deploy: ✅ Completado
+Testing: Pendiente verificar en email real
+
+Issue #2: Mensaje de Pago para Visitas
+ESTADO: ✅ RESUELTO COMPLETAMENTE
+
+Problema: Faltaba notificación al organizador sobre pago obligatorio de visitas
+Solución Implementada:
+
+Detecta automáticamente nombres PADEL1 VISITA, PADEL2 VISITA, PADEL3 VISITA, PADEL4 VISITA
+Muestra mensaje "⚠️ Atención: Toda visita debe pagar su reserva ANTES de ocupar la cancha"
+Solo aparece para el organizador (index 0)
+Estilo idéntico al mensaje amarillo existente
+
+
+Código: Lógica condicional agregada en generateBookingEmailHtml()
+Deploy: ✅ Completado
+
+Limpieza de Base de Datos
+ESTADO: ✅ COMPLETADO
+
+Problema: Nombres de visitas en formato incorrecto VISITAx PADEL
+Solución: Funciones temporales de limpieza
+Resultados:
+
+24 reservas escaneadas
+4 nombres incorrectos encontrados
+2 reservas corregidas automáticamente
+Formato corregido: VISITA1 PADEL → PADEL1 VISITA
+
+
+Funciones: listVisitorIssues y cleanupVisitorNames (pueden eliminarse)
+
+⚠️ PENDIENTES IDENTIFICADOS
+P1: Testing Email Completo (ALTA PRIORIDAD)
+
+Crear reserva de prueba con visitas
+Verificar nuevo header en Gmail/Thunderbird
+Confirmar que mensaje de pago aparece solo al organizador
+Validar que Issue #1 y #2 funcionan en producción
+
+P2: Limpieza Colección users (MEDIA PRIORIDAD)
+
+Problema Detectado: Modal de búsqueda muestra duplicados
+
+PADEL1 VISITA (fondo blanco) ✅ correcto
+VISITA1 PADEL (fondo naranjo + "puede jugar en múltiples canchas") ❌ incorrecto
+
+
+Causa: Colección users o Google Sheets contiene nombres en formato incorrecto
+Solución Requerida: Función de limpieza similar para colección users
+
+P3: Prevención Futura (BAJA PRIORIDAD)
+
+Validación en frontend para solo permitir formato PADELx VISITA
+Normalización automática en tiempo real
+Documentación de nomenclatura estándar
+
+P4: Limpieza de Código (MANTENIMIENTO)
+
+Eliminar funciones temporales listVisitorIssues y cleanupVisitorNames
+Actualizar documentación de funciones
+Testing de regresión completo
+
+🔧 ARCHIVOS MODIFICADOS
+functions/index.js
+
+✅ Función generateBookingEmailHtml() actualizada (nuevo header + mensaje visitas)
+✅ Funciones temporales de limpieza agregadas (eliminar después)
+
+Firestore Database
+
+✅ Colección bookings: 2 documentos corregidos
+⚠️ Colección users: Requiere limpieza pendiente
+
+📋 PRÓXIMA SESIÓN - PLAN DE TRABAJO
+
+Testing completo de emails con nuevo diseño
+Investigar fuente de usuarios duplicados en modal
+Limpiar colección users si es necesario
+Eliminar funciones temporales de limpieza
+Documentar soluciones para referencia futura
+
+🎯 ESTADO GENERAL DEL PROYECTO
+Issues Principales: 2/2 Resueltos (100%)
+Sistema de emails funcionando con nuevo diseño y lógica de visitas
+Próximo: Testing en producción y limpieza menor de datos
+
+Última actualización: 13 de Junio 2025 14:50 - Issues #1 y #2 completados exitosamente

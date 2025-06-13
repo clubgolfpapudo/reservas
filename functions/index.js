@@ -891,64 +891,65 @@ function generateBookingEmailHtml({playerName, playerEmail, isOrganizer, booking
                 border-radius: 12px; overflow: hidden; 
                 box-shadow: 0 4px 12px rgba(0,0,0,0.1); 
             }
+            
+            /* NUEVO HEADER DISEÑO */
             .header { 
-                background: linear-gradient(135deg, #1e3a8a, #1e40af); 
-                color: white; padding: 40px 20px; text-align: center; 
-                position: relative;
-            }
-            .header-content {
+                background: #4285f4;
+                color: white; 
+                padding: 30px 20px; 
                 display: flex;
                 align-items: center;
-                justify-content: center;
+                justify-content: flex-start;
                 gap: 20px;
-                margin-bottom: 20px;
-                flex-wrap: wrap;
             }
-            .logo-circle { 
-                width: 80px; height: 80px; 
-                background: white; border-radius: 50%; 
-                display: flex; align-items: center; justify-content: center; 
-                box-shadow: 0 4px 12px rgba(0,0,0,0.2);
-                flex-shrink: 0;
-                font-weight: bold;
-                color: #1e3a8a;
-                font-size: 18px;
-                text-align: center;
-                line-height: 1.2;
-            }
-            .title-section {
-                flex: 1;
-                min-width: 200px;
-            }
-            .title-section h1 {
-                margin: 0; 
-                font-size: 28px; 
-                font-weight: bold;
-                display: flex;
-                align-items: center;
-                justify-content: center;
-                gap: 10px;
-            }
-            .padel-icon {
-                background: rgba(255,255,255,0.2);
+            
+            .circle-large {
+                width: 80px;
+                height: 80px;
                 border-radius: 50%;
-                width: 40px;
-                height: 40px;
+                background-color: #ffffff;
+                border: 2px solid #ffffff;
                 display: flex;
                 align-items: center;
                 justify-content: center;
-                font-size: 24px;
+                color: #4285f4;
+                font-size: 17px;
+                font-weight: bold;
+                line-height: 19px;
+                text-align: center;
+                box-sizing: border-box;
+                padding: 0px;
+                letter-spacing: -0.5px;
                 flex-shrink: 0;
             }
-            .subtitle {
-                margin: 10px 0 0 0;
-                font-size: 16px;
-                opacity: 0.9;
+            
+            .circle-small {
+                width: 60px;
+                height: 60px;
+                border-radius: 50%;
+                background-color: #4285f4;
+                border: 2px solid #ffffff;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                color: #ffffff;
+                font-size: 32px;
+                font-weight: bold;
+                flex-shrink: 0;
             }
+            
+            .header-title {
+                color: #ffffff;
+                font-size: 28px;
+                font-weight: bold;
+                margin: 0;
+                flex: 1;
+            }
+            
             .content { padding: 30px; }
             .booking-card { 
                 background: #f8fafc; border-radius: 8px; padding: 24px; 
-                margin: 20px 0; border-left: 4px solid #1e3a8a; 
+                margin: 20px 0; border-left: 4px solid #4285f4; 
             }
             .detail-row { 
                 display: flex; justify-content: space-between; 
@@ -966,7 +967,7 @@ function generateBookingEmailHtml({playerName, playerEmail, isOrganizer, booking
             }
             .player-name { font-weight: 600; color: #1e293b; font-size: 14px; }
             .organizer-badge { 
-                background: #1e3a8a; color: white; padding: 2px 8px; 
+                background: #4285f4; color: white; padding: 2px 8px; 
                 border-radius: 12px; font-size: 11px; margin-top: 4px; 
                 display: inline-block; 
             }
@@ -981,10 +982,29 @@ function generateBookingEmailHtml({playerName, playerEmail, isOrganizer, booking
             
             /* Responsive adjustments */
             @media (max-width: 600px) { 
-                .header-content { 
-                    flex-direction: column; 
-                    gap: 20px; 
+                .header {
+                    flex-direction: column;
+                    text-align: center;
+                    gap: 15px;
                 }
+                
+                .header-title {
+                    font-size: 22px;
+                }
+                
+                .circle-large {
+                    width: 70px;
+                    height: 70px;
+                    font-size: 15px;
+                    line-height: 17px;
+                }
+                
+                .circle-small {
+                    width: 50px;
+                    height: 50px;
+                    font-size: 28px;
+                }
+                
                 .players-grid { 
                     grid-template-columns: 1fr; 
                 } 
@@ -998,21 +1018,18 @@ function generateBookingEmailHtml({playerName, playerEmail, isOrganizer, booking
     <body>
         <div class="container">
             <div class="header">
-                <div class="header-content">
-                    <!-- Logo Textual del Club -->
-                    <div class="logo-circle">
-                        CLUB<br>GOLF<br>PAPUDO<br><small>1932</small>
-                    </div>
-                    
-                    <!-- Título con icono de pádel -->
-                    <div class="title-section">
-                        <h1>
-                            <div class="padel-icon" style="font-family: Arial, sans-serif; font-weight: bold; font-size: 20px;">P</div>
-                            Reserva Confirmada
-                        </h1>
-                        <p class="subtitle">Club de Golf Papudo - Pádel • Desde 1932</p>
-                    </div>
+                <!-- Círculo grande con texto del club -->
+                <div class="circle-large">
+                    CLUB<br>GOLF<br>PAPUDO
                 </div>
+                
+                <!-- Círculo pequeño con P de Pádel -->
+                <div class="circle-small">
+                    P
+                </div>
+                
+                <!-- Título del header -->
+                <h1 class="header-title">Reserva Confirmada</h1>
             </div>
             
             <div class="content">
@@ -1050,14 +1067,33 @@ function generateBookingEmailHtml({playerName, playerEmail, isOrganizer, booking
                 <div style="background: #fef3cd; padding: 16px; border-radius: 6px; margin: 20px 0;">
                     <strong>💡 Importante:</strong> Si no has reservado, no estás al tanto de esta invitación, o no puedes asistir, <strong>cancela</strong> esta reserva. Para cancelar, haz clic en el botón de arriba. Se notificará automáticamente a los otros jugadores.
                 </div>
+
+                ${(() => {
+                    // Detectar si hay visitas en la reserva
+                    const hasVisitors = booking.players.some(player => 
+                        player.name && (
+                            player.name.includes('PADEL1 VISITA') ||
+                            player.name.includes('PADEL2 VISITA') ||
+                            player.name.includes('PADEL3 VISITA') ||
+                            player.name.includes('PADEL4 VISITA')
+                        )
+                    );
+                    
+                    // Mostrar mensaje solo si hay visitas Y es el organizador
+                    return (hasVisitors && isOrganizer) ? `
+                        <div style="background: #fef3cd; padding: 16px; border-radius: 6px; margin: 20px 0;">
+                            <strong>⚠️ Atención:</strong> Toda visita debe pagar su reserva ANTES de ocupar la cancha.
+                        </div>
+                    ` : '';
+                })()}
             </div>
 
             <div style="background: #f8fafc; padding: 20px; text-align: center; color: #64748b; font-size: 14px;">
                 <p>
                     <strong>Club de Golf Papudo</strong> • Desde 1932<br>
-                    📧 <a href="mailto:paddlepapudo@gmail.com" style="color: #1e3a8a;">paddlepapudo@gmail.com</a><br>
+                    📧 <a href="mailto:paddlepapudo@gmail.com" style="color: #4285f4;">paddlepapudo@gmail.com</a><br>
                     📍 Miraflores s/n - Papudo, Valparaíso<br>
-                    🌐 <a href="https://clubgolfpapudo.cl" style="color: #1e3a8a;">clubgolfpapudo.cl</a>
+                    🌐 <a href="https://clubgolfpapudo.cl" style="color: #4285f4;">clubgolfpapudo.cl</a>
                 </p>
             </div>
         </div>
@@ -1122,3 +1158,147 @@ function getEndTime(startTime) {
   endDate.setTime(endDate.getTime() + 90 * 60000);
   return endDate.toTimeString().slice(0, 5);
 }
+
+// ============================================================================
+// FUNCIONES DE LIMPIEZA DE VISITANTES (TEMPORAL)
+// ============================================================================
+
+// FUNCIÓN SOLO PARA LISTAR (SIN CORREGIR)
+exports.listVisitorIssues = onRequest({
+  cors: true,
+}, async (req, res) => {
+  try {
+    console.log('🔍 Listando nombres de visitantes incorrectos...');
+    
+    const db = admin.firestore();
+    const bookingsSnapshot = await db.collection('bookings').get();
+    let foundIssues = [];
+    
+    for (const doc of bookingsSnapshot.docs) {
+      const booking = doc.data();
+      const bookingId = doc.id;
+      
+      if (booking.players && Array.isArray(booking.players)) {
+        for (let i = 0; i < booking.players.length; i++) {
+          const player = booking.players[i];
+          
+          if (player.name && (
+            player.name.includes('VISITA1 PADEL') ||
+            player.name.includes('VISITA2 PADEL') ||
+            player.name.includes('VISITA3 PADEL') ||
+            player.name.includes('VISITA4 PADEL') ||
+            player.name.toUpperCase().includes('VISITA')
+          )) {
+            foundIssues.push({
+              bookingId,
+              date: booking.date,
+              timeSlot: booking.timeSlot,
+              courtNumber: booking.courtNumber,
+              playerIndex: i,
+              playerName: player.name,
+              allPlayers: booking.players.map(p => p.name)
+            });
+          }
+        }
+      }
+    }
+    
+    const response = {
+      message: '🔍 Listado completado (solo lectura)',
+      totalBookings: bookingsSnapshot.size,
+      issuesFound: foundIssues.length,
+      details: foundIssues
+    };
+    
+    console.log('📊 REPORTE:', response);
+    res.json(response);
+    
+  } catch (error) {
+    console.error('❌ Error:', error);
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// FUNCIÓN PARA CORREGIR AUTOMÁTICAMENTE
+exports.cleanupVisitorNames = onRequest({
+  cors: true,
+}, async (req, res) => {
+  try {
+    console.log('🔍 Iniciando limpieza de nombres de visitantes...');
+    
+    const db = admin.firestore();
+    const bookingsSnapshot = await db.collection('bookings').get();
+    
+    let foundIssues = [];
+    let correctedCount = 0;
+    
+    for (const doc of bookingsSnapshot.docs) {
+      const booking = doc.data();
+      const bookingId = doc.id;
+      
+      if (booking.players && Array.isArray(booking.players)) {
+        let needsUpdate = false;
+        const updatedPlayers = [...booking.players];
+        
+        for (let i = 0; i < updatedPlayers.length; i++) {
+          const player = updatedPlayers[i];
+          
+          if (player.name) {
+            const originalName = player.name;
+            let correctedName = originalName;
+            
+            // Detectar y corregir nombres incorrectos
+            if (originalName.includes('VISITA1 PADEL')) {
+              correctedName = 'PADEL1 VISITA';
+            } else if (originalName.includes('VISITA2 PADEL')) {
+              correctedName = 'PADEL2 VISITA';
+            } else if (originalName.includes('VISITA3 PADEL')) {
+              correctedName = 'PADEL3 VISITA';
+            } else if (originalName.includes('VISITA4 PADEL')) {
+              correctedName = 'PADEL4 VISITA';
+            }
+            
+            // Si encontramos algo que corregir
+            if (correctedName !== originalName) {
+              foundIssues.push({
+                bookingId,
+                date: booking.date,
+                timeSlot: booking.timeSlot,
+                courtNumber: booking.courtNumber,
+                playerIndex: i,
+                originalName,
+                correctedName
+              });
+              
+              updatedPlayers[i] = { ...player, name: correctedName };
+              needsUpdate = true;
+            }
+          }
+        }
+        
+        // Actualizar el documento si es necesario
+        if (needsUpdate) {
+          await doc.ref.update({ players: updatedPlayers });
+          correctedCount++;
+          console.log(`✅ Corregido booking ${bookingId}`);
+        }
+      }
+    }
+    
+    // Reportar resultados
+    const response = {
+      message: '🔍 Limpieza completada',
+      totalBookings: bookingsSnapshot.size,
+      issuesFound: foundIssues.length,
+      bookingsCorrected: correctedCount,
+      details: foundIssues
+    };
+    
+    console.log('📊 REPORTE FINAL:', response);
+    res.json(response);
+    
+  } catch (error) {
+    console.error('❌ Error en cleanup:', error);
+    res.status(500).json({ error: error.message });
+  }
+});
