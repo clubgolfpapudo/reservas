@@ -143,23 +143,15 @@ class _ReservationFormModalState extends State<ReservationFormModal> {
       }).toList();
       
       print('🔥 MODAL: Convertidos ${users.length} usuarios a ReservationPlayer');
-      
-      // Agregar usuarios especiales VISITA al final
-      final visitUsers = [
-        ReservationPlayer(name: 'VISITA1 PADEL', email: 'visita1@cgp.cl'),
-        ReservationPlayer(name: 'VISITA2 PADEL', email: 'visita2@cgp.cl'),
-        ReservationPlayer(name: 'VISITA3 PADEL', email: 'visita3@cgp.cl'),
-        ReservationPlayer(name: 'VISITA4 PADEL', email: 'visita4@cgp.cl'),
-      ];
 
-      final allUsers = [...users, ...visitUsers];
+      final allUsers = users;
       
       setState(() {
-        _availablePlayers = allUsers;
+        _availablePlayers = allUsers.cast<ReservationPlayer>();
         _isLoading = false;
       });
 
-      print('✅ MODAL: ${allUsers.length} usuarios cargados en total (${users.length} Firebase + ${visitUsers.length} VISITA)');
+      print('✅ MODAL: ${allUsers.length} usuarios cargados desde Firebase');
       
       // Filtrar inmediatamente para mostrar usuarios
       _filterPlayers();
@@ -172,7 +164,6 @@ class _ReservationFormModalState extends State<ReservationFormModal> {
         ReservationPlayer(name: 'ANA M BELMAR P', email: 'ana@buzeta.cl'),
         ReservationPlayer(name: 'CLARA PARDO B', email: 'clara@garciab.cl'),
         ReservationPlayer(name: 'JUAN F GONZALEZ P', email: 'juan@hotmail.com'),
-        ReservationPlayer(name: 'PEDRO ALVEAR B.', email: 'fgarciabenitez@gmail.com'),
         ReservationPlayer(name: 'PEDRO MARTINEZ L', email: 'pedro.martinez@example.com'),
         ReservationPlayer(name: 'MARIA GONZALEZ R', email: 'maria.gonzalez@example.com'),
         ReservationPlayer(name: 'CARLOS RODRIGUEZ M', email: 'carlos.rodriguez@example.com'),
@@ -180,10 +171,10 @@ class _ReservationFormModalState extends State<ReservationFormModal> {
         ReservationPlayer(name: 'SOFIA MARTINEZ T', email: 'sofia.martinez@example.com'),
         ReservationPlayer(name: 'DIEGO SANCHEZ L', email: 'diego.sanchez@example.com'),
         // Usuarios VISITA
-        ReservationPlayer(name: 'VISITA1 PADEL', email: 'visita1@cgp.cl'),
-        ReservationPlayer(name: 'VISITA2 PADEL', email: 'visita2@cgp.cl'),
-        ReservationPlayer(name: 'VISITA3 PADEL', email: 'visita3@cgp.cl'),
-        ReservationPlayer(name: 'VISITA4 PADEL', email: 'visita4@cgp.cl'),
+        ReservationPlayer(name: 'PADEL1 VISITA', email: 'reservaspapudo2@gmail.com'),
+        ReservationPlayer(name: 'PADEL2 VISITA', email: 'reservaspapudo3@gmail.com'),
+        ReservationPlayer(name: 'PADEL3 VISITA', email: 'reservaspapudo4@gmail.com'),
+        ReservationPlayer(name: 'PADEL4 VISITA', email: 'reservaspapudo5@gmail.com'),
       ];
       
       setState(() {
@@ -751,7 +742,7 @@ class _ReservationFormModalState extends State<ReservationFormModal> {
                                     itemCount: _filteredPlayers.length,
                                     itemBuilder: (context, index) {
                                       final player = _filteredPlayers[index];
-                                      final isSpecialVisit = ['VISITA1 PADEL', 'VISITA2 PADEL', 'VISITA3 PADEL', 'VISITA4 PADEL']
+                                      final isSpecialVisit = ['PADEL1 VISITA', 'PADEL2 VISITA', 'PADEL3 VISITA', 'PADEL4 VISITA']
                                           .contains(player.name.toUpperCase());
                                       
                                       return Container(

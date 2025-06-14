@@ -110,4 +110,5 @@ class BookingPlayer extends Equatable {
 enum BookingStatus {
   complete,
   incomplete,
+  cancelled,
 }

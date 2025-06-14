@@ -1,6 +1,6 @@
 // lib/core/services/user_service.dart - VERSIÓN LIMPIA Y FUNCIONAL
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:flutter/foundation.dart' show kIsWeb;
+import 'package:flutter/foundation.dart' show kIsWeb, kDebugMode;
 
 // Solo importar dart:html en web con conditional import
 import 'dart:html' as html show window;

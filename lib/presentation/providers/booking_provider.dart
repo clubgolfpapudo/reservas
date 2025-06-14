@@ -38,14 +38,6 @@ class BookingProvider extends ChangeNotifier {
   // Streams subscriptions para limpiar recursos
   StreamSubscription? _courtsSubscription;
   StreamSubscription? _bookingsSubscription;
-
-  // 🔥 CONSTANTES DE VALIDACIÓN
-  static const List<String> _specialVisitPlayers = [
-    'VISITA1 PADEL',
-    'VISITA2 PADEL', 
-    'VISITA3 PADEL',
-    'VISITA4 PADEL'
-  ];
   
   // ============================================================================
   // GETTERS PÚBLICOS
@@ -202,7 +194,8 @@ class BookingProvider extends ChangeNotifier {
   // 🔥 HELPER: Verificar si un jugador es especial (VISITA)
   bool _isSpecialVisitPlayer(String playerName) {
     final cleanName = playerName.trim().toUpperCase();
-    return _specialVisitPlayers.contains(cleanName);
+    return ['PADEL1 VISITA', 'PADEL2 VISITA', 'PADEL3 VISITA', 'PADEL4 VISITA']
+        .contains(cleanName);
   }
 
   // 🔥 HELPER: Comparar nombres de jugadores (limpieza + case-insensitive)
