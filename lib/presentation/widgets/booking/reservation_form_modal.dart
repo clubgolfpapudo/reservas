@@ -343,78 +343,80 @@ class _ReservationFormModalState extends State<ReservationFormModal> {
             ),
           ],
         ),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              'Tu reserva de pádel ha sido confirmada exitosamente:',
-              style: TextStyle(fontSize: 16, color: Colors.grey[700]),
-            ),
-            const SizedBox(height: 12),
-            Container(
-              padding: const EdgeInsets.all(12),
-              decoration: BoxDecoration(
-                color: Colors.blue.withOpacity(0.1),
-                borderRadius: BorderRadius.circular(8),
-                border: Border.all(color: Colors.blue.withOpacity(0.3)),
+        content: SingleChildScrollView(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                'Tu reserva de pádel ha sido confirmada exitosamente:',
+                style: TextStyle(fontSize: 16, color: Colors.grey[700]),
               ),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  _buildDetailRow(Icons.sports_tennis, 'Cancha', widget.courtName),
-                  _buildDetailRow(Icons.calendar_today, 'Fecha', _formatDisplayDate()),
-                  _buildDetailRow(Icons.access_time, 'Hora', widget.timeSlot),
-                  _buildDetailRow(Icons.group, 'Jugadores', '${_selectedPlayers.length}'),
-                  const SizedBox(height: 8),
-                  const Text('Participantes:', style: TextStyle(fontWeight: FontWeight.w600)),
-                  const SizedBox(height: 4),
-                  ..._selectedPlayers.asMap().entries.map((entry) {
-                    final index = entry.key;
-                    final player = entry.value;
-                    return Padding(
-                      padding: const EdgeInsets.only(left: 16, top: 2),
+              const SizedBox(height: 12),
+              Container(
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  color: Colors.blue.withOpacity(0.1),
+                  borderRadius: BorderRadius.circular(8),
+                  border: Border.all(color: Colors.blue.withOpacity(0.3)),
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    _buildDetailRow(Icons.sports_tennis, 'Cancha', widget.courtName),
+                    _buildDetailRow(Icons.calendar_today, 'Fecha', _formatDisplayDate()),
+                    _buildDetailRow(Icons.access_time, 'Hora', widget.timeSlot),
+                    _buildDetailRow(Icons.group, 'Jugadores', '${_selectedPlayers.length}'),
+                    const SizedBox(height: 8),
+                    const Text('Participantes:', style: TextStyle(fontWeight: FontWeight.w600)),
+                    const SizedBox(height: 4),
+                    ..._selectedPlayers.asMap().entries.map((entry) {
+                      final index = entry.key;
+                      final player = entry.value;
+                      return Padding(
+                        padding: const EdgeInsets.only(left: 16, top: 2),
+                        child: Text(
+                          '${index + 1}. ${player.name}${player.isMainBooker ? ' (Organizador)' : ''}',
+                          style: const TextStyle(fontSize: 12, color: Colors.black87),
+                        ),
+                      );
+                    }).toList(),
+                  ],
+                ),
+              ),
+              const SizedBox(height: 12),
+              // 📧 NUEVO: Información sobre emails enviados
+              Container(
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  color: Colors.green.withOpacity(0.1),
+                  borderRadius: BorderRadius.circular(8),
+                  border: Border.all(color: Colors.green.withOpacity(0.3)),
+                ),
+                child: Row(
+                  children: [
+                    const Icon(Icons.email, color: Colors.green, size: 20),
+                    const SizedBox(width: 8),
+                    Expanded(
                       child: Text(
-                        '${index + 1}. ${player.name}${player.isMainBooker ? ' (Organizador)' : ''}',
-                        style: const TextStyle(fontSize: 12, color: Colors.black87),
-                      ),
-                    );
-                  }).toList(),
-                ],
-              ),
-            ),
-            const SizedBox(height: 12),
-            // 📧 NUEVO: Información sobre emails enviados
-            Container(
-              padding: const EdgeInsets.all(12),
-              decoration: BoxDecoration(
-                color: Colors.green.withOpacity(0.1),
-                borderRadius: BorderRadius.circular(8),
-                border: Border.all(color: Colors.green.withOpacity(0.3)),
-              ),
-              child: Row(
-                children: [
-                  const Icon(Icons.email, color: Colors.green, size: 20),
-                  const SizedBox(width: 8),
-                  Expanded(
-                    child: Text(
-                      'Se han enviado emails de confirmación a todos los jugadores',
-                      style: TextStyle(
-                        fontSize: 14, 
-                        color: Colors.green.shade700,
-                        fontWeight: FontWeight.w500,
+                        'Se han enviado emails de confirmación a todos los jugadores',
+                        style: TextStyle(
+                          fontSize: 14, 
+                          color: Colors.green.shade700,
+                          fontWeight: FontWeight.w500,
+                        ),
                       ),
                     ),
-                  ),
-                ],
+                  ],
+                ),
               ),
-            ),
-            const SizedBox(height: 12),
-            Text(
-              'La grilla ahora debe aparecer en azul indicando "Reservada".',
-              style: TextStyle(fontSize: 14, color: Colors.grey[600], fontWeight: FontWeight.w500),
-            ),
-          ],
+              const SizedBox(height: 12),
+              Text(
+                'La grilla ahora debe aparecer en azul indicando "Reservada".',
+                style: TextStyle(fontSize: 14, color: Colors.grey[600], fontWeight: FontWeight.w500),
+              ),
+            ],
+          ),
         ),
         actions: [
           TextButton(

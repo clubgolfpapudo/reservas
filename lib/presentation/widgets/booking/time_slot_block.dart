@@ -80,6 +80,8 @@ class _TimeSlotBlockState extends State<TimeSlotBlock>
       // case BookingStatus.cancelled:
         return Colors.grey; // Gris
     }
+    // Return por defecto:
+    return Colors.grey;
   }
 
   String _getStatusText() {
@@ -92,8 +94,10 @@ class _TimeSlotBlockState extends State<TimeSlotBlock>
         return "Reservada";
       case BookingStatus.incomplete:
         return "Incompleta";
-      // case BookingStatus.cancelled:
+      case BookingStatus.cancelled:
         return "Cancelada";
+      default:
+        return "Desconocido";
     }
   }
 

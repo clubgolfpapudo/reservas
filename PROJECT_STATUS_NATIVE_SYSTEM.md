@@ -1281,3 +1281,76 @@ lib/core/constants/route_constants.dart - Constants para rutas
 
 ### 🔍 **ISSUES MAYORES RESUELTOS (JUNIO 14, 2025)**
 *Última actualización: 14 de Junio, 2025, 16:00 hrs*
+
+
+# Actualización del Sistema - Sesión 14 Junio 2025
+
+## ✅ **PROBLEMAS RESUELTOS**
+
+### 🔧 **Fix Crítico: Restauración del Sistema de Emails**
+**Problema:** Los emails de confirmación no se enviaban después de hacer reservas.
+
+**Causa identificada:** Error en la función `generateBookingEmailHtml()` - variable `${player.email}` no definida en el botón "Cancelar Reserva".
+
+**Solución implementada:**
+1. **Modificación de función:** Agregado parámetro `email` a `generateBookingEmailHtml(booking, organizerName, isVisitorBooking, email)`
+2. **Fix del template:** Cambio de `${player.email}` por `${email}` en el enlace de cancelación
+3. **Actualización de llamada:** Modificado `sendBookingEmailFirestore()` para pasar el email como parámetro
+
+**Archivos modificados:**
+- `functions/index.js` - Función `generateBookingEmailHtml()`
+- `functions/index.js` - Función `sendBookingEmailFirestore()`
+
+**Estado:** ✅ **RESUELTO** - Emails funcionando correctamente, confirmado con prueba exitosa.
+
+### 🔧 **Fix UI: Overflow del Modal de Confirmación**
+**Problema:** Modal de reserva confirmada se desbordaba por 13 pixels, causando error de renderizado.
+
+**Solución implementada:**
+- **Wrapper scrollable:** Envuelto el `Column` principal en `SingleChildScrollView`
+- **Archivo:** `lib/presentation/widgets/booking/reservation_form_modal.dart:346`
+- **Cambio:** `content: SingleChildScrollView(child: Column(...))`
+
+**Estado:** ✅ **RESUELTO** - Modal ahora scrollable, sin overflow.
+
+---
+
+## 🔄 **PENDIENTES IDENTIFICADOS**
+
+### 1. **🎨 UI: Contraste del Botón "Cancelar"**
+**Descripción:** El botón "Cancelar" en el modal de reservas tiene poco contraste visual.
+**Ubicación:** Modal de confirmación de reserva
+**Acción requerida:** Cambiar color de fondo del botón para mejorar visibilidad y contraste.
+**Prioridad:** Baja (UX)
+
+### 2. **🐛 Bug: Página de Cancelación Rota**
+**Descripción:** Al presionar "Cancelar Reserva" desde el email, la página muestra datos incorrectos.
+**Problemas específicos:**
+- `Reserva: undefined`
+- `Jugador: undefined`
+- Botones innecesarios: "Hacer Nueva Reserva" y "Contactar al Club"
+- Nota al pie irrelevante debe removerse
+
+**Ubicación:** Página web de cancelación (función `cancelBooking`)
+**Acción requerida:** 
+- Fix de variables undefined
+- Simplificar UI removiendo elementos innecesarios
+- Mejorar mensaje de confirmación
+
+**Prioridad:** Media (Funcionalidad)
+
+BOTON CANCELAR NO CANCELA!!!
+
+---
+
+## 📊 **RESUMEN DEL PROGRESO**
+
+**Tiempo de sesión:** ~2 horas
+**Problemas críticos resueltos:** 2/2
+**Nuevos pendientes identificados:** 2
+**Estado del sistema:** ✅ **FUNCIONAL** - Emails y reservas operando correctamente
+
+**Próximos pasos sugeridos:**
+1. Fix página de cancelación (variables undefined)
+2. Mejora de contraste en botón Cancelar
+3. Testing completo del flujo de cancelación desde email

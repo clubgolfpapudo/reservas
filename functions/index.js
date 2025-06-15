@@ -1,10 +1,11 @@
 // Deploy Fix 2025-06-05 14:35 - Individual cancellation URLs
 // Google Sheets Integration - 2025-06-05 15:30
 
+const {onDocumentCreated} = require("firebase-functions/v2/firestore");
+const nodemailer = require('nodemailer');
 const {onRequest} = require("firebase-functions/v2/https");
 const {onSchedule} = require("firebase-functions/v2/scheduler");
 const {setGlobalOptions} = require("firebase-functions/v2");
-const nodemailer = require("nodemailer");
 const admin = require('firebase-admin');
 const { GoogleSpreadsheet } = require('google-spreadsheet'); // Nueva dependencia
 
@@ -302,7 +303,7 @@ exports.syncUsersFromSheets = onRequest({
           relacion: relacion,
           celular: celular,
           isActive: true,
-          lastSyncFromSheets: new Date(),
+          lastSyncFromSheets: admin.firestore.FieldValue.serverTimestamp(),
           source: 'google_sheets'
         };
         
@@ -318,7 +319,7 @@ exports.syncUsersFromSheets = onRequest({
           // Crear nuevo usuario
           await usersRef.doc(email).set({
             ...userData,
-            createdAt: new Date()
+            createdAt: admin.firestore.FieldValue.serverTimestamp()
           });
           stats.created++;
           console.log(`✅ Usuario creado: ${formattedName} (${email})`);
@@ -410,142 +411,122 @@ exports.getUsers = onRequest({
 // ============================================================================
 // ENVÍO DE EMAILS DE CONFIRMACIÓN
 // ============================================================================
+
+// Esta versión incluye las funciones auxiliares seguras
 exports.sendBookingEmailHTTP = onRequest({
-  cors: true,
+  region: 'us-central1',
+  cors: true
 }, async (req, res) => {
-  // Manejar preflight OPTIONS request
-  if (req.method === "OPTIONS") {
-    res.set('Access-Control-Allow-Origin', '*');
-    res.set('Access-Control-Allow-Methods', 'POST, OPTIONS');
-    res.set('Access-Control-Allow-Headers', 'Content-Type, Authorization');
-    res.set('Access-Control-Max-Age', '3600');
-    return res.status(204).send('');
-  }
-
-  if (req.method !== 'POST') {
-    return res.status(405).json({ 
-      success: false, 
-      error: 'Método no permitido' 
-    });
-  }
-
+  console.log('📧 === ENVIANDO EMAILS CON GMAIL APP PASSWORD ===');
+  console.log('📧 Body:', JSON.stringify(req.body, null, 2));
+  
   try {
-    console.log('📧 === ENVIANDO EMAILS CON GMAIL APP PASSWORD ===');
-    console.log('📧 Body:', JSON.stringify(req.body, null, 2));
-
-    // Manejar request de test
-    if (req.body.test === true) {
-      console.log('🧪 REQUEST DE TEST RECIBIDO');
-      return res.status(200).json({ 
-        success: true, 
-        message: 'Endpoint Gmail funcionando correctamente',
-        timestamp: new Date().toISOString()
-      });
-    }
-
-    // Validar datos de reserva
-    const { booking } = req.body;
-    if (!booking || !booking.players || booking.players.length === 0) {
-      return res.status(400).json({ 
-        success: false, 
-        error: 'Datos de reserva requeridos' 
-      });
-    }
-
-    console.log(`📧 Procesando reserva: ${booking.courtNumber} ${booking.date} ${booking.timeSlot}`);
-    console.log(`📧 Jugadores: ${booking.players.length}`);
-
-    // Crear transporter
-    const transporter = createTransporter();
-
-    // Preparar emails para todos los jugadores
-    const emailPromises = booking.players
-      .filter(player => player.email && player.email !== 'sin-email@cgp.cl')
-      .map(async (player, index) => {
-        try {
-          console.log(`📧 Enviando email ${index + 1}/${booking.players.length} a: ${player.name} (${player.email})`);
-
-          // Generar ID único para la reserva
-          const bookingId = `${booking.courtNumber}-${booking.date}-${booking.timeSlot}`.replace(/[^a-zA-Z0-9-]/g, '');
-          console.log(`📧 ID generado para ${player.name}: ${bookingId}`);
-
-          const emailHtml = generateBookingEmailHtml({
-            playerName: player.name,
-            playerEmail: player.email,
-            isOrganizer: index === 0,
-            booking: {
-              ...booking,
-              id: bookingId
-            }
-          });
-
-          // Generar archivo .ics para calendario (comentado para evitar duplicación)
-          // const icsContent = generateICSContent(booking);
-
-          const mailOptions = {
-            from: `"Club de Golf Papudo" <paddlepapudo@gmail.com>`,
-            to: player.email,
-            subject: `Reserva de Pádel Confirmada - ${formatDate(booking.date)}`,
-            html: emailHtml,
-            // attachments: [
-            //   {
-            //     filename: 'reserva-padel.ics',
-            //     content: icsContent,
-            //     contentType: 'text/calendar'
-            //   }
-            // ]
-          };
-
-          const result = await transporter.sendMail(mailOptions);
-          console.log(`✅ Email enviado a ${player.name}: ${result.messageId}`);
-          
-          return { 
-            success: true, 
-            player: player.name, 
-            email: player.email,
-            messageId: result.messageId 
-          };
-
-        } catch (error) {
-          console.error(`❌ Error enviando email a ${player.name}:`, error);
-          return { 
-            success: false, 
-            player: player.name, 
-            email: player.email, 
-            error: error.message 
-          };
-        }
-      });
-
-    // Ejecutar todos los envíos
-    const results = await Promise.all(emailPromises);
+    const bookingData = req.body;
+    const booking = bookingData.booking || bookingData;
     
-    const successful = results.filter(r => r.success);
-    const failed = results.filter(r => !r.success);
-
-    console.log(`📧 === RESUMEN ===`);
-    console.log(`✅ Exitosos: ${successful.length}/${results.length}`);
-    console.log(`❌ Fallidos: ${failed.length}/${results.length}`);
-
-    if (successful.length > 0) {
-      return res.status(200).json({
-        success: true,
-        message: `${successful.length} emails enviados exitosamente`,
-        results: results
-      });
-    } else {
-      return res.status(500).json({
-        success: false,
-        message: 'No se pudo enviar ningún email',
-        results: results
-      });
+    // Normalizar datos para compatibilidad
+    const normalizedBooking = {
+      date: booking.date,
+      time: booking.time || booking.timeSlot,
+      courtId: booking.courtId || booking.courtNumber,
+      players: booking.players || []
+    };
+    
+    console.log(`📧 Procesando reserva: ${normalizedBooking.courtId} ${normalizedBooking.date} ${normalizedBooking.time}`);
+    console.log(`📧 Jugadores: ${normalizedBooking.players.length}`);
+    
+    if (!normalizedBooking.players || normalizedBooking.players.length === 0) {
+      throw new Error('No hay jugadores en la reserva');
     }
-
+    
+    // Configurar Gmail transporter
+    console.log('📧 Configurando Gmail transporter...');
+    const transporter = nodemailer.createTransport({
+      host: 'smtp.gmail.com',
+      port: 587,
+      secure: false,
+      auth: {
+        user: 'paddlepapudo@gmail.com',
+        pass: 'yyll uhje izsv mbwc'
+      },
+      tls: {
+        rejectUnauthorized: false
+      }
+    });
+    
+    // Verificar si hay usuarios VISITA
+    const isVisitorBooking = normalizedBooking.players.some(player => {
+      const playerName = typeof player === 'string' ? player : (player.name || '');
+      return playerName.toUpperCase().includes('VISITA');
+    });
+    
+    // Enviar emails
+    const emailResults = [];
+    
+    for (let i = 0; i < normalizedBooking.players.length; i++) {
+      const player = normalizedBooking.players[i];
+      const playerName = typeof player === 'string' ? player : (player.name || 'Jugador');
+      const playerEmail = typeof player === 'string' ? null : player.email;
+      
+      if (!playerEmail) {
+        console.log(`⏭️ Saltando ${playerName} - no tiene email`);
+        continue;
+      }
+      
+      console.log(`📧 Enviando email ${i + 1}/${normalizedBooking.players.length} a: ${playerName} (${playerEmail})`);
+      
+      // Generar ID único para este email
+      const emailId = `${normalizedBooking.courtId.replace('_', '')}-${normalizedBooking.date}-${normalizedBooking.time.replace(':', '')}`;
+      console.log(`📧 ID generado para ${playerName}: ${emailId}`);
+      
+      try {
+        // Es organizador si es el primer jugador con email válido
+        const isOrganizer = emailResults.length === 0;
+        const showVisitorMessage = isOrganizer && isVisitorBooking;
+        
+        const emailHtml = generateBookingEmailHtml(normalizedBooking, playerName, showVisitorMessage);
+        
+        const mailOptions = {
+          from: {
+            name: 'Club de Golf Papudo',
+            address: 'paddlepapudo@gmail.com'
+          },
+          to: playerEmail,
+          subject: `Reserva de Pádel Confirmada - ${formatDate(normalizedBooking.date)}`,
+          html: emailHtml
+        };
+        
+        await transporter.sendMail(mailOptions);
+        console.log(`✅ Email enviado exitosamente a: ${playerName} (${playerEmail})`);
+        emailResults.push({ success: true, player: playerName, email: playerEmail });
+        
+      } catch (emailError) {
+        console.error(`❌ Error enviando email a ${playerName}:`, emailError);
+        emailResults.push({ success: false, player: playerName, email: playerEmail, error: emailError.message });
+      }
+    }
+    
+    const successCount = emailResults.filter(r => r.success).length;
+    const failCount = emailResults.filter(r => !r.success).length;
+    
+    console.log('📧 === RESUMEN ===');
+    console.log(`✅ Exitosos: ${successCount}/${emailResults.length}`);
+    console.log(`❌ Fallidos: ${failCount}/${emailResults.length}`);
+    
+    res.status(200).json({
+      success: true,
+      message: `${successCount} emails enviados exitosamente`,
+      results: emailResults,
+      successCount: successCount,
+      failCount: failCount
+    });
+    
   } catch (error) {
     console.error('❌ Error general:', error);
-    return res.status(500).json({
+    res.status(500).json({
       success: false,
-      error: error.message
+      message: error.message,
+      error: error.toString()
     });
   }
 });
@@ -952,7 +933,7 @@ exports.dailyUserSync = onSchedule({
           relacion: relacion,
           celular: celular,
           isActive: true,
-          lastSyncFromSheets: new Date(),
+          lastSyncFromSheets: admin.firestore.FieldValue.serverTimestamp(),
           source: 'google_sheets_auto'
         };
         
@@ -965,7 +946,7 @@ exports.dailyUserSync = onSchedule({
         } else {
           await usersRef.doc(email).set({
             ...userData,
-            createdAt: new Date()
+            createdAt: admin.firestore.FieldValue.serverTimestamp()
           });
           stats.created++;
         }
@@ -1081,244 +1062,238 @@ function formatUserName(nombres, apellidoPaterno, apellidoMaterno) {
   }
 }
 
-function generateBookingEmailHtml({playerName, playerEmail, isOrganizer, booking}) {
-  const courtName = getCourtName(booking.courtNumber);
-  const playersHtml = booking.players.map((player, index) => {
-    const isOrganizerBadge = (index === 0) ?
-      "<div class=\"organizer-badge\">Organizador</div>" : "";
+// En functions/index.js - función generateBookingEmailHtml()
+// Reemplazar la sección del header con este CSS optimizado para Gmail
 
-    return `
-      <div class="player-card">
-        <div class="player-name">${player.name}</div>
-        ${isOrganizerBadge}
+function generateBookingEmailHtml(booking, organizerName, isVisitorBooking = false, email) {
+  const formattedDate = formatDate(booking.date);
+  const courtName = getCourtName(booking.courtId);
+  const endTime = getEndTime(booking.time);
+  
+  // Mensaje especial para usuarios VISITA (solo aparece para el organizador)
+  const visitorMessage = isVisitorBooking ? `
+    <div style="background-color: #fff3cd; border: 1px solid #ffeaa7; border-radius: 8px; padding: 16px; margin: 20px 0; font-family: Arial, sans-serif;">
+      <div style="display: flex; align-items: center; margin-bottom: 8px;">
+        <div style="background-color: #f39c12; color: white; border-radius: 50%; width: 24px; height: 24px; display: inline-flex; align-items: center; justify-content: center; margin-right: 8px; font-size: 14px; font-weight: bold;">!</div>
+        <strong style="color: #856404;">Información para el organizador</strong>
       </div>
-    `;
-  }).join("");
+      <p style="margin: 0; color: #856404; line-height: 1.4;">
+        Esta reserva incluye jugadores invitados (VISITA). Recuerda coordinar el pago correspondiente en recepción del club.
+      </p>
+    </div>
+  ` : '';
 
   return `
     <!DOCTYPE html>
-    <html lang="es">
+    <html>
     <head>
-        <meta charset="UTF-8">
-        <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <title>Reserva Confirmada - Pádel Papudo</title>
-        <style>
-            body { 
-                font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 
-                Roboto, sans-serif; line-height: 1.6; margin: 0; padding: 0; 
-                background-color: #f5f5f5; 
-            }
-            .container { 
-                max-width: 600px; margin: 20px auto; background: white; 
-                border-radius: 12px; overflow: hidden; 
-                box-shadow: 0 4px 12px rgba(0,0,0,0.1); 
-            }
-            
-            /* NUEVO HEADER DISEÑO */
-            .header { 
-                background: #4285f4;
-                color: white; 
-                padding: 30px 20px; 
-                display: flex;
-                align-items: center;
-                justify-content: flex-start;
-                gap: 20px;
-            }
-            
-            .circle-large {
-                width: 80px;
-                height: 80px;
-                border-radius: 50%;
-                background-color: #ffffff;
-                border: 2px solid #ffffff;
-                display: flex;
-                align-items: center;
-                justify-content: center;
-                color: #4285f4;
-                font-size: 17px;
-                font-weight: bold;
-                line-height: 19px;
-                text-align: center;
-                box-sizing: border-box;
-                padding: 0px;
-                letter-spacing: -0.5px;
-                flex-shrink: 0;
-            }
-            
-            .circle-small {
-                width: 60px;
-                height: 60px;
-                border-radius: 50%;
-                background-color: #4285f4;
-                border: 2px solid #ffffff;
-                display: flex;
-                align-items: center;
-                justify-content: center;
-                color: #ffffff;
-                font-size: 32px;
-                font-weight: bold;
-                flex-shrink: 0;
-            }
-            
-            .header-title {
-                color: #ffffff;
-                font-size: 28px;
-                font-weight: bold;
-                margin: 0;
-                flex: 1;
-            }
-            
-            .content { padding: 30px; }
-            .booking-card { 
-                background: #f8fafc; border-radius: 8px; padding: 24px; 
-                margin: 20px 0; border-left: 4px solid #4285f4; 
-            }
-            .detail-row { 
-                display: flex; justify-content: space-between; 
-                padding: 8px 0; border-bottom: 1px solid #e2e8f0; 
-            }
-            .detail-label { font-weight: 600; color: #475569; }
-            .detail-value { color: #1e293b; font-weight: 500; }
-            .players-grid { 
-                display: grid; grid-template-columns: repeat(2, 1fr); 
-                gap: 12px; margin-top: 12px; 
-            }
-            .player-card { 
-                background: white; padding: 12px; border-radius: 6px; 
-                border: 1px solid #e2e8f0; text-align: center; 
-            }
-            .player-name { font-weight: 600; color: #1e293b; font-size: 14px; }
-            .organizer-badge { 
-                background: #4285f4; color: white; padding: 2px 8px; 
-                border-radius: 12px; font-size: 11px; margin-top: 4px; 
-                display: inline-block; 
-            }
-            .actions { margin: 30px 0; text-align: center; }
-            .button { 
-                display: inline-block; padding: 12px 24px; margin: 0 8px; 
-                border-radius: 6px; text-decoration: none; font-weight: 600; 
-                font-size: 14px; 
-            }
-            .button-primary { background: #10b981; color: white; }
-            .button-secondary { background: #ef4444; color: white; }
-            
-            /* Responsive adjustments */
-            @media (max-width: 600px) { 
-                .header {
-                    flex-direction: column;
-                    text-align: center;
-                    gap: 15px;
-                }
-                
-                .header-title {
-                    font-size: 22px;
-                }
-                
-                .circle-large {
-                    width: 70px;
-                    height: 70px;
-                    font-size: 15px;
-                    line-height: 17px;
-                }
-                
-                .circle-small {
-                    width: 50px;
-                    height: 50px;
-                    font-size: 28px;
-                }
-                
-                .players-grid { 
-                    grid-template-columns: 1fr; 
-                } 
-                .button { 
-                    display: block; 
-                    margin: 8px 0; 
-                } 
-            }
-        </style>
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width, initial-scale=1.0">
+      <title>Reserva de Pádel Confirmada</title>
+      <!--[if mso]>
+      <noscript>
+        <xml>
+          <o:OfficeDocumentSettings>
+            <o:PixelsPerInch>96</o:PixelsPerInch>
+          </o:OfficeDocumentSettings>
+        </xml>
+      </noscript>
+      <![endif]-->
     </head>
-    <body>
-        <div class="container">
-            <div class="header">
-                <!-- Círculo grande con texto del club -->
-                <div class="circle-large">
-                    CLUB<br>GOLF<br>PAPUDO
-                </div>
-                
-                <!-- Círculo pequeño con P de Pádel -->
-                <div class="circle-small">
-                    P
-                </div>
-                
-                <!-- Título del header -->
-                <h1 class="header-title">Reserva Confirmada</h1>
-            </div>
-            
-            <div class="content">
-                <h2>¡Hola ${playerName}!</h2>
-                <p>Tu reserva de pádel ha sido confirmada exitosamente. 
-                Te esperamos en la cancha.</p>
+    <body style="margin: 0; padding: 0; background-color: #f5f5f5; font-family: Arial, sans-serif;">
+      <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%" style="margin: 0; padding: 0;">
+        <tr>
+          <td style="padding: 20px 0;">
+            <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="600" style="margin: 0 auto; background-color: #ffffff; border-radius: 12px; overflow: hidden; box-shadow: 0 4px 12px rgba(0,0,0,0.1);">
+              
+              <!-- HEADER OPTIMIZADO PARA GMAIL -->
+              <tr>
+                <td style="background: linear-gradient(135deg, #4f8ef7 0%, #2c5282 100%); padding: 40px 20px; text-align: center;">
+                  <table role="presentation" cellspacing="0" cellpadding="0" border="0" style="margin: 0 auto;">
+                    <tr>
+                      <td style="text-align: center;">
+                        <!-- Círculo principal con texto centrado usando table -->
+                        <table role="presentation" cellspacing="0" cellpadding="0" border="0" style="margin: 0 auto;">
+                          <tr>
+                            <td style="width: 160px; height: 160px; background-color: rgba(255,255,255,0.2); border-radius: 50%; position: relative; vertical-align: middle; text-align: center;">
+                              <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%" height="100%">
+                                <tr>
+                                  <td style="vertical-align: middle; text-align: center; line-height: 1.2;">
+                                    <div style="color: white; font-size: 16px; font-weight: bold; margin: 0; padding: 0;">
+                                      CLUB<br>GOLF<br>PAPUDO
+                                    </div>
+                                  </td>
+                                </tr>
+                              </table>
+                            </td>
+                            <td style="width: 20px;"></td>
+                            <td style="vertical-align: middle;">
+                              <!-- Círculo de Pádel usando table para mejor centrado -->
+                              <table role="presentation" cellspacing="0" cellpadding="0" border="0">
+                                <tr>
+                                  <td style="width: 80px; height: 80px; background-color: rgba(255,255,255,0.3); border-radius: 50%; text-align: center; vertical-align: middle;">
+                                    <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%" height="100%">
+                                      <tr>
+                                        <td style="vertical-align: middle; text-align: center;">
+                                          <span style="color: white; font-size: 36px; font-weight: bold; line-height: 1; margin: 0; padding: 0;">P</span>
+                                        </td>
+                                      </tr>
+                                    </table>
+                                  </td>
+                                </tr>
+                              </table>
+                            </td>
+                            <td style="width: 20px;"></td>
+                            <td style="vertical-align: middle;">
+                              <h1 style="color: white; font-size: 32px; font-weight: bold; margin: 0; line-height: 1.2;">
+                                Reserva Confirmada
+                              </h1>
+                            </td>
+                          </tr>
+                        </table>
+                      </td>
+                    </tr>
+                  </table>
+                </td>
+              </tr>
 
-                <div class="booking-card">
-                    <div class="detail-row">
-                        <span class="detail-label">📅 Fecha:&nbsp;</span>
-                        <span class="detail-value">${formatDate(booking.date)}</span>
-                    </div>
-                    <div class="detail-row">
-                        <span class="detail-label">⏰ Hora&nbsp;</span>
-                        <span class="detail-value">${booking.timeSlot} - ${getEndTime(booking.timeSlot)}</span>
-                    </div>
-                    <div class="detail-row">
-                        <span class="detail-label">🎾 Cancha&nbsp;</span>
-                        <span class="detail-value">${courtName}</span>
-                    </div>
-                </div>
+              <!-- CONTENIDO DEL EMAIL -->
+              <tr>
+                <td style="padding: 40px 40px 20px 40px;">
+                  <h2 style="color: #2d3748; font-size: 24px; margin: 0 0 20px 0; font-weight: bold;">
+                    ¡Hola ${organizerName.toUpperCase()}!
+                  </h2>
+                  <p style="color: #4a5568; font-size: 16px; line-height: 1.6; margin: 0 0 30px 0;">
+                    Tu reserva de pádel ha sido confirmada exitosamente. Te esperamos en la cancha.
+                  </p>
+                  
+                  ${visitorMessage}
+                </td>
+              </tr>
 
-                <div>
-                    <h3>👥 Jugadores Confirmados (${booking.players.length}/4)</h3>
-                    <div class="players-grid">
-                        ${playersHtml}
-                    </div>
-                </div>
+              <!-- DETALLES DE LA RESERVA -->
+              <tr>
+                <td style="padding: 0 40px 40px 40px;">
+                  <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%" style="border-left: 4px solid #4f8ef7; background-color: #f8fafc; border-radius: 8px;">
+                    <tr>
+                      <td style="padding: 24px;">
+                        <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%">
+                          <tr>
+                            <td style="padding: 8px 0; border-bottom: 1px solid #e2e8f0;">
+                              <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%">
+                                <tr>
+                                  <td style="width: 40px; vertical-align: top;">
+                                    <span style="font-size: 18px;">📅</span>
+                                  </td>
+                                  <td style="vertical-align: top; padding-left: 12px;">
+                                    <strong style="color: #2d3748; font-size: 16px;">Fecha:</strong>
+                                  </td>
+                                  <td style="text-align: right; vertical-align: top;">
+                                    <span style="color: #4a5568; font-size: 16px;">${formattedDate}</span>
+                                  </td>
+                                </tr>
+                              </table>
+                            </td>
+                          </tr>
+                          <tr>
+                            <td style="padding: 8px 0; border-bottom: 1px solid #e2e8f0;">
+                              <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%">
+                                <tr>
+                                  <td style="width: 40px; vertical-align: top;">
+                                    <span style="font-size: 18px;">🕐</span>
+                                  </td>
+                                  <td style="vertical-align: top; padding-left: 12px;">
+                                    <strong style="color: #2d3748; font-size: 16px;">Hora:</strong>
+                                  </td>
+                                  <td style="text-align: right; vertical-align: top;">
+                                    <span style="color: #4a5568; font-size: 16px;">${booking.time} - ${endTime}</span>
+                                  </td>
+                                </tr>
+                              </table>
+                            </td>
+                          </tr>
+                          <tr>
+                            <td style="padding: 8px 0;">
+                              <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%">
+                                <tr>
+                                  <td style="width: 40px; vertical-align: top;">
+                                    <span style="font-size: 18px;">🏓</span>
+                                  </td>
+                                  <td style="vertical-align: top; padding-left: 12px;">
+                                    <strong style="color: #2d3748; font-size: 16px;">Cancha:</strong>
+                                  </td>
+                                  <td style="text-align: right; vertical-align: top;">
+                                    <span style="color: #4a5568; font-size: 16px;">${courtName}</span>
+                                  </td>
+                                </tr>
+                              </table>
+                            </td>
+                          </tr>
+                        </table>
+                      </td>
+                    </tr>
+                  </table>
+                </td>
+              </tr>
 
-                <div class="actions">
-                    <a href="https://us-central1-cgpreservas.cloudfunctions.net/cancelBooking?id=${booking.id}&email=${encodeURIComponent(playerEmail)}" 
-                    class="button button-secondary">❌ Cancelar Reserva</a>
-                </div>
+              <!-- JUGADORES -->
+              <tr>
+                <td style="padding: 0 40px 20px 40px; text-align: center;">
+                  <a href="https://us-central1-cgpreservas.cloudfunctions.net/cancelBooking?id=${booking.id}&email=${encodeURIComponent(email)}"
+                     style="background: #e53e3e; color: white; padding: 12px 24px; text-decoration: none; border-radius: 6px; font-weight: bold; font-size: 14px; display: inline-block; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
+                    ❌ Cancelar Reserva
+                  </a>
+                </td>
+              </tr>
 
-                <div style="background: #fef3cd; padding: 16px; border-radius: 6px; margin: 20px 0;">
-                    <strong>💡 Importante:</strong> Si no has reservado, no estás al tanto de esta invitación, o no puedes asistir, <strong>cancela</strong> esta reserva. Para cancelar, haz clic en el botón de arriba. Se notificará automáticamente a los otros jugadores.
-                </div>
+              <!-- MENSAJE IMPORTANTE -->
+              <tr>
+                <td style="padding: 0 40px 20px 40px;">
+                  <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%" style="background: #fef3cd; border-radius: 6px; border-left: 4px solid #f59e0b;">
+                    <tr>
+                      <td style="padding: 16px;">
+                        <p style="margin: 0; color: #92400e; font-size: 14px; line-height: 1.6;">
+                          <strong>💡 Importante:</strong> Si no has reservado, o no estás al tanto de esta invitación, o no puedes asistir, <strong>cancela</strong> esta reserva, haciendo clic en el botón de arriba. Se notificará automáticamente a los otros jugadores.
+                        </p>
+                      </td>
+                    </tr>
+                  </table>
+                </td>
+              </tr>
 
-                ${(() => {
-                    // Detectar si hay visitas en la reserva
-                    const hasVisitors = booking.players.some(player => 
-                        player.name && (
-                            player.name.includes('PADEL1 VISITA') ||
-                            player.name.includes('PADEL2 VISITA') ||
-                            player.name.includes('PADEL3 VISITA') ||
-                            player.name.includes('PADEL4 VISITA')
-                        )
-                    );
-                    
-                    // Mostrar mensaje solo si hay visitas Y es el organizador
-                    return (hasVisitors && isOrganizer) ? `
-                        <div style="background: #fef3cd; padding: 16px; border-radius: 6px; margin: 20px 0;">
-                            <strong>⚠️ Atención:</strong> Toda visita debe pagar su reserva ANTES de ocupar la cancha.
-                        </div>
-                    ` : '';
-                })()}
-            </div>
+              <!-- MENSAJE ATENCIÓN -->
+              <tr>
+                <td style="padding: 0 40px 20px 40px;">
+                  <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%" style="background: #fef3cd; border-radius: 6px; border-left: 4px solid #f59e0b;">
+                    <tr>
+                      <td style="padding: 16px;">
+                        <p style="margin: 0; color: #92400e; font-size: 14px; line-height: 1.6;">
+                          <strong>⚠️ Atención:</strong> Toda visita debe pagar su reserva <strong>ANTES</strong> de ocupar la cancha.
+                        </p>
+                      </td>
+                    </tr>
+                  </table>
+                </td>
+              </tr>
 
-            <div style="background: #f8fafc; padding: 20px; text-align: center; color: #64748b; font-size: 14px;">
-                <p>
+              <!-- FOOTER COMPLETO - REEMPLAZAR EL FOOTER ACTUAL -->
+              <tr>
+                <td style="background: #f8fafc; padding: 20px 40px; text-align: center; color: #64748b; font-size: 14px; border-top: 1px solid #e2e8f0;">
+                  <p style="margin: 0 0 8px 0; line-height: 1.4;">
                     <strong>Club de Golf Papudo</strong> • Desde 1932<br>
-                    📧 <a href="mailto:paddlepapudo@gmail.com" style="color: #4285f4;">paddlepapudo@gmail.com</a><br>
+                    📧 <a href="mailto:paddlepapudo@gmail.com" style="color: #1e3a8a;">paddlepapudo@gmail.com</a><br>
                     📍 Miraflores s/n - Papudo, Valparaíso<br>
-                    🌐 <a href="https://clubgolfpapudo.cl" style="color: #4285f4;">clubgolfpapudo.cl</a>
-                </p>
-            </div>
-        </div>
+                    🌐 <a href="https://clubgolfpapudo.cl" style="color: #1e3a8a;">clubgolfpapudo.cl</a>
+                  </p>
+                  <p style="margin: 8px 0 0 0; color: #a0aec0; font-size: 12px;">
+                    ¡Nos vemos en la cancha! 🎾
+                  </p>
+                </td>
+              </tr>
+            </table>
+          </td>
+        </tr>
+      </table>
     </body>
     </html>
   `;
@@ -1350,177 +1325,311 @@ END:VEVENT
 END:VCALENDAR`;
 }
 
-function getCourtName(courtNumber) {
-  const courts = {
-    "court_1": "Cancha 1 - PITE",
-    "court_2": "Cancha 2 - LILEN", 
-    "court_3": "Cancha 3 - PLAIYA",
-  };
-  return courts[courtNumber] || courtNumber;
+function getCourtName(courtId) {
+  console.log('🏓 getCourtName recibió:', courtId, 'tipo:', typeof courtId);
+  
+  try {
+    if (!courtId) {
+      console.warn('⚠️ getCourtName: courtId es null/undefined');
+      return 'Cancha Desconocida';
+    }
+    
+    const courtStr = String(courtId).trim().toLowerCase();
+    
+    const courts = {
+      'court1': 'Cancha 1 - PITE',
+      'court_1': 'Cancha 1 - PITE',
+      'court2': 'Cancha 2 - LILEN', 
+      'court_2': 'Cancha 2 - LILEN',
+      'court3': 'Cancha 3 - PLAYA',
+      'court_3': 'Cancha 3 - PLAYA',
+      'court4': 'Cancha 4 - PEUMO',
+      'court_4': 'Cancha 4 - PEUMO'
+    };
+    
+    const result = courts[courtStr] || `Cancha ${courtId}`;
+    console.log('🏓 getCourtName resultado:', result);
+    
+    return result;
+    
+  } catch (error) {
+    console.error('❌ Error en getCourtName:', error);
+    console.error('❌ courtId original:', courtId);
+    return 'Cancha Desconocida';
+  }
 }
 
-function formatDate(dateStr) {
-  const [year, month, day] = dateStr.split("-");
-  const date = new Date(year, month - 1, day);
-  return date.toLocaleDateString("es-ES", {
-    weekday: "long",
-    year: "numeric", 
-    month: "long",
-    day: "numeric",
-  });
-
-  // Fix: Agregar espacio después de "Fecha" en el template
-  return " " + formatted;
+// Función formatDate segura (línea ~1333)
+function formatDate(dateString) {
+  console.log('📅 formatDate recibió:', dateString, 'tipo:', typeof dateString);
+  
+  try {
+    // Validar que dateString existe y no es null/undefined
+    if (!dateString) {
+      console.warn('⚠️ formatDate: dateString es null/undefined, usando fecha actual');
+      dateString = new Date().toISOString().split('T')[0]; // YYYY-MM-DD format
+    }
+    
+    // Convertir a string si no lo es
+    const dateStr = String(dateString).trim();
+    
+    if (!dateStr) {
+      console.warn('⚠️ formatDate: dateString vacío después de trim, usando fecha actual');
+      dateString = new Date().toISOString().split('T')[0];
+    }
+    
+    console.log('📅 formatDate procesando:', dateStr);
+    
+    // Intentar crear fecha
+    let date;
+    
+    // Si ya es un formato ISO (YYYY-MM-DD), usarlo directamente
+    if (dateStr.match(/^\d{4}-\d{2}-\d{2}$/)) {
+      date = new Date(dateStr + 'T12:00:00-03:00'); // Agregar hora para evitar timezone issues
+    } else {
+      // Intentar otros formatos
+      date = new Date(dateStr);
+    }
+    
+    // Verificar que la fecha es válida
+    if (isNaN(date.getTime())) {
+      console.error('❌ formatDate: Fecha inválida:', dateStr);
+      date = new Date(); // Usar fecha actual como fallback
+    }
+    
+    console.log('📅 formatDate fecha creada:', date);
+    
+    const options = { 
+      weekday: 'long', 
+      year: 'numeric', 
+      month: 'long', 
+      day: 'numeric',
+      timeZone: 'America/Santiago'
+    };
+    
+    const formatted = date.toLocaleDateString('es-ES', options);
+    console.log('📅 formatDate resultado:', formatted);
+    
+    return formatted;
+    
+  } catch (error) {
+    console.error('❌ Error en formatDate:', error);
+    console.error('❌ dateString original:', dateString);
+    
+    // Fallback: usar fecha actual formateada
+    const fallbackDate = new Date();
+    const fallbackFormatted = fallbackDate.toLocaleDateString('es-ES', {
+      weekday: 'long', 
+      year: 'numeric', 
+      month: 'long', 
+      day: 'numeric',
+      timeZone: 'America/Santiago'
+    });
+    
+    console.log('🔄 formatDate usando fallback:', fallbackFormatted);
+    return fallbackFormatted;
+  }
 }
 
+// Función getEndTime segura
 function getEndTime(startTime) {
-  const [hours, minutes] = startTime.split(":").map(Number);
-  const endDate = new Date();
-  endDate.setHours(hours, minutes);
-  endDate.setTime(endDate.getTime() + 90 * 60000);
-  return endDate.toTimeString().slice(0, 5);
+  console.log('🕐 getEndTime recibió:', startTime, 'tipo:', typeof startTime);
+  
+  try {
+    // Validar que startTime existe
+    if (!startTime) {
+      console.warn('⚠️ getEndTime: startTime es null/undefined');
+      return 'N/A';
+    }
+    
+    const timeStr = String(startTime).trim();
+    
+    if (!timeStr || !timeStr.includes(':')) {
+      console.warn('⚠️ getEndTime: formato de tiempo inválido:', timeStr);
+      return 'N/A';
+    }
+    
+    const timeParts = timeStr.split(':');
+    
+    if (timeParts.length < 2) {
+      console.warn('⚠️ getEndTime: no se pudo dividir tiempo:', timeStr);
+      return 'N/A';
+    }
+    
+    const hours = parseInt(timeParts[0], 10);
+    const minutes = parseInt(timeParts[1], 10);
+    
+    if (isNaN(hours) || isNaN(minutes)) {
+      console.warn('⚠️ getEndTime: horas o minutos no son números:', hours, minutes);
+      return 'N/A';
+    }
+    
+    console.log('🕐 getEndTime procesando:', hours, ':', minutes);
+    
+    const endHours = hours + 1;
+    const endMinutes = minutes + 30;
+    
+    let finalHours = endHours;
+    let finalMinutes = endMinutes;
+    
+    if (finalMinutes >= 60) {
+      finalHours = endHours + 1;
+      finalMinutes = endMinutes - 60;
+    }
+    
+    const result = `${String(finalHours).padStart(2, '0')}:${String(finalMinutes).padStart(2, '0')}`;
+    console.log('🕐 getEndTime resultado:', result);
+    
+    return result;
+    
+  } catch (error) {
+    console.error('❌ Error en getEndTime:', error);
+    console.error('❌ startTime original:', startTime);
+    return 'N/A';
+  }
 }
 
-// ============================================================================
-// FUNCIONES DE LIMPIEZA DE VISITANTES (TEMPORAL)
-// ============================================================================
-
-// FUNCIÓN SOLO PARA LISTAR (SIN CORREGIR)
-exports.listVisitorIssues = onRequest({
-  cors: true,
-}, async (req, res) => {
+// Trigger automático cuando se crea una reserva en Firestore
+exports.sendBookingEmails = onDocumentCreated('bookings/{bookingId}', async (event) => {
+  console.log('📧 === TRIGGER FIRESTORE ACTIVADO ===');
+  console.log('📧 Booking ID:', event.params.bookingId);
+  
   try {
-    console.log('🔍 Listando nombres de visitantes incorrectos...');
+    const bookingData = event.data.data();
+    console.log('📧 Booking data from Firestore:', JSON.stringify(bookingData, null, 2));
     
-    const db = admin.firestore();
-    const bookingsSnapshot = await db.collection('bookings').get();
-    let foundIssues = [];
+    if (!bookingData) {
+      console.error('❌ No hay datos en el booking');
+      return;
+    }
     
-    for (const doc of bookingsSnapshot.docs) {
-      const booking = doc.data();
-      const bookingId = doc.id;
+    // Verificar que el booking esté completo
+    if (bookingData.status !== 'complete') {
+      console.log('⏳ Booking no está completo, saltando envío de emails');
+      return;
+    }
+    
+    // Normalizar datos para compatibilidad
+    const normalizedBooking = {
+      date: bookingData.date,
+      time: bookingData.timeSlot || bookingData.time,
+      courtId: bookingData.courtNumber || bookingData.courtId,
+      players: bookingData.players || []
+    };
+    
+    console.log('📧 Booking normalizado:', JSON.stringify(normalizedBooking, null, 2));
+    
+    if (!normalizedBooking.players || normalizedBooking.players.length === 0) {
+      console.error('❌ No hay jugadores en la reserva');
+      return;
+    }
+    
+    // Configurar Gmail transporter
+    const transporter = nodemailer.createTransport({
+      host: 'smtp.gmail.com',
+      port: 587,
+      secure: false,
+      auth: {
+        user: 'paddlepapudo@gmail.com',
+        pass: 'yyll uhje izsv mbwc'
+      },
+      tls: {
+        rejectUnauthorized: false
+      }
+    });
+    
+    console.log('📧 Gmail transporter configurado');
+    
+    // Enviar emails a cada jugador
+    const emailPromises = [];
+    const processedEmails = new Set();
+    
+    for (let i = 0; i < normalizedBooking.players.length; i++) {
+      const player = normalizedBooking.players[i];
+      console.log(`📧 Procesando jugador ${i + 1}:`, JSON.stringify(player, null, 2));
       
-      if (booking.players && Array.isArray(booking.players)) {
-        for (let i = 0; i < booking.players.length; i++) {
-          const player = booking.players[i];
-          
-          if (player.name && (
-            player.name.includes('VISITA1 PADEL') ||
-            player.name.includes('VISITA2 PADEL') ||
-            player.name.includes('VISITA3 PADEL') ||
-            player.name.includes('VISITA4 PADEL') ||
-            player.name.toUpperCase().includes('VISITA')
-          )) {
-            foundIssues.push({
-              bookingId,
-              date: booking.date,
-              timeSlot: booking.timeSlot,
-              courtNumber: booking.courtNumber,
-              playerIndex: i,
-              playerName: player.name,
-              allPlayers: booking.players.map(p => p.name)
-            });
-          }
-        }
+      const playerEmail = player.email;
+      const playerName = player.name || 'Jugador';
+      
+      if (playerEmail && !processedEmails.has(playerEmail)) {
+        processedEmails.add(playerEmail);
+        
+        // Verificar si hay usuarios VISITA
+        const isVisitorBooking = normalizedBooking.players.some(p => 
+          p.name && p.name.toUpperCase().includes('VISITA')
+        );
+        
+        // Es organizador si es el primer jugador
+        const isOrganizer = i === 0;
+        const showVisitorMessage = isOrganizer && isVisitorBooking;
+        
+        console.log(`📧 Configuración - Email: ${playerEmail}, Organizador: ${isOrganizer}, Tiene VISITA: ${isVisitorBooking}`);
+        
+        const emailPromise = sendBookingEmailFirestore(
+          transporter,
+          playerEmail, 
+          normalizedBooking, 
+          playerName, 
+          showVisitorMessage
+        );
+        
+        emailPromises.push(emailPromise);
       }
     }
     
-    const response = {
-      message: '🔍 Listado completado (solo lectura)',
-      totalBookings: bookingsSnapshot.size,
-      issuesFound: foundIssues.length,
-      details: foundIssues
-    };
+    console.log(`📬 Total emails a enviar: ${emailPromises.length}`);
     
-    console.log('📊 REPORTE:', response);
-    res.json(response);
+    if (emailPromises.length === 0) {
+      console.error('❌ No se pudieron procesar emails para ningún jugador');
+      return;
+    }
+    
+    // Enviar todos los emails
+    const results = await Promise.allSettled(emailPromises);
+    
+    // Procesar resultados
+    let successCount = 0;
+    let errorCount = 0;
+    
+    results.forEach((result, index) => {
+      if (result.status === 'fulfilled') {
+        successCount++;
+        console.log(`✅ Email ${index + 1} enviado exitosamente`);
+      } else {
+        errorCount++;
+        console.error(`❌ Error enviando email ${index + 1}:`, result.reason);
+      }
+    });
+    
+    console.log(`📊 === RESUMEN TRIGGER ===`);
+    console.log(`✅ Exitosos: ${successCount}/${emailPromises.length}`);
+    console.log(`❌ Fallidos: ${errorCount}/${emailPromises.length}`);
     
   } catch (error) {
-    console.error('❌ Error:', error);
-    res.status(500).json({ error: error.message });
+    console.error('❌ Error general en trigger sendBookingEmails:', error);
   }
 });
 
-// FUNCIÓN PARA CORREGIR AUTOMÁTICAMENTE
-exports.cleanupVisitorNames = onRequest({
-  cors: true,
-}, async (req, res) => {
+// Función auxiliar para envío desde trigger
+async function sendBookingEmailFirestore(transporter, email, booking, playerName, showVisitorMessage = false) {
+  console.log(`📧 Enviando email desde trigger a: ${email} para jugador: ${playerName}`);
+  
+  const msg = {
+    from: {
+      name: 'Club de Golf Papudo',
+      address: 'paddlepapudo@gmail.com'
+    },
+    to: email,
+    subject: `Reserva de Pádel Confirmada - ${formatDate(booking.date)}`,
+    html: generateBookingEmailHtml(booking, playerName, showVisitorMessage, email)
+  };
+  
   try {
-    console.log('🔍 Iniciando limpieza de nombres de visitantes...');
-    
-    const db = admin.firestore();
-    const bookingsSnapshot = await db.collection('bookings').get();
-    
-    let foundIssues = [];
-    let correctedCount = 0;
-    
-    for (const doc of bookingsSnapshot.docs) {
-      const booking = doc.data();
-      const bookingId = doc.id;
-      
-      if (booking.players && Array.isArray(booking.players)) {
-        let needsUpdate = false;
-        const updatedPlayers = [...booking.players];
-        
-        for (let i = 0; i < updatedPlayers.length; i++) {
-          const player = updatedPlayers[i];
-          
-          if (player.name) {
-            const originalName = player.name;
-            let correctedName = originalName;
-            
-            // Detectar y corregir nombres incorrectos
-            if (originalName.includes('VISITA1 PADEL')) {
-              correctedName = 'PADEL1 VISITA';
-            } else if (originalName.includes('VISITA2 PADEL')) {
-              correctedName = 'PADEL2 VISITA';
-            } else if (originalName.includes('VISITA3 PADEL')) {
-              correctedName = 'PADEL3 VISITA';
-            } else if (originalName.includes('VISITA4 PADEL')) {
-              correctedName = 'PADEL4 VISITA';
-            }
-            
-            // Si encontramos algo que corregir
-            if (correctedName !== originalName) {
-              foundIssues.push({
-                bookingId,
-                date: booking.date,
-                timeSlot: booking.timeSlot,
-                courtNumber: booking.courtNumber,
-                playerIndex: i,
-                originalName,
-                correctedName
-              });
-              
-              updatedPlayers[i] = { ...player, name: correctedName };
-              needsUpdate = true;
-            }
-          }
-        }
-        
-        // Actualizar el documento si es necesario
-        if (needsUpdate) {
-          await doc.ref.update({ players: updatedPlayers });
-          correctedCount++;
-          console.log(`✅ Corregido booking ${bookingId}`);
-        }
-      }
-    }
-    
-    // Reportar resultados
-    const response = {
-      message: '🔍 Limpieza completada',
-      totalBookings: bookingsSnapshot.size,
-      issuesFound: foundIssues.length,
-      bookingsCorrected: correctedCount,
-      details: foundIssues
-    };
-    
-    console.log('📊 REPORTE FINAL:', response);
-    res.json(response);
-    
+    await transporter.sendMail(msg);
+    console.log(`✅ Email trigger enviado exitosamente a: ${email}`);
+    return { success: true, email: email };
   } catch (error) {
-    console.error('❌ Error en cleanup:', error);
-    res.status(500).json({ error: error.message });
+    console.error(`❌ Error enviando email trigger a ${email}:`, error);
+    throw error;
   }
-});
+}
