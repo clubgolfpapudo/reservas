@@ -102,41 +102,84 @@ class FirebaseUserService {
   /// 🔧 EXTRAER NOMBRE DE LA ESTRUCTURA REAL
   static String _extractNameFromRealStructure(Map<String, dynamic> data) {
     try {
-      // Opción 1: Usar displayName si existe y no está vacío
+      // DEBUG: Imprimir todos los campos disponibles
+      print('🔍 DEBUG - Campos disponibles en data:');
+      data.forEach((key, value) {
+        print('  $key: $value');
+      });
+      
+      // PRIORIDAD 1: Usar campo 'name' (formato correcto desde Firebase)
+      if (data.containsKey('name') && 
+          data['name'] != null && 
+          data['name'].toString().trim().isNotEmpty) {
+        
+        String nameFromFirebase = data['name'].toString().trim().toUpperCase();
+        print('✅ USANDO CAMPO NAME: $nameFromFirebase');
+        return nameFromFirebase;
+      } else {
+        print('❌ Campo name no disponible, usando fallback');
+      }
+      
+      // PRIORIDAD 2: Usar displayName si existe y no está vacío
       if (data.containsKey('displayName') && 
           data['displayName'] != null && 
           data['displayName'].toString().trim().isNotEmpty) {
-        return data['displayName'].toString().trim().toUpperCase();
+        
+        String displayNameFromFirebase = data['displayName'].toString().trim().toUpperCase();
+        print('✅ USANDO DISPLAYNAME: $displayNameFromFirebase');
+        return displayNameFromFirebase;
+      } else {
+        print('❌ Campo displayName no disponible');
       }
       
-      // Opción 2: Construir desde campos separados
+      // PRIORIDAD 3: Construir desde campos separados (FALLBACK)
+      print('⚠️ USANDO FALLBACK - construyendo desde campos separados');
       List<String> nameParts = [];
       
+      // Procesar nombres: primer nombre + inicial segundo nombre (sin punto)
       if (data.containsKey('nombres') && data['nombres'] != null) {
-        nameParts.add(data['nombres'].toString().trim());
+        String nombres = data['nombres'].toString().trim();
+        List<String> nombresList = nombres.split(' ');
+        
+        if (nombresList.isNotEmpty) {
+          nameParts.add(nombresList[0]);
+          print('  Primer nombre: ${nombresList[0]}');
+        }
+        
+        if (nombresList.length > 1 && nombresList[1].isNotEmpty) {
+          nameParts.add(nombresList[1][0]); // Sin punto
+          print('  Inicial segundo nombre: ${nombresList[1][0]} (sin punto)');
+        }
       }
       
       if (data.containsKey('apellidoPaterno') && data['apellidoPaterno'] != null) {
-        nameParts.add(data['apellidoPaterno'].toString().trim());
+        String apellidoPaterno = data['apellidoPaterno'].toString().trim();
+        nameParts.add(apellidoPaterno);
+        print('  Apellido paterno: $apellidoPaterno');
       }
       
       if (data.containsKey('apellidoMaterno') && data['apellidoMaterno'] != null) {
         String apellidoMaterno = data['apellidoMaterno'].toString().trim();
-        // Solo primera letra del apellido materno
         if (apellidoMaterno.isNotEmpty) {
-          nameParts.add(apellidoMaterno[0] + '.');
+          nameParts.add(apellidoMaterno[0]); // Sin punto - CRÍTICO: AQUÍ NO DEBE HABER PUNTO
+          print('  Inicial apellido materno: ${apellidoMaterno[0]} (sin punto)');
         }
       }
       
       if (nameParts.isNotEmpty) {
-        return nameParts.join(' ').toUpperCase();
+        String resultado = nameParts.join(' ').toUpperCase();
+        print('🔧 RESULTADO FALLBACK: $resultado');
+        return resultado;
       }
       
-      // Opción 3: Fallback desde email
+      // PRIORIDAD 4: Fallback desde email
       if (data.containsKey('email')) {
-        return _generateNameFromEmail(data['email'].toString());
+        String emailFallback = _generateNameFromEmail(data['email'].toString());
+        print('📧 USANDO EMAIL FALLBACK: $emailFallback');
+        return emailFallback;
       }
       
+      print('❌ NO SE PUDO GENERAR NOMBRE');
       return '';
       
     } catch (e) {

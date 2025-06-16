@@ -293,19 +293,33 @@ exports.syncUsersFromSheets = onRequest({
         
         // Preparar documento del usuario
         const userData = {
+          // CAMPOS INGLÉS (SISTEMA UNIFICADO)
           email: email,
-          nombres: nombres,
-          apellidoPaterno: apellidoPaterno,
-          apellidoMaterno: apellidoMaterno,
+          firstName: nombres,
+          lastName: apellidoPaterno,
+          middleName: apellidoMaterno,
+          phone: celular,                               // ← FIX CRÍTICO: celular → phone
+          relation: relacion,
+          idNumber: rutPasaporte,
+          birthDate: fechaNacimiento,
+          
+          // CAMPOS CALCULADOS
+          name: formatCorrectDisplayName(nombres, apellidoPaterno, apellidoMaterno),
           displayName: formattedName,
-          rutPasaporte: rutPasaporte,
-          fechaNacimiento: fechaNacimiento,
-          relacion: relacion,
-          celular: celular,
+          
+          // CAMPOS SISTEMA
           isActive: true,
           lastSyncFromSheets: admin.firestore.FieldValue.serverTimestamp(),
           source: 'google_sheets'
         };
+
+        // DEBUGGING (temporal)
+        console.log('=== USER SYNC DEBUG ===');
+        console.log('Email:', userData.email);
+        console.log('Phone:', userData.phone);        // ← Debe mostrar número
+        console.log('FirstName:', userData.firstName);
+        console.log('Name:', userData.name);
+        console.log('========================');
         
         // Verificar si el usuario ya existe
         const userDoc = await usersRef.doc(email).get();
@@ -1044,7 +1058,7 @@ function generateCancellationEmailHtml({
                         
                         ${remainingPlayers.length < 4 ? `
                           <div style="margin-top: 16px; padding: 12px; background-color: #dcfce7; border-radius: 6px; color: #166534;">
-                            <strong>💡 Tip:</strong> Pueden buscar un nuevo jugador para completar los 4.
+                            <strong>💡 Tip:</strong> Contactar al administrador para agregar jugador(es) faltante(s).
                           </div>
                         ` : ''}
                       </td>
@@ -1802,4 +1816,31 @@ async function sendBookingEmailFirestore(transporter, email, booking, playerName
     console.error(`❌ Error enviando email trigger a ${email}:`, error);
     throw error;
   }
+}
+
+function formatCorrectDisplayName(nombres, apellidoPaterno, apellidoMaterno) {
+  // Procesar NOMBRES: primer nombre + inicial segundo nombre (sin punto)
+  const nombresParts = (nombres || '').trim().split(/\s+/);
+  const primerNombre = nombresParts[0] || '';
+  const inicialSegundoNombre = nombresParts.length > 1 ? nombresParts[1].charAt(0) : '';
+  
+  // Construir parte de nombres
+  const nombresFormateados = inicialSegundoNombre ? 
+    `${primerNombre} ${inicialSegundoNombre}` : 
+    primerNombre;
+  
+  // APELLIDO PATERNO: completo
+  const apellidoPaternoCompleto = (apellidoPaterno || '').trim();
+  
+  // APELLIDO MATERNO: solo inicial (sin punto)
+  const inicialApellidoMaterno = (apellidoMaterno || '').trim().charAt(0);
+  
+  // Construir name completo
+  const parts = [nombresFormateados, apellidoPaternoCompleto];
+  
+  if (inicialApellidoMaterno) {
+    parts.push(inicialApellidoMaterno);
+  }
+  
+  return parts.filter(part => part).join(' ').toUpperCase();
 }

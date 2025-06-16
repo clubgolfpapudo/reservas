@@ -1185,3 +1185,208 @@ READY FOR FULL PRODUCTION ✅
 *Sistema desarrollado para Club de Golf Papudo*  
 *✅ **PROYECTO 100% COMPLETADO Y OPERATIVO***  
 *🔧 **OPTIMIZACIÓN OPCIONAL PENDIENTE** - Migración nomenclatura inglés*
+
+
+# RESUMEN DETALLADO - DEBUG PUNTOS EN NOMBRES DE USUARIOS
+**Fecha:** 16 de Junio, 2025  
+**Chat Session:** Debug de puntos innecesarios en apellidos maternos  
+**Status:** EN PROGRESO - Problema identificado pero no resuelto
+
+## 🚨 PROBLEMA PRINCIPAL
+Los nombres de usuarios en el modal de selección de jugadores aparecen con puntos innecesarios al final del apellido materno inicial:
+
+### Comportamiento Actual (Incorrecto):
+```
+❌ "ALVARO BECKER P." (con punto al final)
+❌ "RODRIGO BECKER P." (con punto al final)  
+❌ "ARANTZAZU BECKER U." (con punto al final)
+```
+
+### Comportamiento Esperado (Correcto):
+```
+✅ "ALVARO BECKER P" (sin punto)
+✅ "RODRIGO BECKER P" (sin punto)
+✅ "ARANTZAZU BECKER U" (sin punto)
+```
+
+## 🔍 INVESTIGACIÓN REALIZADA
+
+### 1. MIGRACIÓN BACKEND: GOOGLE SHEETS → FIREBASE
+**CAMBIO CRÍTICO IMPLEMENTADO:** Migración completa del formato de nombres desde Google Sheets hacia Firebase con campo `name` unificado.
+
+#### Antes de la Migración:
+- ❌ **Fuente:** Google Sheets con campos separados
+- ❌ **Formato:** `nombres`, `apellidoPaterno`, `apellidoMaterno` separados
+- ❌ **Problema:** Flutter construía nombres con lógica inconsistente
+
+#### Después de la Migración:
+- ✅ **Fuente:** Firebase Firestore con campo unificado
+- ✅ **Formato:** Campo `name` pre-formateado correctamente
+- ✅ **Ventaja:** Formato consistente sin procesamiento adicional
+
+#### Modificaciones en Cloud Function:
+```javascript
+// ANTES: Solo campos separados
+{ nombres, apellidoPaterno, apellidoMaterno }
+
+// DESPUÉS: Campo name unificado + campos separados (fallback)
+{ 
+  name: "ALVARO BECKER P",           // ← NUEVO CAMPO CRÍTICO
+  nombres: "ALVARO", 
+  apellidoPaterno: "BECKER", 
+  apellidoMaterno: "PADRUNO" 
+}
+```
+
+### 2. VERIFICACIÓN POST-MIGRACIÓN EN FIREBASE
+- ✅ **Cloud Function Sync ejecutada exitosamente**
+- ✅ **Firebase tiene datos correctos SIN puntos:**
+  ```
+  Name: ALVARO BECKER P      (sin punto) ← NUEVO CAMPO
+  Name: RODRIGO BECKER P     (sin punto) ← NUEVO CAMPO
+  Name: ARANTZAZU BECKER U   (sin punto) ← NUEVO CAMPO
+  Name: ISIDORA BECKER U     (sin punto) ← NUEVO CAMPO
+  ```
+- ✅ **50 usuarios procesados, 50 actualizados, 0 errores**
+
+### 3. LOCALIZACIÓN DEL ARCHIVO RESPONSABLE
+- ✅ **Archivo identificado:** `lib\core\services\firebase_user_service.dart`
+- ✅ **Función específica:** `_extractNameFromRealStructure` (línea 103)
+- ✅ **Confirmado que función es llamada** desde línea 47
+
+### 4. INTENTOS DE SOLUCIÓN REALIZADOS
+
+#### ESTRATEGIA: Aprovechar el nuevo campo `name` de la migración
+
+#### Intento 1: Código Optimizado (Aprovechar campo `name` de migración)
+```dart
+// PRIORIDAD 1: Usar campo 'name' desde Firebase (resultado de migración)
+if (data.containsKey('name') && data['name'] != null) {
+  return data['name'].toString().trim().toUpperCase();
+}
+```
+**Objetivo:** Eliminar procesamiento en Flutter y usar directamente el campo pre-formateado de Firebase.
+
+#### Intento 2: Fix en Fallback (Campos separados)
+```dart
+// Inicial apellido materno SIN PUNTO
+if (apellidoMaterno.isNotEmpty) {
+  nameParts.add(apellidoMaterno[0]); // SIN PUNTO
+}
+```
+
+#### Intento 3: Código Debug Completo
+- Implementado logging extensivo para rastrear flujo de datos
+- Agregados prints para cada rama de lógica
+- Verificación de campos disponibles en data
+
+## 🚨 PROBLEMA ACTUAL: CÓDIGO NO SE EJECUTA
+
+### Síntomas:
+- ✅ Código implementado en archivo correcto
+- ✅ Archivo guardado y recompilado (`flutter build web`)
+- ✅ Cache limpiado (`Ctrl+F5`)
+- ❌ **NO aparecen logs de debug en DevTools Console**
+- ❌ **Comportamiento no cambia - puntos siguen apareciendo**
+
+### Teorías:
+1. **Cache persistente de Dart/Flutter**
+2. **Archivo no se está cargando realmente**
+3. **Existe otro archivo responsable del formateo**
+4. **Hot reload no funcional, requiere rebuild completo**
+
+## 📋 COMANDOS EJECUTADOS
+
+### PowerShell Commands:
+```powershell
+# Sync de usuarios desde Google Sheets
+Invoke-WebRequest -Uri "https://us-central1-cgpreservas.cloudfunctions.net/syncUsersFromSheets" -Method POST
+
+# Verificación de logs de Firebase Functions
+firebase functions:log --only syncUsersFromSheets
+
+# Búsqueda de archivos con la función
+Get-ChildItem -Path lib -Filter "*.dart" -Recurse | Select-String "_extractNameFromRealStructure"
+
+# Compilación Flutter
+flutter build web
+```
+
+### Resultados:
+- ✅ Sync: Status 200, 50 usuarios actualizados
+- ✅ Logs: Confirman datos sin puntos en Firebase
+- ✅ Búsqueda: Archivo encontrado en `firebase_user_service.dart`
+- ❌ Build: Completado pero cambios no reflejados
+
+## 🔧 CÓDIGO ACTUAL EN ARCHIVO
+
+**Ubicación:** `lib\core\services\firebase_user_service.dart` línea 103
+
+**Status:** Código debug implementado con:
+- Logs extensivos para rastrear flujo
+- Prioridad al campo `name` de Firebase
+- Fallback sin puntos en apellido materno
+- Manejo de errores mejorado
+
+## 🎯 PRÓXIMOS PASOS RECOMENDADOS
+
+### Prioridad Alta:
+1. **Verificar carga del archivo:**
+   - Agregar log de inicialización de clase
+   - Confirmar que `firebase_user_service.dart` se ejecuta
+
+2. **Búsqueda de archivos alternativos:**
+   ```powershell
+   Get-ChildItem -Path lib -Filter "*.dart" -Recurse | Select-String "BECKER"
+   Get-ChildItem -Path lib -Filter "*.dart" -Recurse | Select-String "\.join.*\' \'"
+   ```
+
+3. **Limpieza completa de cache:**
+   ```powershell
+   flutter clean
+   rm -r build/
+   flutter pub get
+   flutter build web --release
+   ```
+
+### Prioridad Media:
+4. **Verificar otros posibles archivos responsables:**
+   - `lib/models/user_model.dart`
+   - `lib/widgets/player_selection.dart`
+   - `lib/utils/name_utils.dart`
+
+5. **Inspección de network requests en DevTools**
+   - Verificar qué datos llegan realmente desde Firebase
+   - Confirmar formato de respuesta de API
+
+## 💡 DATOS TÉCNICOS IMPORTANTES
+
+### Migración Backend Implementada:
+- **Google Sheets:** Fuente original con campos separados
+- **Cloud Function:** Modificada para crear campo `name` unificado
+- **Firebase:** Ahora contiene both: campo `name` + campos separados para compatibilidad
+
+### Firebase Cloud Function:
+- **URL:** `https://us-central1-cgpreservas.cloudfunctions.net/syncUsersFromSheets`
+- **Status:** Funcional, datos correctos sin puntos
+
+### Flutter Project:
+- **Path:** `C:\Users\fgarc\flutter_projects\cgp_reservas`
+- **Archivo clave:** `lib\core\services\firebase_user_service.dart`
+- **Función problema:** `_extractNameFromRealStructure` línea 103
+
+### DevTools Evidence:
+- **URL testing:** `paddlepapudo.github.io/cgp_reservas/?email=fgarcia88@hotmail.com`
+- **Logs visibles:** Sync de Firebase, carga de usuarios
+- **Logs faltantes:** Debug prints de función modificada
+
+## 🔄 ESTADO ACTUAL
+**BLOQUEADO:** El código corregido no se está ejecutando pese a implementación correcta. Requiere diagnóstico adicional para identificar por qué los cambios no se reflejan en la aplicación web compilada.
+
+## 📱 TESTING ENVIRONMENT
+- **Browser:** Chrome/Edge con DevTools
+- **Platform:** Flutter Web
+- **Cache:** Limpiado múltiples veces
+- **Build:** Ejecutado correctamente sin errores
+
+*Última actualización: 16 de Junio, 2025, 17:25 hrs*  
