@@ -91,6 +91,7 @@ class _ReservationFormModalState extends State<ReservationFormModal> {
   }
 
   /// 🔥 NUEVO: Configurar usuario actual dinámicamente
+  /// 🔥 NUEVO: Configurar usuario actual dinámicamente
   Future<void> _setCurrentUser() async {
     try {
       // Obtener usuario actual del servicio
@@ -105,6 +106,50 @@ class _ReservationFormModalState extends State<ReservationFormModal> {
         email: currentEmail,
         isMainBooker: true,
       ));
+      
+      // 🔥 NUEVO: Validar conflictos del organizador inmediatamente
+      if (mounted) {
+        final provider = context.read<BookingProvider>();
+        final playerNames = _selectedPlayers.map((p) => p.name).toList();
+
+        final validation = provider.canCreateBooking(
+          widget.courtId,
+          widget.date,
+          widget.timeSlot,
+          playerNames
+        );
+
+        if (!validation.isValid) {
+          setState(() {
+            _errorMessage = validation.reason;
+          });
+
+          print('❌ MODAL: Conflicto detectado para organizador: ${validation.reason}');
+
+          // 🔥 MOSTRAR SNACKBAR CON EL ERROR
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(
+                '⚠️ ${validation.reason}',
+                style: const TextStyle(color: Colors.white),
+              ),
+              backgroundColor: Colors.red[600],
+              duration: const Duration(seconds: 4),
+              behavior: SnackBarBehavior.floating,
+              margin: const EdgeInsets.all(16),
+            ),
+          );
+
+          // Auto-cerrar después de mostrar el mensaje
+          Future.delayed(const Duration(seconds: 4), () {
+            if (mounted) {
+              Navigator.of(context).pop();
+            }
+          });
+        } else {
+          print('✅ MODAL: Sin conflictos detectados para organizador');
+        }
+      }
       
     } catch (e) {
       print('❌ MODAL: Error obteniendo usuario actual: $e');

@@ -908,28 +908,7 @@ async function sendCancellationNotification(remainingPlayer, reservationInfo) {
       html: emailHtml
     };
 
-    // Crear transporter para cancelaciones
-    const transporter = nodemailer.createTransport({
-      service: 'gmail',
-      auth: {
-        user: 'paddlepapudo@gmail.com',
-        pass: 'myuh svqx djyn kfby'
-      }
-    });
-
-    // Convertir formato sgMail a nodemailer
-    const mailOptions = {
-      from: {
-        name: msg.from.name,
-        address: msg.from.email
-      },
-      to: msg.to,
-      subject: msg.subject,
-      html: msg.html
-    };
-
-    await transporter.sendMail(mailOptions);
-
+    await sgMail.send(msg);
     console.log(`📧 Notificación de cancelación enviada a: ${remainingPlayer.email}`);
     
   } catch (error) {
