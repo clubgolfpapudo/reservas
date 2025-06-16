@@ -484,7 +484,7 @@ exports.sendBookingEmailHTTP = onRequest({
         const isOrganizer = emailResults.length === 0;
         const showVisitorMessage = isOrganizer && isVisitorBooking;
         
-        const emailHtml = generateBookingEmailHtml(normalizedBooking, playerName, showVisitorMessage);
+        const emailHtml = generateBookingEmailHtml(normalizedBooking, playerName, showVisitorMessage, playerEmail);
         
         const mailOptions = {
           from: {
@@ -603,7 +603,7 @@ exports.cancelBooking = onRequest({
       if (idParts.length >= 5) {
         // ID formato: court1-2025-06-05-1200
         // Convertir a formato Firebase: court_1, 2025-06-05, 12:00
-        const courtNumber = idParts[0].replace('court', 'court_'); // court1 → court_1
+        const courtNumber = idParts[0];
         const date = `${idParts[1]}-${idParts[2]}-${idParts[3]}`; // 2025-06-05
         const timeRaw = idParts[4]; // 1200
         const timeSlot = `${timeRaw.substring(0,2)}:${timeRaw.substring(2,4)}`; // 12:00
@@ -744,22 +744,39 @@ exports.cancelBooking = onRequest({
                 </div>
                 
                 <div class="booking-id">
-                    Reserva: ${bookingId}<br>
+                    ${(() => {
+                        // Mapeo de canchas
+                        const courtNames = {
+                            'court_1': 'PITE',
+                            'court_2': 'LILEN',
+                            'court_3': 'PLAIYA'
+                        };
+                        
+                        // Extraer información del bookingId
+                        const parts = bookingId.split('-');
+                        const courtId = parts[0];
+                        const date = parts.slice(1, 4).join('-');
+                        const timeRaw = parts[4];
+                        
+                        // Obtener nombre amigable de la cancha
+                        const courtName = courtNames[courtId] || courtId;
+                        
+                        // Formatear hora (1930 → 19:30)
+                        const formattedTime = timeRaw.slice(0,2) + ':' + timeRaw.slice(2);
+                        
+                        return `Reserva: ${courtName} - ${date} - ${formattedTime}`;
+                    })()}<br>
                     Jugador: ${decodeURIComponent(playerEmail)}
                 </div>
                 
                 <a href="https://cgpreservas.web.app" class="button">
-                    🏓 Hacer Nueva Reserva
+                    🏓 Ir a Reservas
                 </a>
                 
-                <a href="mailto:paddlepapudo@gmail.com" class="button">
-                    📧 Contactar al Club
+                <a href="#" onclick="window.close(); return false;" class="button">
+                    🔙 Volver al Correo
                 </a>
                 
-                <div class="note">
-                    <strong>💡 Nota:</strong> Puedes hacer una nueva reserva 
-                    en cualquier momento desde la aplicación web del club.
-                </div>
             </div>
         </body>
         </html>
@@ -1078,7 +1095,7 @@ function generateBookingEmailHtml(booking, organizerName, isVisitorBooking = fal
         <strong style="color: #856404;">Información para el organizador</strong>
       </div>
       <p style="margin: 0; color: #856404; line-height: 1.4;">
-        Esta reserva incluye jugadores invitados (VISITA). Recuerda coordinar el pago correspondiente en recepción del club.
+        Esta reserva incluye jugadores invitados (VISITA). Recuerda coordinar el pago correspondiente con la Administración del Club ANTES de la hora reservada.
       </p>
     </div>
   ` : '';
@@ -1238,11 +1255,33 @@ function generateBookingEmailHtml(booking, organizerName, isVisitorBooking = fal
 
               <!-- JUGADORES -->
               <tr>
+                <td style="padding: 0 40px 20px 40px;">
+                  <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%" style="border-left: 4px solid #10b981; background-color: #f0fdf4; border-radius: 8px;">
+                    <tr>
+                      <td style="padding: 20px;">
+                        <h3 style="color: #065f46; margin: 0 0 16px 0; font-size: 18px; font-weight: bold;">
+                          👥 Jugadores (${booking.players.length}/4):
+                        </h3>
+                        ${booking.players.map((player, index) => {
+                          const playerName = typeof player === 'string' ? player : (player.name || 'Jugador');
+                          const isOrganizer = index === 0;
+                          return `
+                            <div style="padding: 8px 0; color: #047857; font-size: 16px; display: flex; align-items: center;">
+                              <span style="margin-right: 8px; font-size: 18px;">${isOrganizer ? '🏆' : '•'}</span>
+                              <span><strong>${playerName}</strong>${isOrganizer ? ' <em>(Organizador)</em>' : ''}</span>
+                            </div>
+                          `;
+                        }).join('')}
+                      </td>
+                    </tr>
+                  </table>
+                </td>
+              </tr>
+
+              <!-- BOTÓN CANCELAR -->
+              <tr>
                 <td style="padding: 0 40px 20px 40px; text-align: center;">
-                  <a href="https://us-central1-cgpreservas.cloudfunctions.net/cancelBooking?id=${booking.id}&email=${encodeURIComponent(email)}"
-                     style="background: #e53e3e; color: white; padding: 12px 24px; text-decoration: none; border-radius: 6px; font-weight: bold; font-size: 14px; display: inline-block; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
-                    ❌ Cancelar Reserva
-                  </a>
+                  <a href="https://us-central1-cgpreservas.cloudfunctions.net/cancelBooking?id=${booking.id || `${booking.courtNumber || booking.courtId}-${booking.date}-${(booking.timeSlot || booking.time || '').replace(/:/g, '')}`}&email=${encodeURIComponent(email)}" style="background: #dc2626; color: white; padding: 16px 32px; text-decoration: none; border-radius: 8px; font-weight: bold; font-size: 16px; display: inline-block; margin: 10px 0; box-shadow: 0 2px 4px rgba(0,0,0,0.2);">❌ Cancelar Reserva</a>
                 </td>
               </tr>
 
@@ -1261,32 +1300,14 @@ function generateBookingEmailHtml(booking, organizerName, isVisitorBooking = fal
                 </td>
               </tr>
 
-              <!-- MENSAJE ATENCIÓN -->
-              <tr>
-                <td style="padding: 0 40px 20px 40px;">
-                  <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%" style="background: #fef3cd; border-radius: 6px; border-left: 4px solid #f59e0b;">
-                    <tr>
-                      <td style="padding: 16px;">
-                        <p style="margin: 0; color: #92400e; font-size: 14px; line-height: 1.6;">
-                          <strong>⚠️ Atención:</strong> Toda visita debe pagar su reserva <strong>ANTES</strong> de ocupar la cancha.
-                        </p>
-                      </td>
-                    </tr>
-                  </table>
-                </td>
-              </tr>
-
               <!-- FOOTER COMPLETO - REEMPLAZAR EL FOOTER ACTUAL -->
               <tr>
                 <td style="background: #f8fafc; padding: 20px 40px; text-align: center; color: #64748b; font-size: 14px; border-top: 1px solid #e2e8f0;">
                   <p style="margin: 0 0 8px 0; line-height: 1.4;">
                     <strong>Club de Golf Papudo</strong> • Desde 1932<br>
-                    📧 <a href="mailto:paddlepapudo@gmail.com" style="color: #1e3a8a;">paddlepapudo@gmail.com</a><br>
+                    📧 <a href="mailto:anibalreinosomendez@gmail.com" style="color: #1e3a8a;">paddlepapudo@gmail.com</a><br>
                     📍 Miraflores s/n - Papudo, Valparaíso<br>
                     🌐 <a href="https://clubgolfpapudo.cl" style="color: #1e3a8a;">clubgolfpapudo.cl</a>
-                  </p>
-                  <p style="margin: 8px 0 0 0; color: #a0aec0; font-size: 12px;">
-                    ¡Nos vemos en la cancha! 🎾
                   </p>
                 </td>
               </tr>
@@ -1488,127 +1509,6 @@ function getEndTime(startTime) {
     return 'N/A';
   }
 }
-
-// Trigger automático cuando se crea una reserva en Firestore
-exports.sendBookingEmails = onDocumentCreated('bookings/{bookingId}', async (event) => {
-  console.log('📧 === TRIGGER FIRESTORE ACTIVADO ===');
-  console.log('📧 Booking ID:', event.params.bookingId);
-  
-  try {
-    const bookingData = event.data.data();
-    console.log('📧 Booking data from Firestore:', JSON.stringify(bookingData, null, 2));
-    
-    if (!bookingData) {
-      console.error('❌ No hay datos en el booking');
-      return;
-    }
-    
-    // Verificar que el booking esté completo
-    if (bookingData.status !== 'complete') {
-      console.log('⏳ Booking no está completo, saltando envío de emails');
-      return;
-    }
-    
-    // Normalizar datos para compatibilidad
-    const normalizedBooking = {
-      date: bookingData.date,
-      time: bookingData.timeSlot || bookingData.time,
-      courtId: bookingData.courtNumber || bookingData.courtId,
-      players: bookingData.players || []
-    };
-    
-    console.log('📧 Booking normalizado:', JSON.stringify(normalizedBooking, null, 2));
-    
-    if (!normalizedBooking.players || normalizedBooking.players.length === 0) {
-      console.error('❌ No hay jugadores en la reserva');
-      return;
-    }
-    
-    // Configurar Gmail transporter
-    const transporter = nodemailer.createTransport({
-      host: 'smtp.gmail.com',
-      port: 587,
-      secure: false,
-      auth: {
-        user: 'paddlepapudo@gmail.com',
-        pass: 'yyll uhje izsv mbwc'
-      },
-      tls: {
-        rejectUnauthorized: false
-      }
-    });
-    
-    console.log('📧 Gmail transporter configurado');
-    
-    // Enviar emails a cada jugador
-    const emailPromises = [];
-    const processedEmails = new Set();
-    
-    for (let i = 0; i < normalizedBooking.players.length; i++) {
-      const player = normalizedBooking.players[i];
-      console.log(`📧 Procesando jugador ${i + 1}:`, JSON.stringify(player, null, 2));
-      
-      const playerEmail = player.email;
-      const playerName = player.name || 'Jugador';
-      
-      if (playerEmail && !processedEmails.has(playerEmail)) {
-        processedEmails.add(playerEmail);
-        
-        // Verificar si hay usuarios VISITA
-        const isVisitorBooking = normalizedBooking.players.some(p => 
-          p.name && p.name.toUpperCase().includes('VISITA')
-        );
-        
-        // Es organizador si es el primer jugador
-        const isOrganizer = i === 0;
-        const showVisitorMessage = isOrganizer && isVisitorBooking;
-        
-        console.log(`📧 Configuración - Email: ${playerEmail}, Organizador: ${isOrganizer}, Tiene VISITA: ${isVisitorBooking}`);
-        
-        const emailPromise = sendBookingEmailFirestore(
-          transporter,
-          playerEmail, 
-          normalizedBooking, 
-          playerName, 
-          showVisitorMessage
-        );
-        
-        emailPromises.push(emailPromise);
-      }
-    }
-    
-    console.log(`📬 Total emails a enviar: ${emailPromises.length}`);
-    
-    if (emailPromises.length === 0) {
-      console.error('❌ No se pudieron procesar emails para ningún jugador');
-      return;
-    }
-    
-    // Enviar todos los emails
-    const results = await Promise.allSettled(emailPromises);
-    
-    // Procesar resultados
-    let successCount = 0;
-    let errorCount = 0;
-    
-    results.forEach((result, index) => {
-      if (result.status === 'fulfilled') {
-        successCount++;
-        console.log(`✅ Email ${index + 1} enviado exitosamente`);
-      } else {
-        errorCount++;
-        console.error(`❌ Error enviando email ${index + 1}:`, result.reason);
-      }
-    });
-    
-    console.log(`📊 === RESUMEN TRIGGER ===`);
-    console.log(`✅ Exitosos: ${successCount}/${emailPromises.length}`);
-    console.log(`❌ Fallidos: ${errorCount}/${emailPromises.length}`);
-    
-  } catch (error) {
-    console.error('❌ Error general en trigger sendBookingEmails:', error);
-  }
-});
 
 // Función auxiliar para envío desde trigger
 async function sendBookingEmailFirestore(transporter, email, booking, playerName, showVisitorMessage = false) {

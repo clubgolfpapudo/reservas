@@ -876,12 +876,12 @@ class _ReservationFormModalState extends State<ReservationFormModal> {
                                   padding: const EdgeInsets.symmetric(vertical: 8), // 🔧 Reducido padding
                                   shape: RoundedRectangleBorder(
                                     borderRadius: BorderRadius.circular(8),
-                                    side: BorderSide(color: Colors.grey[300]!),
+                                    side: BorderSide(color: Colors.red[300]!, width: 1.5),
                                   ),
                                 ),
-                                child: const Text(
+                                child: Text(
                                   'Cancelar',
-                                  style: TextStyle(fontSize: 14, color: Colors.grey), // 🔧 Reducido font
+                                  style: TextStyle(fontSize: 16, color: Colors.red[700], fontWeight: FontWeight.w600), // 🔧 Mejorado contraste
                                 ),
                               ),
                             ),
