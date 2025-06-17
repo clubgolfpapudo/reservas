@@ -175,13 +175,19 @@ class _ReservationFormModalState extends State<ReservationFormModal> {
       // Cargar usuarios reales desde Firebase
       print('🔥 MODAL: Llamando a FirebaseUserService.getAllUsers()...');
       final usersData = await FirebaseUserService.getAllUsers();
-      
       print('🔥 MODAL: Recibidos ${usersData.length} usuarios de Firebase');
+
+      // 🔍 DEBUG: Verificar primeros 3 usuarios exactos
+      print('🔍 MODAL DEBUG - Primeros 3 usuarios:');
+      for (int i = 0; i < usersData.length && i < 3; i++) {
+        final user = usersData[i];
+        print('  ${i+1}. name: "${user['name']}" | email: "${user['email']}"');
+      }
       
       // Convertir a ReservationPlayer
       final users = usersData.map((userData) {
         return ReservationPlayer(
-          name: userData['name'],
+          name: userData['name'].toString().replaceAll(RegExp(r'\.$'), ''),
           email: userData['email'],
           isMainBooker: false,
         );
@@ -304,6 +310,8 @@ class _ReservationFormModalState extends State<ReservationFormModal> {
   bool get _canCreateReservation => _selectedPlayers.length == 4 && _errorMessage == null;
 
   // 🔥 CREACIÓN DE RESERVA CON VALIDACIÓN FINAL + EMAILS
+  // 🔥 REEMPLAZAR TODO EL MÉTODO _createReservation() (líneas ~360-420)
+
   Future<void> _createReservation() async {
     if (!_canCreateReservation) return;
 
@@ -315,7 +323,7 @@ class _ReservationFormModalState extends State<ReservationFormModal> {
     try {
       final provider = context.read<BookingProvider>();
       
-      // 🔥 VALIDACIÓN FINAL antes de crear
+      // Validación
       final playerNames = _selectedPlayers.map((p) => p.name).toList();
       final validation = provider.canCreateBooking(
         widget.courtId, 
@@ -328,17 +336,99 @@ class _ReservationFormModalState extends State<ReservationFormModal> {
         throw Exception(validation.reason!);
       }
 
-      // Convertir jugadores a formato BookingPlayer
-      final bookingPlayers = _selectedPlayers.map((player) => BookingPlayer(
-        name: player.name,
-        email: player.email,
-        isConfirmed: true,
-      )).toList();
+      // 🔍 DEBUG: Ver jugadores seleccionados
+      print('\n🎯 ========== CREANDO RESERVA - DEBUG ==========');
+      print('👥 JUGADORES SELECCIONADOS:');
+      for (int i = 0; i < _selectedPlayers.length; i++) {
+        print('  ${i+1}. ${_selectedPlayers[i].name} (${_selectedPlayers[i].email})');
+      }
 
-      print('🔥 Creando reserva con emails: ${widget.courtId} ${widget.date} ${widget.timeSlot}');
-      print('🔥 Jugadores: ${playerNames.join(", ")}');
+      // 🔍 DEBUG: Obtener y mostrar datos de Firebase
+      print('\n🔥 OBTENIENDO DATOS DE FIREBASE...');
+      final usersData = await FirebaseUserService.getAllUsers();
+      print('✅ Total usuarios obtenidos: ${usersData.length}');
       
-      // 🚀 NUEVO: Crear reserva CON emails automáticos
+      // 🔍 DEBUG: Mostrar estructura de datos
+      if (usersData.isNotEmpty) {
+        print('\n📋 ESTRUCTURA DEL PRIMER USUARIO:');
+        final firstUser = usersData.first;
+        firstUser.forEach((key, value) {
+          print('  $key: "$value" (${value.runtimeType})');
+        });
+      }
+
+      // 🔍 DEBUG: Buscar cada jugador específicamente
+      print('\n🔍 BÚSQUEDA ESPECÍFICA POR EMAIL:');
+      final bookingPlayers = <BookingPlayer>[];
+      
+      for (final selectedPlayer in _selectedPlayers) {
+        print('\n👤 Procesando: ${selectedPlayer.name} (${selectedPlayer.email})');
+        
+        String? finalPhone;
+        bool found = false;
+        
+        // Buscar en todos los usuarios
+        for (int i = 0; i < usersData.length; i++) {
+          final userData = usersData[i];
+          final userEmail = userData['email'];
+          
+          print('  🔍 Comparando con usuario $i: "$userEmail"');
+          
+          if (userEmail == selectedPlayer.email) {
+            found = true;
+            print('  ✅ ¡USUARIO ENCONTRADO!');
+            print('  📋 Datos completos del usuario:');
+            userData.forEach((key, value) {
+              print('    $key: "$value" (${value.runtimeType})');
+            });
+            
+            // Extraer teléfono
+            final phoneValue = userData['phone'];
+            print('  📞 Campo phone: "$phoneValue" (${phoneValue.runtimeType})');
+            
+            if (phoneValue != null) {
+              final phoneStr = phoneValue.toString().trim();
+              print('  📞 Phone toString(): "$phoneStr"');
+              
+              if (phoneStr.isNotEmpty && phoneStr != 'null') {
+                finalPhone = phoneStr.startsWith('+56') ? phoneStr : '+56$phoneStr';
+                print('  ✅ Teléfono final: "$finalPhone"');
+              } else {
+                print('  ⚠️  Phone está vacío o es "null"');
+              }
+            } else {
+              print('  ⚠️  Campo phone es null');
+            }
+            
+            break;
+          }
+        }
+        
+        if (!found) {
+          print('  ❌ Usuario NO encontrado en Firebase');
+        }
+        
+        // Crear BookingPlayer
+        final bookingPlayer = BookingPlayer(
+          name: selectedPlayer.name,
+          email: selectedPlayer.email,
+          phone: finalPhone,
+          isConfirmed: true,
+        );
+        
+        bookingPlayers.add(bookingPlayer);
+        print('  ➕ BookingPlayer creado - Phone: "${finalPhone ?? "NULL"}"');
+      }
+      
+      print('\n📊 RESUMEN FINAL:');
+      print('Total jugadores: ${bookingPlayers.length}');
+      for (int i = 0; i < bookingPlayers.length; i++) {
+        final player = bookingPlayers[i];
+        print('  ${i+1}. ${player.name} - Phone: "${player.phone ?? "NULL"}"');
+      }
+      
+      // 🚀 Crear reserva
+      print('\n🚀 CREANDO RESERVA EN FIREBASE...');
       final success = await provider.createBookingWithEmails(
         courtNumber: widget.courtId,
         date: widget.date,
@@ -347,12 +437,8 @@ class _ReservationFormModalState extends State<ReservationFormModal> {
       );
       
       if (success) {
-        // Actualizar UI
         await provider.refresh();
-        
-        print('🎉 Reserva creada exitosamente con emails - UI actualizada');
-
-        // Mostrar confirmación
+        print('🎉 RESERVA CREADA EXITOSAMENTE');
         _showSuccessDialog();
       } else {
         throw Exception('Error al crear la reserva');

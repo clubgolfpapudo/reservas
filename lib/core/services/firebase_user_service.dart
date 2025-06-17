@@ -2,8 +2,11 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 
 class FirebaseUserService {
+  FirebaseUserService() {
+    print('🔥 FirebaseUserService INITIALIZED - DEBUG MODE ACTIVE');
+  }
   static const String _defaultEmail = 'felipe@garciab.cl';
-  static const String _defaultName = 'FELIPE GARCIA';
+  static const String _defaultName = 'FELIPE GARCIA B';
 
   /// Obtiene el email del usuario actual
   static Future<String> getCurrentUserEmail() async {
@@ -121,12 +124,14 @@ class FirebaseUserService {
       }
       
       // PRIORIDAD 2: Usar displayName si existe y no está vacío
-      if (data.containsKey('displayName') && 
-          data['displayName'] != null && 
+      if (data.containsKey('displayName') &&
+          data['displayName'] != null &&
           data['displayName'].toString().trim().isNotEmpty) {
-        
+
         String displayNameFromFirebase = data['displayName'].toString().trim().toUpperCase();
-        print('✅ USANDO DISPLAYNAME: $displayNameFromFirebase');
+        // 🔥 NUEVO: Quitar puntos al final del displayName
+        displayNameFromFirebase = displayNameFromFirebase.replaceAll(RegExp(r'\.$'), '');
+        print('✅ USANDO DISPLAYNAME (sin puntos): $displayNameFromFirebase');
         return displayNameFromFirebase;
       } else {
         print('❌ Campo displayName no disponible');
