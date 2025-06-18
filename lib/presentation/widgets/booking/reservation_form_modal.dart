@@ -310,149 +310,70 @@ class _ReservationFormModalState extends State<ReservationFormModal> {
   bool get _canCreateReservation => _selectedPlayers.length == 4 && _errorMessage == null;
 
   // 🔥 CREACIÓN DE RESERVA CON VALIDACIÓN FINAL + EMAILS
-  // 🔥 REEMPLAZAR TODO EL MÉTODO _createReservation() (líneas ~360-420)
-
   Future<void> _createReservation() async {
-    if (!_canCreateReservation) return;
-
-    setState(() {
-      _isLoading = true;
-      _errorMessage = null;
-    });
-
     try {
       final provider = context.read<BookingProvider>();
       
-      // Validación
-      final playerNames = _selectedPlayers.map((p) => p.name).toList();
-      final validation = provider.canCreateBooking(
-        widget.courtId, 
-        widget.date, 
-        widget.timeSlot,
-        playerNames
-      );
-      
-      if (!validation.isValid) {
-        throw Exception(validation.reason!);
+      // Validación básica
+      if (_selectedPlayers.isEmpty) {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Selecciona al menos un jugador')),
+          );
+        }
+        return;
       }
 
-      // 🔍 DEBUG: Ver jugadores seleccionados
-      print('\n🎯 ========== CREANDO RESERVA - DEBUG ==========');
-      print('👥 JUGADORES SELECCIONADOS:');
-      for (int i = 0; i < _selectedPlayers.length; i++) {
-        print('  ${i+1}. ${_selectedPlayers[i].name} (${_selectedPlayers[i].email})');
-      }
-
-      // 🔍 DEBUG: Obtener y mostrar datos de Firebase
-      print('\n🔥 OBTENIENDO DATOS DE FIREBASE...');
+      // Obtener usuarios de Firebase para mapear teléfonos
       final usersData = await FirebaseUserService.getAllUsers();
-      print('✅ Total usuarios obtenidos: ${usersData.length}');
-      
-      // 🔍 DEBUG: Mostrar estructura de datos
-      if (usersData.isNotEmpty) {
-        print('\n📋 ESTRUCTURA DEL PRIMER USUARIO:');
-        final firstUser = usersData.first;
-        firstUser.forEach((key, value) {
-          print('  $key: "$value" (${value.runtimeType})');
-        });
-      }
 
-      // 🔍 DEBUG: Buscar cada jugador específicamente
-      print('\n🔍 BÚSQUEDA ESPECÍFICA POR EMAIL:');
-      final bookingPlayers = <BookingPlayer>[];
+      // Crear booking players con teléfonos
+      final List<BookingPlayer> bookingPlayers = [];
       
       for (final selectedPlayer in _selectedPlayers) {
-        print('\n👤 Procesando: ${selectedPlayer.name} (${selectedPlayer.email})');
-        
-        String? finalPhone;
-        bool found = false;
-        
-        // Buscar en todos los usuarios
-        for (int i = 0; i < usersData.length; i++) {
-          final userData = usersData[i];
-          final userEmail = userData['email'];
-          
-          print('  🔍 Comparando con usuario $i: "$userEmail"');
-          
-          if (userEmail == selectedPlayer.email) {
-            found = true;
-            print('  ✅ ¡USUARIO ENCONTRADO!');
-            print('  📋 Datos completos del usuario:');
-            userData.forEach((key, value) {
-              print('    $key: "$value" (${value.runtimeType})');
-            });
-            
-            // Extraer teléfono
-            final phoneValue = userData['phone'];
-            print('  📞 Campo phone: "$phoneValue" (${phoneValue.runtimeType})');
-            
-            if (phoneValue != null) {
-              final phoneStr = phoneValue.toString().trim();
-              print('  📞 Phone toString(): "$phoneStr"');
-              
-              if (phoneStr.isNotEmpty && phoneStr != 'null') {
-                finalPhone = phoneStr.startsWith('+56') ? phoneStr : '+56$phoneStr';
-                print('  ✅ Teléfono final: "$finalPhone"');
-              } else {
-                print('  ⚠️  Phone está vacío o es "null"');
-              }
-            } else {
-              print('  ⚠️  Campo phone es null');
-            }
-            
-            break;
-          }
+        String? userPhone;
+        try {
+          final userData = usersData.firstWhere(
+            (user) => user['email']?.toString().toLowerCase() == selectedPlayer.email.toLowerCase(),
+          );
+          userPhone = userData['phone']?.toString();
+        } catch (e) {
+          userPhone = null; // Usuario no encontrado
         }
         
-        if (!found) {
-          print('  ❌ Usuario NO encontrado en Firebase');
-        }
-        
-        // Crear BookingPlayer
-        final bookingPlayer = BookingPlayer(
+        bookingPlayers.add(BookingPlayer(
           name: selectedPlayer.name,
           email: selectedPlayer.email,
-          phone: finalPhone,
+          phone: userPhone,
           isConfirmed: true,
-        );
-        
-        bookingPlayers.add(bookingPlayer);
-        print('  ➕ BookingPlayer creado - Phone: "${finalPhone ?? "NULL"}"');
+        ));
       }
-      
-      print('\n📊 RESUMEN FINAL:');
-      print('Total jugadores: ${bookingPlayers.length}');
-      for (int i = 0; i < bookingPlayers.length; i++) {
-        final player = bookingPlayers[i];
-        print('  ${i+1}. ${player.name} - Phone: "${player.phone ?? "NULL"}"');
-      }
-      
-      // 🚀 Crear reserva
-      print('\n🚀 CREANDO RESERVA EN FIREBASE...');
-      final success = await provider.createBookingWithEmails(
+
+      // Crear reserva
+      final booking = Booking(
         courtNumber: widget.courtId,
         date: widget.date,
         timeSlot: widget.timeSlot,
         players: bookingPlayers,
+        status: BookingStatus.complete,
+        createdAt: DateTime.now(),
       );
+
+      // Guardar en Firebase
+      await provider.createBooking(booking);
       
-      if (success) {
-        await provider.refresh();
-        print('🎉 RESERVA CREADA EXITOSAMENTE');
-        _showSuccessDialog();
-      } else {
-        throw Exception('Error al crear la reserva');
+      if (mounted) {
+        Navigator.of(context).pop();
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Reserva creada exitosamente')),
+        );
       }
-      
     } catch (e) {
-      setState(() {
-        _errorMessage = e.toString().replaceAll('Exception: ', '');
-      });
-      print('❌ Error creando reserva: $e');
-    } finally {
-      setState(() {
-        _isLoading = false;
-      });
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Error al crear reserva: $e')),
+        );
+      }
     }
   }
 

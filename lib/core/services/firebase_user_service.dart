@@ -18,24 +18,14 @@ class FirebaseUserService {
     return _defaultName;
   }
 
-  /// 🔥 CARGAR USUARIOS CON ESTRUCTURA REAL (displayName + campos separados)
+  /// Cargar usuarios desde Firebase con todos los campos necesarios
   static Future<List<Map<String, dynamic>>> getAllUsers() async {
-    print('🔥 INICIANDO carga de usuarios desde Firebase...');
-    
     try {
-      final FirebaseFirestore firestore = FirebaseFirestore.instance;
-      
-      print('🔥 Conectando a colección users...');
-      
-      final QuerySnapshot snapshot = await firestore
+      final QuerySnapshot snapshot = await FirebaseFirestore.instance
           .collection('users')
           .get();
 
-      print('🔥 Query ejecutada. Documentos encontrados: ${snapshot.docs.length}');
-
       final List<Map<String, dynamic>> users = [];
-      int validUsers = 0;
-      int invalidUsers = 0;
       
       for (var doc in snapshot.docs) {
         try {
@@ -50,54 +40,38 @@ class FirebaseUserService {
             String name = _extractNameFromRealStructure(data);
             
             if (name.isNotEmpty) {
+              // Incluir todos los campos necesarios de Firebase
               users.add({
                 'name': name,
                 'email': email,
+                'phone': data['phone'],
+                'displayName': data['displayName'],
+                'firstName': data['firstName'] ?? data['nombres'],
+                'lastName': data['lastName'] ?? data['apellidoPaterno'],
+                'middleName': data['middleName'] ?? data['apellidoMaterno'],
+                'isActive': data['isActive'],
+                'celular': data['celular'],
+                'rutPasaporte': data['rutPasaporte'],
+                'relacion': data['relacion'],
+                'fechaNacimiento': data['fechaNacimiento'],
+                'lastSyncFromSheets': data['lastSyncFromSheets'],
+                'source': data['source'],
               });
-              
-              validUsers++;
-              
-              if (validUsers <= 5) {
-                print('✅ Usuario ${validUsers}: $name - $email');
-              }
-              
-            } else {
-              invalidUsers++;
-              if (invalidUsers <= 3) {
-                print('⚠️ Usuario sin nombre válido: $email');
-              }
-            }
-            
-          } else {
-            invalidUsers++;
-            if (invalidUsers <= 3) {
-              print('❌ Usuario sin email: ${doc.id}');
             }
           }
         } catch (e) {
-          invalidUsers++;
-          print('❌ Error procesando documento ${doc.id}: $e');
+          // Continuar procesando otros usuarios si uno falla
+          continue;
         }
       }
 
-      print('✅ RESUMEN FINAL:');
-      print('   ✅ $validUsers usuarios válidos procesados');
-      print('   ❌ $invalidUsers usuarios inválidos');
-      print('   🎉 ${users.length} usuarios totales disponibles');
-      
-      // Ordenar alfabéticamente
+      // Ordenar alfabéticamente por nombre
       users.sort((a, b) => a['name'].toString().compareTo(b['name'].toString()));
       
-      if (users.isNotEmpty) {
-        print('🎉 Retornando ${users.length} usuarios de Firebase');
-        return users;
-      } else {
-        print('⚠️ No se encontraron usuarios válidos, usando fallback');
-        return _getFallbackUsers();
-      }
+      return users.isNotEmpty ? users : _getFallbackUsers();
       
     } catch (e) {
-      print('❌ ERROR CRÍTICO cargando usuarios: $e');
+      // En caso de error, usar sistema fallback
       return _getFallbackUsers();
     }
   }
