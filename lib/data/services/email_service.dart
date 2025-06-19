@@ -7,7 +7,7 @@ import '../../core/constants/app_constants.dart';
 class EmailService {
   // 🔥 CORREGIDO: URL correcta según documentación
   static const String FUNCTIONS_URL = 
-    'https://sendbookingemailhttp-65wy6ova5a-uc.a.run.app';
+    'https://us-central1-cgpreservas.cloudfunctions.net/sendBookingEmailHTTP';
   
   static const Map<String, String> HEADERS = {
     'Content-Type': 'application/json',

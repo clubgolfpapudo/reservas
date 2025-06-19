@@ -1,6 +1,8 @@
 // lib/presentation/widgets/booking/reservation_form_modal.dart - VALIDACIÓN COMPLETA + EMAILS
+import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:http/http.dart' as http;
 import 'package:provider/provider.dart';
 import '../../providers/booking_provider.dart';
 import '../../../core/constants/app_constants.dart';
@@ -309,19 +311,29 @@ class _ReservationFormModalState extends State<ReservationFormModal> {
 
   bool get _canCreateReservation => _selectedPlayers.length == 4 && _errorMessage == null;
 
-  // 🔥 CREACIÓN DE RESERVA CON VALIDACIÓN FINAL + EMAILS
+  // 🔥 CREACIÓN DE RESERVA CON VALIDACIÓN FINAL + EMAILS - VERSIÓN CORREGIDA
   Future<void> _createReservation() async {
+    if (!_canCreateReservation) return;
+
+    setState(() {
+      _isLoading = true;
+      _errorMessage = null;
+    });
+
     try {
       final provider = context.read<BookingProvider>();
-      
-      // Validación básica
-      if (_selectedPlayers.isEmpty) {
-        if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('Selecciona al menos un jugador')),
-          );
-        }
-        return;
+
+      // 🔥 VALIDACIÓN FINAL antes de crear
+      final playerNames = _selectedPlayers.map((p) => p.name).toList();
+      final validation = provider.canCreateBooking(
+        widget.courtId,
+        widget.date,
+        widget.timeSlot,
+        playerNames
+      );
+
+      if (!validation.isValid) {
+        throw Exception(validation.reason!);
       }
 
       // Obtener usuarios de Firebase para mapear teléfonos
@@ -344,32 +356,47 @@ class _ReservationFormModalState extends State<ReservationFormModal> {
         bookingPlayers.add(BookingPlayer(
           name: selectedPlayer.name,
           email: selectedPlayer.email,
-          phone: userPhone,
+          phone: userPhone,  // ✅ TELÉFONO INCLUIDO
           isConfirmed: true,
         ));
       }
 
-      // Crear reserva
-      final booking = Booking(
+      print('🔥 Creando reserva con emails: ${widget.courtId} ${widget.date} ${widget.timeSlot}');
+      print('🔥 Jugadores: ${playerNames.join(", ")}');
+
+      // ✅ CRÍTICO: Crear reserva CON emails automáticos
+      final success = await provider.createBookingWithEmails(
         courtNumber: widget.courtId,
         date: widget.date,
         timeSlot: widget.timeSlot,
         players: bookingPlayers,
-        status: BookingStatus.complete,
-        createdAt: DateTime.now(),
       );
 
-      // Guardar en Firebase
-      await provider.createBooking(booking);
-      
-      if (mounted) {
-        Navigator.of(context).pop();
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Reserva creada exitosamente')),
-        );
+      if (success) {
+        // Actualizar UI
+        await provider.refresh();
+
+        print('✅ Reserva creada exitosamente con emails - UI actualizada');
+
+        // Mostrar confirmación
+        if (mounted) {
+          setState(() {
+            _isLoading = false;
+          });
+          _showSuccessDialog();
+        }
+      } else {
+        throw Exception('Error al crear la reserva');
       }
+
     } catch (e) {
+      print('❌ Error en _createReservation: $e');
       if (mounted) {
+        setState(() {
+          _isLoading = false;
+          _errorMessage = e.toString();
+        });
+        
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text('Error al crear reserva: $e')),
         );

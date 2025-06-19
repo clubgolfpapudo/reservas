@@ -466,7 +466,19 @@ exports.getUsers = onRequest({
 // Esta versión incluye las funciones auxiliares seguras
 exports.sendBookingEmailHTTP = onRequest({
   region: 'us-central1',
-  cors: true
+  cors: {
+    origin: [
+      "http://localhost:3000",
+      "http://localhost:5000", 
+      "https://cgpreservas.web.app",
+      "https://cgpreservas.firebaseapp.com",
+      "https://cgp-reservas.web.app",        // Por si tienes variaciones
+      "https://cgp-reservas.firebaseapp.com"
+    ],
+    methods: ["GET", "POST", "OPTIONS"],
+    allowedHeaders: ["Content-Type", "Authorization", "Accept"],
+    credentials: true
+  }
 }, async (req, res) => {
   console.log('📧 === ENVIANDO EMAILS CON GMAIL APP PASSWORD ===');
   console.log('📧 Body:', JSON.stringify(req.body, null, 2));
