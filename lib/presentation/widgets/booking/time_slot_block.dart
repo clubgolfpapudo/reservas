@@ -1,7 +1,8 @@
 // lib/presentation/widgets/booking/time_slot_block.dart
 import 'package:flutter/material.dart';
-import '../../../domain/entities/booking.dart';
 import '../../../core/constants/app_constants.dart';
+import '../../../domain/entities/booking.dart';
+import '../../../../core/theme/app_theme.dart';
 
 class TimeSlotBlock extends StatefulWidget {
   final String time;
@@ -76,7 +77,7 @@ class _TimeSlotBlockState extends State<TimeSlotBlock>
       case BookingStatus.complete:
         return const Color(0xFF2E7AFF); // Azul
       case BookingStatus.incomplete:
-        return const Color(0xFFFF7530); // Naranja
+        return AppColors.incomplete; // Naranja
       // case BookingStatus.cancelled:
         return Colors.grey; // Gris
     }

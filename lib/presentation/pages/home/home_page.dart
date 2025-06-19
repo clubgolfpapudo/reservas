@@ -3,13 +3,13 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../providers/booking_provider.dart';
 import '../../providers/user_provider.dart';
-import '../../widgets/booking/time_slot_block.dart';
 import '../../widgets/booking/court_tab_button.dart';
 import '../../widgets/booking/date_selector.dart';
+import '../../widgets/booking/time_slot_block.dart';
 import '../../widgets/common/app_loading_indicator.dart';
 import '../../widgets/user_selector_widget.dart';
-import '../../../core/theme/app_theme.dart';
 import '../../../core/constants/app_constants.dart';
+import '../../../core/theme/app_theme.dart';
 
 /// Pantalla principal que muestra las reservas por día y cancha
 class HomePage extends StatefulWidget {

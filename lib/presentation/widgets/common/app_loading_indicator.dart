@@ -1,6 +1,7 @@
 // lib/presentation/widgets/common/app_loading_indicator.dart
 import 'package:flutter/material.dart';
 import '../../../core/theme/app_theme.dart';
+import '../../../../core/theme/app_theme.dart';
 
 /// Indicador de carga personalizado para la aplicación
 class AppLoadingIndicator extends StatelessWidget {

@@ -1,6 +1,7 @@
 // lib/presentation/widgets/time_slot_block.dart
 import 'package:flutter/material.dart';
 import '../../domain/entities/booking.dart';
+import '../../../core/theme/app_theme.dart';
 
 class TimeSlotBlock extends StatefulWidget {
   final String time;
@@ -46,7 +47,7 @@ class _TimeSlotBlockState extends State<TimeSlotBlock> {
           statusText = "Reservada";
           break;
         case BookingStatus.incomplete:
-          blockColor = const Color(0xFFFF7530); // Naranja
+          blockColor = AppColors.incomplete; // Naranja
           statusText = "Incompleta";
           break;
         case BookingStatus.cancelled:

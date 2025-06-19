@@ -2,15 +2,16 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../providers/booking_provider.dart';
-import '../widgets/common/date_navigation_header.dart';
-import '../widgets/booking/enhanced_court_tabs.dart';
 import '../widgets/booking/animated_compact_stats.dart';
-import '../widgets/booking/time_slot_block.dart';
+import '../widgets/booking/enhanced_court_tabs.dart';
 import '../widgets/booking/reservation_form_modal.dart';
-import '../../core/constants/app_constants.dart';
-import '../../domain/entities/booking.dart';
 import '../widgets/booking/reservation_webview.dart';
+import '../widgets/booking/time_slot_block.dart';
+import '../widgets/common/date_navigation_header.dart';
+import '../../core/constants/app_constants.dart';
 import '../../core/services/user_service.dart';
+import '../../core/theme/app_theme.dart';
+import '../../domain/entities/booking.dart';
 
 class ReservationsPage extends StatefulWidget {
   const ReservationsPage({Key? key}) : super(key: key);
@@ -363,7 +364,7 @@ class _ReservationsPageState extends State<ReservationsPage> {
       case BookingStatus.complete:
         return const Color(0xFF2E7AFF); // Azul intenso
       case BookingStatus.incomplete:
-        return const Color(0xFFFF7530); // Naranja intenso
+        return AppColors.incomplete; // Naranja intenso
       default:
         return const Color(0xFFE8F4F9); // Celeste claro
     }
@@ -521,7 +522,7 @@ class _ReservationsPageState extends State<ReservationsPage> {
           height: 32,
           padding: const EdgeInsets.symmetric(horizontal: 8),
           decoration: BoxDecoration(
-            color: const Color(0xFFFF7530),
+            color: AppColors.incomplete,
             borderRadius: BorderRadius.circular(6),
           ),
           child: const Row(

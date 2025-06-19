@@ -1,8 +1,8 @@
 // lib/presentation/widgets/booking/compact_stats.dart
 import 'package:flutter/material.dart';
-import '../../../domain/entities/booking.dart';
-// import '../../../data/mock/mock_data.dart';
 import '../../../core/constants/app_constants.dart';
+import '../../../domain/entities/booking.dart';
+import '../../../../core/theme/app_theme.dart';
 
 // Agregar después de los imports existentes
 
@@ -54,7 +54,7 @@ class CompactStats extends StatelessWidget {
             child: _buildStatItem(
               count: incompleteCount,
               label: 'Incompletas',
-              color: const Color(0xFFFF7530),
+              color: AppColors.incomplete,
             ),
           ),
           

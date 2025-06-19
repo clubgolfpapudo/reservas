@@ -3,6 +3,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../providers/booking_provider.dart';
+import '../../../../core/theme/app_theme.dart';
 
 class AnimatedCompactStats extends StatelessWidget {
   final List<dynamic> bookings; // Mantenemos por compatibilidad pero no lo usamos
@@ -59,7 +60,7 @@ class AnimatedCompactStats extends StatelessWidget {
                 icon: Icons.group,
                 count: incompleteCount,
                 label: 'Incompletas',
-                color: const Color(0xFFFF7530),
+                color: AppColors.incomplete,
               ),
               
               const SizedBox(width: 16),
