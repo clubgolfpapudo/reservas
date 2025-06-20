@@ -1917,5 +1917,124 @@ Sistema de reservas con emails automáticos **100% funcional** en producción. L
 **Impacto:** Sistema completo de notificaciones por email operativo
 *Resumen generado: 18 de Junio, 2025, 20:30 hrs*
 
+
 //////////////////////////////////////////////////
+
+
+# 🎯 Resumen: Debugging Color Amarillo en Flutter Web
+
+## 📋 **OBJETIVO**
+Cambiar el color de las reservas con estado "Incompletas" de naranja (#FF7530) a amarillo (#FFE14D) en la aplicación Flutter Web desplegada en GitHub Pages.
+
+---
+
+## ✅ **LO QUE SE HA REALIZADO**
+
+### 1. **Identificación del Problema**
+- ✅ Confirmado que el cambio de color funciona en **desarrollo local**
+- ✅ Verificado que el problema ocurre solo en **producción** (GitHub Pages)
+- ✅ Descartado problemas de sintaxis o configuración en el código Dart
+
+### 2. **Modificaciones de Código Realizadas**
+- ✅ Cambiado color en `lib/constants/app_colors.dart`:
+  ```dart
+  static const Color incomplete = Color(0xFFFFE14D); // Amarillo
+  ```
+- ✅ Verificado que el widget `StatusCard` usa correctamente `AppColors.incomplete`
+- ✅ Confirmado build local exitoso con `flutter build web`
+
+### 3. **Deployment y Testing**
+- ✅ Build compilado correctamente: `flutter build web`
+- ✅ Código pusheado a GitHub: `git push origin main`
+- ✅ GitHub Pages desplegado automáticamente
+
+### 4. **Investigación de Caché**
+- ✅ **Descubierto**: Con "Disable cache" en DevTools → ✅ **FUNCIONA (amarillo)**
+- ✅ **Descubierto**: En ventana incógnito → ❌ **NO funciona (sigue naranja)**
+- ✅ Verificado que el color amarillo SÍ está en el archivo compilado
+
+### 5. **Análisis del Build**
+- ✅ Confirmado presencia del amarillo en `build/web/main.dart.js`
+- ✅ **PROBLEMA IDENTIFICADO**: El archivo contiene **AMBOS colores**:
+  ```
+  AMARILLO: main.dart.js  (255,225,119 = #FFE14D)
+  NARANJA: main.dart.js   (255,117,48 = #FF7530)
+  ```
+
+---
+
+## 🚨 **PROBLEMA IDENTIFICADO**
+
+**El archivo compilado contiene AMBOS colores**, lo que indica:
+1. **Código duplicado** en alguna parte del proyecto
+2. **Referencias múltiples** al color naranja que no fueron actualizadas
+3. **Caché de CDN** en GitHub Pages sirviendo versiones mixtas
+
+---
+
+## 🔧 **LO QUE FALTA POR RESOLVER**
+
+### **PASO 1: Encontrar Referencias Duplicadas**
+Ejecutar en el proyecto:
+```bash
+# Buscar TODAS las referencias al naranja viejo
+grep -r "ff7530\|FF7530\|255.*117.*48" lib/
+
+# Buscar referencias al amarillo nuevo  
+grep -r "ffe14d\|FFE14D\|255.*225.*77" lib/
+```
+
+### **PASO 2: Análisis Detallado del Build**
+```powershell
+# Ver contexto de dónde aparece cada color en el archivo compilado
+Select-String -Path "build\web\main.dart.js" -Pattern "255.*225.*77" -Context 5,5 | Select-Object -First 1
+Select-String -Path "build\web\main.dart.js" -Pattern "255.*117.*48" -Context 5,5 | Select-Object -First 1
+```
+
+### **PASO 3: Limpieza Completa**
+```bash
+flutter clean
+rm -rf build/
+flutter pub get
+flutter build web --release
+```
+
+### **PASO 4: Verificación y Re-deploy**
+```bash
+# Verificar que solo existe el color amarillo
+Get-ChildItem "build\web" -Recurse -Include "*.js" | ForEach-Object { 
+    $yellow = Select-String -Path $_.FullName -Pattern "255.*225.*77" -Quiet
+    $orange = Select-String -Path $_.FullName -Pattern "255.*117.*48" -Quiet
+    if ($yellow) { Write-Host "AMARILLO: $($_.Name)" }
+    if ($orange) { Write-Host "NARANJA: $($_.Name)" }
+}
+
+# Re-deploy forzado
+git add .
+git commit -m "Clean build - remove duplicate orange color references"
+git push origin main
+```
+
+### **PASO 5: Verificación Final**
+- Esperar 2-3 minutos para GitHub Pages
+- Probar en ventana incógnito
+- Confirmar que solo aparece color amarillo
+
+---
+
+## 🎯 **PRÓXIMOS PASOS INMEDIATOS**
+
+1. **Ejecutar grep** para encontrar referencias al naranja viejo
+2. **Analizar contexto** de ambos colores en el build
+3. **Limpiar y rebuild** desde cero
+4. **Re-deploy** con verificación
+
+---
+
+## 💡 **TEORÍA DEL PROBLEMA**
+
+El color naranja probablemente está **hardcodeado** en alguna otra parte del código (posiblemente en widgets, temas, o constantes no actualizadas) que no se detectó en la búsqueda inicial, causando que Flutter compile ambas referencias.
+
+
+////////////////////////////////////////////////////
 

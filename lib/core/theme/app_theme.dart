@@ -21,7 +21,6 @@ abstract class AppColors {
   static const Color reservedBorder = primaryBlueDark;
   static const Color reservedText = Colors.white;
   
-  // static const Color incomplete = Color(0xFFFF7530);
   static const Color incomplete = Color(0xFFFFE14D);
 
   static const Color incompleteBorder = Color(0xFFE56420);
