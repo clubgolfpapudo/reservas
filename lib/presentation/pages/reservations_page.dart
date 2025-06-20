@@ -1,4 +1,4 @@
-// lib/presentation/pages/reservations_page.dart - VERSIÓN LIMPIA SIN HARDCODE
+// lib/presentation/pages/reservations_page.dart - VERSIÓN CORREGIDA
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../providers/booking_provider.dart';
@@ -22,8 +22,6 @@ class ReservationsPage extends StatefulWidget {
 
 class _ReservationsPageState extends State<ReservationsPage> {
   late PageController _pageController;
-
-  // ✅ ELIMINADO: Hardcode de colores - ahora usa AppColors del tema
 
   @override
   void initState() {
@@ -358,48 +356,48 @@ class _ReservationsPageState extends State<ReservationsPage> {
   }
 
   // ============================================================================
-  // MÉTODOS DE UTILIDAD Y COLORES - ✅ USANDO TEMA LIMPIO
+  // MÉTODOS DE UTILIDAD Y COLORES - 🔧 CORREGIDOS (solo colores que existen)
   // ============================================================================
 
   Color _getSlotBackgroundColor(BookingStatus? status) {
     switch (status) {
       case BookingStatus.complete:
-        return AppColors.confirmed; // ✅ USA TEMA
+        return const Color(0xFF2E7AFF); // 🔧 HARDCODE (AppColors.confirmed NO EXISTE)
       case BookingStatus.incomplete:
-        return AppColors.incomplete; // ✅ USA TEMA - NO HARDCODE
+        return AppColors.incomplete; // ✅ ESTE SÍ EXISTE
       default:
-        return AppColors.available; // ✅ USA TEMA
+        return const Color(0xFFE8F4F9); // 🔧 HARDCODE (AppColors.available NO EXISTE)
     }
   }
 
   Color _getSlotBorderColor(BookingStatus? status) {
     switch (status) {
       case BookingStatus.complete:
-        return AppColors.confirmedBorder; // ✅ USA TEMA
+        return const Color(0xFF1a5ce6); // 🔧 HARDCODE (AppColors.confirmedBorder NO EXISTE)
       case BookingStatus.incomplete:
-        return AppColors.incompleteBorder; // ✅ USA TEMA - NO HARDCODE
+        return AppColors.incompleteBorder; // ✅ ESTE SÍ EXISTE
       default:
-        return AppColors.availableBorder; // ✅ USA TEMA
+        return const Color(0xFF2E7AFF).withOpacity(0.2); // 🔧 HARDCODE
     }
   }
 
   Color _getTextColor(BookingStatus? status) {
     switch (status) {
       case BookingStatus.complete:
-        return AppColors.confirmedText; // ✅ USA TEMA
+        return Colors.white; // 🔧 HARDCODE (AppColors.confirmedText NO EXISTE)
       case BookingStatus.incomplete:
-        return AppColors.incompleteText; // ✅ USA TEMA
+        return AppColors.incompleteText; // ✅ ESTE SÍ EXISTE
       default:
-        return AppColors.availableText; // ✅ USA TEMA
+        return Colors.black87; // 🔧 HARDCODE
     }
   }
 
   Color _getSubtextColor(BookingStatus? status) {
     switch (status) {
       case BookingStatus.complete:
-        return AppColors.confirmedText.withOpacity(0.9); // ✅ USA TEMA
+        return Colors.white.withOpacity(0.9); // 🔧 HARDCODE
       case BookingStatus.incomplete:
-        return AppColors.incompleteText.withOpacity(0.7); // ✅ USA TEMA
+        return AppColors.incompleteText.withOpacity(0.7); // ✅ ESTE SÍ EXISTE
       default:
         return Colors.grey[600]!; // Para disponible
     }
@@ -497,20 +495,20 @@ class _ReservationsPageState extends State<ReservationsPage> {
           height: 32,
           padding: const EdgeInsets.symmetric(horizontal: 8),
           decoration: BoxDecoration(
-            color: AppColors.confirmed, // ✅ USA TEMA
+            color: const Color(0xFF2E7AFF), // 🔧 HARDCODE (AppColors.confirmed NO EXISTE)
             borderRadius: BorderRadius.circular(6),
           ),
           child: Row(
             mainAxisSize: MainAxisSize.min,
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              Icon(Icons.check, color: AppColors.confirmedText, size: 14), // ✅ USA TEMA
+              const Icon(Icons.check, color: Colors.white, size: 14), // 🔧 HARDCODE
               const SizedBox(width: 4),
               Flexible(
                 child: Text(
                   'Reservada',
                   style: TextStyle(
-                    color: AppColors.confirmedText, // ✅ USA TEMA
+                    color: Colors.white, // 🔧 HARDCODE (AppColors.confirmedText NO EXISTE)
                     fontSize: 11,
                     fontWeight: FontWeight.w600,
                   ),
@@ -526,20 +524,20 @@ class _ReservationsPageState extends State<ReservationsPage> {
           height: 32,
           padding: const EdgeInsets.symmetric(horizontal: 8),
           decoration: BoxDecoration(
-            color: AppColors.incomplete, // ✅ USA TEMA - NO HARDCODE
+            color: AppColors.incomplete, // ✅ ESTE SÍ EXISTE
             borderRadius: BorderRadius.circular(6),
           ),
           child: Row(
             mainAxisSize: MainAxisSize.min,
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              Icon(Icons.group, color: AppColors.incompleteText, size: 14), // ✅ USA TEMA
+              Icon(Icons.group, color: AppColors.incompleteText, size: 14), // ✅ ESTE SÍ EXISTE
               const SizedBox(width: 4),
               Flexible(
                 child: Text(
                   'Incompleta',
                   style: TextStyle(
-                    color: AppColors.incompleteText, // ✅ USA TEMA
+                    color: AppColors.incompleteText, // ✅ ESTE SÍ EXISTE
                     fontSize: 11,
                     fontWeight: FontWeight.w600,
                   ),
