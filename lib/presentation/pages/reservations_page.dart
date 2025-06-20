@@ -23,6 +23,10 @@ class ReservationsPage extends StatefulWidget {
 class _ReservationsPageState extends State<ReservationsPage> {
   late PageController _pageController;
 
+  // 🎯 COLORES FORZADOS PARA EVITAR SISTEMA INTERNO
+  static const Color _incompleteYellow = Color(0xFFFFE14D); // Amarillo forzado
+  static const Color _incompleteBorder = Color(0xFFE6CC00); // Amarillo más oscuro para borde
+
   @override
   void initState() {
     super.initState();
@@ -356,7 +360,7 @@ class _ReservationsPageState extends State<ReservationsPage> {
   }
 
   // ============================================================================
-  // MÉTODOS DE UTILIDAD Y COLORES
+  // MÉTODOS DE UTILIDAD Y COLORES - 🎯 COLORES FORZADOS
   // ============================================================================
 
   Color _getSlotBackgroundColor(BookingStatus? status) {
@@ -364,7 +368,7 @@ class _ReservationsPageState extends State<ReservationsPage> {
       case BookingStatus.complete:
         return const Color(0xFF2E7AFF); // Azul intenso
       case BookingStatus.incomplete:
-        return AppColors.incomplete; // Naranja intenso
+        return _incompleteYellow; // 🎯 AMARILLO FORZADO
       default:
         return const Color(0xFFE8F4F9); // Celeste claro
     }
@@ -375,7 +379,7 @@ class _ReservationsPageState extends State<ReservationsPage> {
       case BookingStatus.complete:
         return const Color(0xFF1a5ce6); // Azul más oscuro
       case BookingStatus.incomplete:
-        return AppColors.incomplete; // Naranja más oscuro
+        return _incompleteBorder; // 🎯 AMARILLO OSCURO FORZADO
       default:
         return const Color(0xFF2E7AFF).withOpacity(0.2);
     }
@@ -384,8 +388,9 @@ class _ReservationsPageState extends State<ReservationsPage> {
   Color _getTextColor(BookingStatus? status) {
     switch (status) {
       case BookingStatus.complete:
+        return Colors.white; // Texto blanco sobre azul
       case BookingStatus.incomplete:
-        return Colors.white; // Texto blanco sobre fondos intensos
+        return Colors.black87; // 🎯 TEXTO OSCURO SOBRE AMARILLO
       default:
         return Colors.black87; // Texto oscuro sobre fondo claro
     }
@@ -394,8 +399,9 @@ class _ReservationsPageState extends State<ReservationsPage> {
   Color _getSubtextColor(BookingStatus? status) {
     switch (status) {
       case BookingStatus.complete:
-      case BookingStatus.incomplete:
         return Colors.white.withOpacity(0.9); // Texto blanco semi-transparente
+      case BookingStatus.incomplete:
+        return Colors.black.withOpacity(0.7); // 🎯 TEXTO OSCURO SOBRE AMARILLO
       default:
         return Colors.grey[600]!; // Texto gris sobre fondo claro
     }
@@ -522,20 +528,20 @@ class _ReservationsPageState extends State<ReservationsPage> {
           height: 32,
           padding: const EdgeInsets.symmetric(horizontal: 8),
           decoration: BoxDecoration(
-            color: AppColors.incomplete,
+            color: _incompleteYellow, // 🎯 AMARILLO FORZADO
             borderRadius: BorderRadius.circular(6),
           ),
           child: const Row(
             mainAxisSize: MainAxisSize.min,
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              Icon(Icons.group, color: Colors.white, size: 14),
+              Icon(Icons.group, color: Colors.black87, size: 14), // 🎯 ICONO OSCURO
               SizedBox(width: 4),
               Flexible(
                 child: Text(
                   'Incompleta',
                   style: TextStyle(
-                    color: Colors.white,
+                    color: Colors.black87, // 🎯 TEXTO OSCURO
                     fontSize: 11,
                     fontWeight: FontWeight.w600,
                   ),
