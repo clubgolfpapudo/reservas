@@ -2,7 +2,7 @@
 import 'package:flutter/material.dart';
 import '../../../core/constants/app_constants.dart';
 import '../../../domain/entities/booking.dart';
-import '../../../../core/theme/app_theme.dart';
+import '../../../core/theme/app_theme.dart';
 
 // Agregar después de los imports existentes
 

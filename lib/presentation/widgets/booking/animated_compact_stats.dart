@@ -3,7 +3,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../providers/booking_provider.dart';
-import '../../../../core/theme/app_theme.dart';
+import '../../../core/theme/app_theme.dart';
 
 class AnimatedCompactStats extends StatelessWidget {
   final List<dynamic> bookings; // Mantenemos por compatibilidad pero no lo usamos

@@ -1,7 +1,7 @@
 // lib/presentation/widgets/time_slot_block.dart
 import 'package:flutter/material.dart';
 import '../../domain/entities/booking.dart';
-import '../../../core/theme/app_theme.dart';
+import '../../core/theme/app_theme.dart';
 
 class TimeSlotBlock extends StatefulWidget {
   final String time;
