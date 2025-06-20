@@ -21,9 +21,9 @@ abstract class AppColors {
   static const Color reservedBorder = primaryBlueDark;
   static const Color reservedText = Colors.white;
   
-  static const Color incomplete = Color(0xFFFFE14D);
-  static const Color incompleteBorder = Color(0xFFE6CC1A);
-  static const Color incompleteText = Colors.white;
+  static const Color incomplete = Color(0xFFFFFACD);     // Amarillo dorado suave
+  static const Color incompleteBorder = Color(0xFFDAA520); // Borde dorado intenso
+  static const Color incompleteText = Color(0xFF8B4513);   // Texto marrón saddle brown
   
   // Colores semánticos
   static const Color success = Color(0xFF34C759);
