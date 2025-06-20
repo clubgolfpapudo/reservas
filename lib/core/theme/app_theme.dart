@@ -23,7 +23,7 @@ abstract class AppColors {
   
   static const Color incomplete = Color(0xFFFFE14D);
 
-  static const Color incompleteBorder = Color(0xFFE56420);
+  static const Color incompleteBorder = Color(0xFFE6CC1A);
   static const Color incompleteText = Colors.white;
   
   // Colores semánticos

@@ -375,7 +375,7 @@ class _ReservationsPageState extends State<ReservationsPage> {
       case BookingStatus.complete:
         return const Color(0xFF1a5ce6); // Azul más oscuro
       case BookingStatus.incomplete:
-        return const Color(0xFFe55a1f); // Naranja más oscuro
+        return AppColors.incomplete; // Naranja más oscuro
       default:
         return const Color(0xFF2E7AFF).withOpacity(0.2);
     }
