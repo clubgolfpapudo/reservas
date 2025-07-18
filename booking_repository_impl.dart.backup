@@ -1,85 +1,14 @@
-/// lib/data/repositories/booking_repository_impl.dart
-/// 
-/// PROPÓSITO:
-/// Implementación concreta del repositorio de reservas que utiliza Firebase Firestore
-/// como backend de persistencia. Esta clase es el corazón del sistema de reservas,
-/// manejando todas las operaciones CRUD, validaciones de negocio, consultas complejas,
-/// y funcionalidades en tiempo real para el sistema multi-deporte del Club de Golf Papudo.
-/// 
-/// RESPONSABILIDADES PRINCIPALES:
-/// 1. **Persistencia Completa**: Todas las operaciones de base de datos para reservas
-/// 2. **Validaciones de Negocio**: Conflictos, límites, reglas específicas del club
-/// 3. **Consultas Complejas**: Búsquedas por fecha, cancha, usuario, estado
-/// 4. **Streams en Tiempo Real**: Actualizaciones instantáneas de disponibilidad
-/// 5. **Estadísticas y Analytics**: Métricas de uso, ingresos, popularidad
-/// 6. **Mantenimiento Automático**: Limpieza de datos antiguos, actualización de estados
-/// 
-/// ARQUITECTURA FIRESTORE:
-/// La implementación utiliza una estructura optimizada en Firestore:
-/// - **Colección**: 'bookings' (configurable via FirebaseConstants)
-/// - **Documentos**: ID único generado automáticamente por Firebase
-/// - **Índices**: Optimizados para consultas por fecha, cancha, usuario
-/// - **Transacciones**: Para operaciones atómicas críticas
-/// - **Batch Operations**: Para actualizaciones masivas eficientes
-/// 
-/// INTEGRACIÓN CON SISTEMA HÍBRIDO:
-/// - Compatible con datos legacy del sistema GAS existente
-/// - Sincronización con Calendly para integración externa
-/// - Soporte para múltiples deportes (Pádel implementado, Golf/Tenis preparado)
-/// - Integración con sistema de emails automáticos
-/// - Compatibilidad con usuarios VISITA y socios regulares
-/// 
-/// PERFORMANCE Y ESCALABILIDAD:
-/// - Consultas optimizadas con índices específicos
-/// - Paginación implícita en consultas grandes
-/// - Caché de resultados frecuentes
-/// - Operaciones batch para mejor throughput
-/// - Streams eficientes para actualizaciones en tiempo real
-/// 
-/// REGLAS DE NEGOCIO IMPLEMENTADAS:
-/// - Máximo 4 jugadores por reserva de pádel
-/// - Validación de conflictos de horarios por usuario
-/// - Límites diarios de reservas por usuario
-/// - Gestión de estados: complete, incomplete, cancelled
-/// - Validación de disponibilidad de canchas y horarios
-/// - Manejo de usuarios duplicados y excepciones especiales
+// lib/data/repositories/booking_repository_impl.dart
 import 'package:cloud_firestore/cloud_firestore.dart';
 import '../../domain/entities/booking.dart';
 import '../../domain/repositories/booking_repository.dart';
 import '../models/booking_model.dart';
 import '../../core/constants/app_constants.dart';
 
-/// Implementación concreta del repositorio de reservas usando Firebase Firestore
-/// 
-/// Esta clase implementa el contrato definido en BookingRepository (domain layer)
-/// proporcionando funcionalidad completa de persistencia y consultas para el
-/// sistema de reservas. Maneja la complejidad de Firestore y expone una API
-/// limpia y consistente para las capas superiores de la aplicación.
-/// 
-/// CARACTERÍSTICAS PRINCIPALES:
-/// - **38+ métodos especializados** para diferentes casos de uso
-/// - **Validaciones automáticas** de reglas de negocio del club
-/// - **Consultas optimizadas** con índices específicos de Firestore
-/// - **Streams en tiempo real** para actualizaciones instantáneas
-/// - **Manejo robusto de errores** con mensajes descriptivos
-/// - **Operaciones atómicas** para consistencia de datos
-/// - **Estadísticas avanzadas** para analytics del club
-/// - **Mantenimiento automático** de datos históricos
 class BookingRepositoryImpl implements BookingRepository {
-  /// Instancia de Firebase Firestore para operaciones de base de datos
-  /// Permite inyección de dependencias para testing con mocks
   final FirebaseFirestore _firestore;
-  
-  /// Nombre de la colección de reservas en Firestore
-  /// Configurable via FirebaseConstants para flexibilidad de entornos
   final String _collection = FirebaseConstants.bookingsCollection;
 
-  /// Constructor con inyección de dependencias
-  /// 
-  /// Permite inyectar instancia específica de Firestore para testing
-  /// o usar la instancia por defecto para producción.
-  /// 
-  /// @param firestore Instancia opcional de FirebaseFirestore (para testing)
   BookingRepositoryImpl({FirebaseFirestore? firestore})
       : _firestore = firestore ?? FirebaseFirestore.instance;
 
@@ -87,27 +16,6 @@ class BookingRepositoryImpl implements BookingRepository {
   // MÉTODOS DE CONSULTA BÁSICA
   // ═══════════════════════════════════════════════════════════════════════════
 
-  /// Obtiene una reserva específica por su ID único
-  /// 
-  /// Método fundamental para consultas directas cuando se conoce el ID
-  /// de la reserva. Utilizado para validaciones, actualizaciones, y
-  /// visualización de detalles específicos.
-  /// 
-  /// PROCESO:
-  /// 1. Consulta documento específico en Firestore por ID
-  /// 2. Verifica existencia del documento
-  /// 3. Convierte datos Firestore a entidad de dominio
-  /// 4. Maneja casos de documento no encontrado
-  /// 
-  /// CASOS DE USO:
-  /// - Mostrar detalles de reserva específica
-  /// - Validar existencia antes de modificaciones
-  /// - Auditoría y logging de operaciones específicas
-  /// - Verificación de permisos sobre reserva particular
-  /// 
-  /// @param bookingId ID único de la reserva en Firestore
-  /// @return Entidad Booking si existe, null si no se encuentra
-  /// @throws Exception con mensaje descriptivo en caso de error de conexión
   @override
   Future<Booking?> getBookingById(String bookingId) async {
     try {
@@ -121,31 +29,6 @@ class BookingRepositoryImpl implements BookingRepository {
     }
   }
 
-  /// Obtiene todas las reservas para una fecha específica
-  /// 
-  /// Método crítico para la visualización del calendario de reservas.
-  /// Optimizado con índices específicos para consultas frecuentes por fecha.
-  /// Solo retorna reservas visibles en calendario para filtrar datos de prueba.
-  /// 
-  /// ESTRUCTURA DE CONSULTA:
-  /// - **where('dateTime.date', isEqualTo: dateStr)**: Filtra por fecha exacta
-  /// - **where('visibleInCalendar', isEqualTo: true)**: Solo reservas activas
-  /// - **orderBy('dateTime.time')**: Ordenadas cronológicamente
-  /// 
-  /// OPTIMIZACIONES:
-  /// - Índice compuesto: [dateTime.date, visibleInCalendar, dateTime.time]
-  /// - Formato de fecha normalizado: YYYY-MM-DD
-  /// - Filtrado de reservas de prueba y canceladas
-  /// 
-  /// CASOS DE USO:
-  /// - Mostrar calendario diario de disponibilidad
-  /// - Validar conflictos al crear nuevas reservas
-  /// - Generar reportes de ocupación diaria
-  /// - Calcular estadísticas de uso por fecha
-  /// 
-  /// @param date Fecha para consultar (se normaliza a YYYY-MM-DD)
-  /// @return Lista de reservas ordenadas por hora
-  /// @throws Exception si hay error en la consulta Firestore
   @override
   Future<List<Booking>> getBookingsByDate(DateTime date) async {
     try {
@@ -166,31 +49,6 @@ class BookingRepositoryImpl implements BookingRepository {
     }
   }
 
-  /// Obtiene reservas para fecha y cancha específicas
-  /// 
-  /// Consulta optimizada para mostrar disponibilidad de una cancha particular
-  /// en una fecha específica. Esencial para el sistema de tabs por cancha
-  /// en la interfaz de usuario.
-  /// 
-  /// FILTROS APLICADOS:
-  /// 1. **Fecha exacta**: Solo reservas del día seleccionado
-  /// 2. **Cancha específica**: Solo la cancha consultada
-  /// 3. **Visibles en calendario**: Excluye reservas de prueba/canceladas
-  /// 4. **Orden cronológico**: Por hora para visualización secuencial
-  /// 
-  /// ÍNDICE REQUERIDO:
-  /// Firestore requiere índice compuesto: [dateTime.date, courtId, visibleInCalendar, dateTime.time]
-  /// 
-  /// CASOS DE USO:
-  /// - Vista específica de cancha en calendario
-  /// - Validación de disponibilidad para cancha particular
-  /// - Generación de horarios disponibles por cancha
-  /// - Estadísticas de uso específicas por cancha
-  /// 
-  /// @param date Fecha a consultar
-  /// @param courtId ID de la cancha específica (ej: "court_1", "court_2")
-  /// @return Lista de reservas para esa fecha y cancha, ordenadas por hora
-  /// @throws Exception si hay error en consulta o índices faltantes
   @override
   Future<List<Booking>> getBookingsByDateAndCourt(DateTime date, String courtId) async {
     try {
@@ -1102,31 +960,6 @@ class BookingRepositoryImpl implements BookingRepository {
   // MÉTODOS PRIVADOS AUXILIARES
   // ═══════════════════════════════════════════════════════════════════════════
 
-  /// Formatea DateTime a string normalizado para Firestore
-  /// 
-  /// Método utilitario crítico que asegura formato consistente de fechas
-  /// en todas las operaciones de base de datos. Esencial para consultas
-  /// precisas y correctas en Firestore.
-  /// 
-  /// FORMATO ESTÁNDAR:
-  /// - **Patrón**: "YYYY-MM-DD" (ISO 8601 date only)
-  /// - **Padding**: Ceros a la izquierda para mes y día
-  /// - **Timezone neutral**: Solo fecha, sin información de hora
-  /// - **Consistencia**: Mismo formato en toda la aplicación
-  /// 
-  /// IMPORTANCIA:
-  /// - **Consultas precisas**: Firestore requiere strings exactos para filtros
-  /// - **Índices eficientes**: Formato consistente optimiza índices
-  /// - **Debugging**: Fechas legibles en console de Firebase
-  /// - **Compatibilidad**: Estándar internacional ISO 8601
-  /// 
-  /// EJEMPLOS:
-  /// - **2025-01-15**: 15 de enero, 2025
-  /// - **2025-12-03**: 3 de diciembre, 2025 (con padding)
-  /// - **2025-07-22**: 22 de julio, 2025
-  /// 
-  /// @param date DateTime a formatear
-  /// @return String en formato "YYYY-MM-DD"
   String _formatDate(DateTime date) {
     return "${date.year}-${date.month.toString().padLeft(2, '0')}-${date.day.toString().padLeft(2, '0')}";
   }
