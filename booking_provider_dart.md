@@ -2,8 +2,22 @@
 /// 
 /// PROPÓSITO:
 /// Provider central que gestiona todo el estado y lógica de negocio relacionada con reservas.
-/// Este es el cerebro del sistema de reservas que orquesta validaciones complejas de conflictos,
-/// estado reactivo, integración con múltiples servicios, y operaciones CRUD con emails automáticos.
+/// Este es el cerebro del sistema de reservas que orquesta:
+/// - Validaciones complejas de conflictos de horarios entre jugadores
+/// - Estado reactivo de reservas, canchas y fechas disponibles
+/// - Integración con múltiples servicios (Firebase, Email, Schedule)
+/// - Comunicación bidireccional con UI a través de ChangeNotifier
+/// - Operaciones CRUD de reservas con validaciones de reglas de negocio
+/// - Sistema completo de emails automáticos para confirmaciones y cancelaciones
+/// 
+/// MOTIVO DE EXISTENCIA:
+/// Centraliza toda la lógica de negocio de reservas en un solo lugar, siguiendo el patrón
+/// Provider de Flutter para gestión de estado. Abstrae la complejidad de:
+/// - Múltiples fuentes de datos (Firebase, ScheduleService, EmailService)
+/// - Validaciones complejas de conflictos entre usuarios y horarios
+/// - Estados de carga y manejo de errores
+/// - Sincronización de datos en tiempo real
+/// - Operaciones asíncronas con feedback visual
 /// 
 /// RESPONSABILIDADES PRINCIPALES:
 /// 1. **Estado de Reservas**: Gestiona lista de reservas filtradas por fecha/cancha
@@ -18,6 +32,21 @@
 /// - EmailService: Envío automático de notificaciones
 /// - ScheduleService: Lógica de horarios y fechas inteligente
 /// - UserService: Auto-completado de usuario actual
+/// - AppConstants: Configuraciones de horarios y reglas
+/// 
+/// REGLAS DE NEGOCIO IMPLEMENTADAS:
+/// - Máximo 4 jugadores por reserva de pádel
+/// - Un jugador no puede estar en múltiples canchas al mismo horario
+/// - Usuarios VISITA pueden estar en múltiples reservas simultáneas
+/// - Regla de 72 horas para reservas futuras
+/// - Validación de slots disponibles según horarios del club
+/// 
+/// OPTIMIZACIONES:
+/// - Filtrado eficiente de reservas por fecha/cancha
+/// - Caché de datos de usuario para auto-completado
+/// - Streams de Firebase para actualizaciones en tiempo real
+/// - Debouncing de notificaciones para mejor UX
+/// - Estados de carga granulares (general, emails)
 
 import 'dart:async';
 import 'package:flutter/material.dart';
@@ -39,8 +68,12 @@ import '../../core/constants/app_constants.dart';
 /// Provider principal para gestión de estado de reservas
 /// 
 /// Extiende ChangeNotifier para proporcionar estado reactivo a la UI.
-/// Maneja toda la lógica de negocio relacionada con reservas incluyendo
-/// validaciones de conflictos complejas, estados de carga, y sistema de emails.
+/// Maneja toda la lógica de negocio relacionada con reservas incluyendo:
+/// - Validaciones de conflictos complejas
+/// - Estados de carga y errores
+/// - Integración con múltiples servicios
+/// - Navegación de fechas con reglas de negocio
+/// - Sistema completo de emails automáticos
 class BookingProvider extends ChangeNotifier {
   // ============================================================================
   // ESTADO PRIVADO
@@ -48,27 +81,41 @@ class BookingProvider extends ChangeNotifier {
   
   /// Lista de canchas disponibles cargadas desde configuración
   List<Court> _courts = [];
+  
   /// Lista de todas las reservas cargadas desde Firebase
   List<Booking> _bookings = [];
+  
   /// ID de la cancha actualmente seleccionada (ej: "court_1")
   String _selectedCourtId = 'court_1';
-  /// Fecha actualmente seleccionada para mostrar reservas  
+  
+  /// Fecha actualmente seleccionada para mostrar reservas
   DateTime _selectedDate = DateTime.now();
+  
   /// Estado de carga global del provider
   bool _isLoading = false;
+  
   /// Mensaje de error actual (null si no hay errores)
   String? _error;
   
   /// Lista de fechas disponibles para navegación (4 días por defecto)
   List<DateTime> _availableDates = [];
+  
   /// Índice actual en la lista de fechas disponibles
   int _currentDateIndex = 0;
   
   /// Estado específico para operaciones de envío de emails
   bool _isSendingEmails = false;
   
-  // Streams subscriptions para limpiar recursos
+  /// Email del usuario actual cacheado para auto-completado
+  String? _currentUserEmail;
+  
+  /// Nombre del usuario actual cacheado para auto-completado
+  String? _currentUserName;
+  
+  /// Suscripción al stream de canchas para limpieza de recursos
   StreamSubscription? _courtsSubscription;
+  
+  /// Suscripción al stream de reservas para actualizaciones en tiempo real
   StreamSubscription? _bookingsSubscription;
   
   // ============================================================================
@@ -77,26 +124,42 @@ class BookingProvider extends ChangeNotifier {
   
   /// Todas las canchas disponibles
   List<Court> get courts => _courts;
+  
   /// Todas las reservas cargadas desde Firebase
   List<Booking> get bookings => _bookings;
+  
   /// ID de la cancha actualmente seleccionada
   String get selectedCourtId => _selectedCourtId;
+  
   /// Fecha actualmente seleccionada
   DateTime get selectedDate => _selectedDate;
+  
   /// Estado de carga global
   bool get isLoading => _isLoading;
+  
   /// Mensaje de error actual
   String? get error => _error;
   
   /// Lista de fechas disponibles para navegación
   List<DateTime> get availableDates => _availableDates;
+  
   /// Índice actual en fechas disponibles
   int get currentDateIndex => _currentDateIndex;
-  /// Total de días disponibles para navegación  
+  
+  /// Total de días disponibles para navegación
   int get totalAvailableDays => _availableDates.length;
   
   /// Estado específico de envío de emails
   bool get isSendingEmails => _isSendingEmails;
+  
+  /// Email del usuario actual para auto-completado
+  String? get currentUserEmail => _currentUserEmail;
+  
+  /// Nombre del usuario actual para auto-completado
+  String? get currentUserName => _currentUserName;
+  
+  /// Indica si hay un usuario actual válido cargado
+  bool get hasCurrentUser => _currentUserEmail != null && _currentUserName != null;
   
   // ============================================================================
   // COMPUTED PROPERTIES - Propiedades calculadas dinámicamente
@@ -136,7 +199,7 @@ class BookingProvider extends ChangeNotifier {
     print('   Fecha seleccionada: $selectedDateStr ($_selectedDate)');
     print('   Total bookings en _bookings: ${_bookings.length}');
     
-    // 🔥 DEBUG: Mostrar TODAS las reservas primero
+    // Debug: Mostrar todas las reservas antes del filtrado
     for (var booking in _bookings) {
       print('   📋 ALL: ${booking.courtNumber} | ${booking.date} | ${booking.timeSlot} | ${booking.players.length} jugadores');
     }
@@ -179,7 +242,7 @@ class BookingProvider extends ChangeNotifier {
   }
   
   // ============================================================================
-  // VALIDACIÓN DE CONFLICTOS
+  // VALIDACIÓN DE CONFLICTOS - Algoritmo principal del sistema
   // ============================================================================
 
   /// **MÉTODO PRINCIPAL** - Valida si se puede crear una reserva
@@ -349,20 +412,33 @@ class BookingProvider extends ChangeNotifier {
     };
   }
 
-  // Métodos de conveniencia que mantienen la API existente
+  /// Obtiene count de reservas completas para horarios visibles
+  /// 
+  /// @param visibleTimeSlots Horarios actualmente visibles
+  /// @return Número de reservas completas
   int getCompleteBookingsCount(List<String> visibleTimeSlots) {
     return getStatsForVisibleTimeSlots(visibleTimeSlots)['complete'] ?? 0;
   }
 
+  /// Obtiene count de reservas incompletas para horarios visibles
+  /// 
+  /// @param visibleTimeSlots Horarios actualmente visibles
+  /// @return Número de reservas incompletas
   int getIncompleteBookingsCount(List<String> visibleTimeSlots) {
     return getStatsForVisibleTimeSlots(visibleTimeSlots)['incomplete'] ?? 0;
   }
 
+  /// Obtiene count de slots disponibles para horarios visibles
+  /// 
+  /// @param visibleTimeSlots Horarios actualmente visibles
+  /// @return Número de slots disponibles
   int getAvailableBookingsCount(List<String> visibleTimeSlots) {
     return getStatsForVisibleTimeSlots(visibleTimeSlots)['available'] ?? 0;
   }
 
-  /// NUEVO: Estado de emails para mostrar en UI
+  /// Estado legible del sistema de emails para mostrar en UI
+  /// 
+  /// @return String con estado actual o vacío si no hay operaciones
   String get emailStatus {
     if (_isSendingEmails) {
       return 'Enviando confirmaciones...';
@@ -397,7 +473,7 @@ class BookingProvider extends ChangeNotifier {
   bool isTimeSlotAvailable(String timeSlot) {
     return getBookingForTimeSlot(timeSlot) == null;
   }
-
+  
   // ============================================================================
   // INICIALIZACIÓN - Setup del provider
   // ============================================================================
@@ -419,8 +495,6 @@ class BookingProvider extends ChangeNotifier {
     _generateAvailableDates();
     await _loadCourts();
     await _loadBookings();
-    
-    // 🔥 AGREGAR ESTA LÍNEA:
     await initializeCurrentUser();
   }
 
@@ -437,7 +511,7 @@ class BookingProvider extends ChangeNotifier {
       
       print('🔥 Auto-completando primer jugador: $name ($email)');
       
-      // Exponer usuario actual para formularios
+      // Cachear usuario actual para formularios
       _currentUserEmail = email;
       _currentUserName = name;
       
@@ -446,15 +520,6 @@ class BookingProvider extends ChangeNotifier {
       print('❌ Error inicializando usuario actual: $e');
     }
   }
-
-  // Agregar estas propiedades privadas al inicio de la clase
-  String? _currentUserEmail;
-  String? _currentUserName;
-
-  // Agregar estos getters públicos
-  String? get currentUserEmail => _currentUserEmail;
-  String? get currentUserName => _currentUserName;
-  bool get hasCurrentUser => _currentUserEmail != null && _currentUserName != null;
 
   /// Genera lista de fechas disponibles usando ScheduleService
   /// 
@@ -468,19 +533,20 @@ class BookingProvider extends ChangeNotifier {
   void _generateAvailableDates() {
     _availableDates.clear();
     
-    // 🔥 USAR FECHA INTELIGENTE en lugar de DateTime.now()
+    // Usar fecha inteligente de ScheduleService en lugar de DateTime.now()
     final startDate = ScheduleService.getDefaultDisplayDate();
     
     print('🔥 ScheduleService determinó fecha de inicio: $startDate');
     final debugInfo = ScheduleService.getScheduleDebugInfo();
     print('🔥 Info debug horarios: $debugInfo');
     
+    // Generar 4 días consecutivos
     for (int i = 0; i < 4; i++) {
       final date = DateTime(startDate.year, startDate.month, startDate.day + i);
       _availableDates.add(date);
     }
     
-    // Establecer fecha inicial como la determinada por ScheduleService
+    // Establecer fecha inicial
     _selectedDate = _availableDates[0];
     _currentDateIndex = 0;
     
@@ -488,7 +554,10 @@ class BookingProvider extends ChangeNotifier {
     print('✅ Fecha seleccionada inicial: $_selectedDate');
   }
   
-  // Helper para formatear fechas
+  /// Formatea fecha para mostrar de manera amigable
+  /// 
+  /// @param date Fecha a formatear
+  /// @return String con formato "DD de Mes"
   String _formatDate(DateTime date) {
     const months = [
       '', 'Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio',
@@ -498,13 +567,16 @@ class BookingProvider extends ChangeNotifier {
     return '${date.day} de ${months[date.month]}';
   }
 
-  // 🔥 HELPER para formatear fecha para Firebase (YYYY-MM-DD)
+  /// Formatea fecha para almacenamiento en Firebase
+  /// 
+  /// @param date Fecha a formatear
+  /// @return String en formato YYYY-MM-DD
   String _formatDateForFirebase(DateTime date) {
     return '${date.year}-${date.month.toString().padLeft(2, '0')}-${date.day.toString().padLeft(2, '0')}';
   }
   
   // ============================================================================
-  // CARGA DE DATOS DESDE FIREBASE - SIN CAMBIOS
+  // CARGA DE DATOS - Inicialización de canchas y reservas
   // ============================================================================
   
   /// Carga canchas desde configuración estática
@@ -586,14 +658,14 @@ class BookingProvider extends ChangeNotifier {
       // Cancelar suscripción anterior si existe
       _bookingsSubscription?.cancel();
       
-      // 🔥 CARGAR RESERVAS DE LA FECHA SELECCIONADA
+      // Configurar stream de reservas para fecha seleccionada
       _bookingsSubscription = FirestoreService.getBookingsByDate(_selectedDate).listen(
         (bookings) {
           print('✅ Reservas cargadas desde Firebase: ${bookings.length}');
           
           _bookings = bookings;
           
-          // 🔥 DEBUG: mostrar reservas cargadas CON DETALLES COMPLETOS
+          // Debug: mostrar reservas cargadas con detalles completos
           for (var booking in _bookings) {
             print('   📋 LOADED: courtNumber="${booking.courtNumber}" | date="${booking.date}" | timeSlot="${booking.timeSlot}" | players=${booking.players.length} | status="${booking.status}"');
             for (var player in booking.players.take(2)) {
@@ -601,7 +673,7 @@ class BookingProvider extends ChangeNotifier {
             }
           }
           
-          // 🔥 FORZAR NOTIFICACIÓN INMEDIATA PARA ACTUALIZAR COLORES
+          // Forzar notificación inmediata para actualizar colores de UI
           notifyListeners();
         },
         onError: (error) {
@@ -623,17 +695,36 @@ class BookingProvider extends ChangeNotifier {
   /// 
   /// @param courtId ID de la cancha a seleccionar
   /// @sideEffect Actualiza _selectedCourtId y notifica listeners si hay cambio
-    void selectCourt(String courtId) {
+  void selectCourt(String courtId) {
     if (_selectedCourtId != courtId) {
       _selectedCourtId = courtId;
       notifyListeners();
     }
   }
   
+  /// Selecciona una fecha específica
+  /// 
+  /// Cambia la fecha seleccionada, actualiza el índice correspondiente,
+  /// y recarga las reservas para la nueva fecha.
+  /// 
+  /// @param date Nueva fecha a seleccionar
+  /// @sideEffect Actualiza estado, recarga reservas, y notifica listeners
   void selectDate(DateTime date) {
     if (_selectedDate != date) {
       _selectedDate = date;
       
+  /// Selecciona una fecha específica
+  /// 
+  /// Cambia la fecha seleccionada, actualiza el índice correspondiente,
+  /// y recarga las reservas para la nueva fecha.
+  /// 
+  /// @param date Nueva fecha a seleccionar
+  /// @sideEffect Actualiza estado, recarga reservas, y notifica listeners
+  void selectDate(DateTime date) {
+    if (_selectedDate != date) {
+      _selectedDate = date;
+      
+      // Actualizar índice correspondiente en availableDates
       _currentDateIndex = _availableDates.indexWhere((d) => 
         d.year == date.year && d.month == date.month && d.day == date.day);
       
@@ -644,6 +735,12 @@ class BookingProvider extends ChangeNotifier {
     }
   }
   
+  /// Selecciona fecha por índice en la lista de fechas disponibles
+  /// 
+  /// Método optimizado para navegación secuencial de fechas.
+  /// 
+  /// @param index Índice en availableDates (0-3 típicamente)
+  /// @sideEffect Actualiza fecha, recarga reservas si hay cambio
   void selectDateByIndex(int index) {
     if (index >= 0 && index < _availableDates.length && index != _currentDateIndex) {
       _currentDateIndex = index;
@@ -653,25 +750,48 @@ class BookingProvider extends ChangeNotifier {
     }
   }
   
+  /// Navega a la siguiente fecha disponible
+  /// 
+  /// @sideEffect Actualiza fecha si no está en la última posición
   void nextDate() {
     if (_currentDateIndex < _availableDates.length - 1) {
       selectDateByIndex(_currentDateIndex + 1);
     }
   }
   
+  /// Navega a la fecha anterior disponible
+  /// 
+  /// @sideEffect Actualiza fecha si no está en la primera posición
   void previousDate() {
     if (_currentDateIndex > 0) {
       selectDateByIndex(_currentDateIndex - 1);
     }
   }
   
+  /// Indica si se puede navegar a fecha anterior
   bool get canGoToPreviousDate => _currentDateIndex > 0;
+  
+  /// Indica si se puede navegar a fecha siguiente
   bool get canGoToNextDate => _currentDateIndex < _availableDates.length - 1;
 
   // ============================================================================
-  // FILTRADO DE HORARIOS POR REGLA 72 HORAS - SIN CAMBIOS
+  // FILTRADO DE HORARIOS - Aplicación de reglas de negocio temporales
   // ============================================================================
   
+  /// Obtiene horarios disponibles para una fecha aplicando regla de 72 horas
+  /// 
+  /// Implementa lógica compleja de horarios basada en:
+  /// - Horarios del día actual (después de hora actual)
+  /// - Horarios de días futuros (todos disponibles)
+  /// - Horarios del último día disponible (hasta hora actual, regla 72h)
+  /// 
+  /// REGLAS APLICADAS:
+  /// - Hoy: Solo horarios posteriores a la hora actual
+  /// - Días intermedios: Todos los horarios del club
+  /// - Último día (72h): Solo horarios hasta la hora actual
+  /// 
+  /// @param date Fecha para calcular horarios disponibles
+  /// @return Lista de horarios en formato HH:MM
   List<String> getAvailableTimeSlotsForDate(DateTime date) {
     final now = DateTime.now();
     final isToday = date.year == now.year && 
@@ -685,7 +805,7 @@ class BookingProvider extends ChangeNotifier {
     final currentMinute = now.minute;
     final currentTimeInMinutes = currentHour * 60 + currentMinute;
     
-    // 🔥 USAR HORARIOS DINÁMICOS según la fecha seleccionada
+    // Usar horarios dinámicos según la fecha seleccionada
     final allTimeSlots = AppConstants.getAllTimeSlots(date);
     
     final filteredSlots = allTimeSlots.where((timeSlot) {
@@ -706,17 +826,22 @@ class BookingProvider extends ChangeNotifier {
     return filteredSlots;
   }
   
-  // 🔥 MEJORADO: Refresh más agresivo
+  /// Refresca datos forzando recarga desde Firebase
+  /// 
+  /// Método optimizado con doble notificación para asegurar
+  /// actualización visual inmediata en la UI.
+  /// 
+  /// @sideEffect Recarga bookings y notifica listeners múltiples veces
   Future<void> refresh() async {
     print('🔄 Refrescando datos...');
     await _loadBookings();
     
-    // Forzar una segunda notificación después de un pequeño delay
+    // Forzar segunda notificación después de delay para UI reactiva
     await Future.delayed(const Duration(milliseconds: 100));
     notifyListeners();
     print('🔄 Refresh completado - UI actualizada');
   }
-
+  
   // ============================================================================
   // OPERACIONES CRUD - Creación, actualización y eliminación de reservas
   // ============================================================================
@@ -739,7 +864,7 @@ class BookingProvider extends ChangeNotifier {
       _setLoading(true);
       print('➕ Creando nueva reserva...');
       
-      // 🔥 VALIDACIÓN COMPLETA
+      // Validación completa de conflictos
       final playerNames = booking.players.map((p) => p.name).toList();
       final validation = canCreateBooking(
         booking.courtNumber, 
@@ -795,7 +920,7 @@ class BookingProvider extends ChangeNotifier {
       _setLoading(true);
       print('📝 Creando reserva con emails automáticos...');
       
-      // 1. Validación completa (usar método existente)
+      // 1. Validación completa usando método existente
       final playerNames = players.map((p) => p.name).toList();
       final validation = canCreateBooking(courtNumber, date, timeSlot, playerNames);
       
@@ -803,7 +928,7 @@ class BookingProvider extends ChangeNotifier {
         throw Exception(validation.reason!);
       }
       
-      // 2. Crear reserva en Firebase (usar método existente)
+      // 2. Crear objeto reserva completo
       final booking = Booking(
         courtNumber: courtNumber,
         date: date,
@@ -813,6 +938,7 @@ class BookingProvider extends ChangeNotifier {
         createdAt: DateTime.now(),
       );
       
+      // 3. Persistir en Firebase
       print('📝 Guardando en Firebase...');
       final bookingId = await FirestoreService.createBooking(booking);
       
@@ -820,10 +946,10 @@ class BookingProvider extends ChangeNotifier {
         throw Exception('Error al crear reserva en Firebase');
       }
       
-      // 3. Actualizar booking con ID para emails
+      // 4. Actualizar booking con ID para emails
       final savedBooking = booking.copyWith(id: bookingId);
       
-      // 4. Enviar emails de confirmación
+      // 5. Enviar emails de confirmación
       print('📧 Enviando emails de confirmación...');
       _isSendingEmails = true;
       notifyListeners();
@@ -846,7 +972,7 @@ class BookingProvider extends ChangeNotifier {
       print('❌ Error creando reserva con emails: $e');
       _isSendingEmails = false;
       _setLoading(false);
-      rethrow; // Mantener manejo de errores existente
+      rethrow; // Mantener manejo de errores para UI
     }
   }
 
@@ -908,10 +1034,17 @@ class BookingProvider extends ChangeNotifier {
     }
   }
 
-  // 🔥 HELPER: Obtener reserva por ID (buscar en memoria o Firebase)
+  /// Obtiene reserva por ID buscando en memoria o Firebase
+  /// 
+  /// Optimización que busca primero en las reservas cargadas en memoria
+  /// antes de hacer consulta a Firebase, mejorando performance.
+  /// 
+  /// @param bookingId ID único de la reserva
+  /// @return Booking encontrada o null si no existe
+  /// @throws Exception solo para errores críticos, retorna null para no encontrada
   Future<Booking?> _getBookingById(String bookingId) async {
     try {
-      // Buscar en las reservas cargadas primero
+      // Buscar en reservas cargadas en memoria primero
       for (final booking in _bookings) {
         if (booking.id == bookingId) {
           return booking;
@@ -950,11 +1083,18 @@ class BookingProvider extends ChangeNotifier {
     notifyListeners();
   }
   
+  /// Limpia errores actuales
+  /// 
+  /// @sideEffect Limpia _error y notifica listeners
   void clearError() {
     _error = null;
     notifyListeners();
   }
   
+  /// Limpia recursos y cancela suscripciones al destruir el provider
+  /// 
+  /// Método crítico para evitar memory leaks cancelando streams activos.
+  /// Llamado automáticamente por Flutter cuando el provider se destruye.
   @override
   void dispose() {
     _courtsSubscription?.cancel();
@@ -980,8 +1120,12 @@ class BookingProvider extends ChangeNotifier {
 class ValidationResult {
   /// Indica si la validación fue exitosa
   final bool isValid;
+  
   /// Razón específica del fallo (null si isValid es true)
   final String? reason;
 
   ValidationResult({required this.isValid, this.reason});
+  
+  @override
+  String toString() => 'ValidationResult(isValid: $isValid, reason: $reason)';
 }

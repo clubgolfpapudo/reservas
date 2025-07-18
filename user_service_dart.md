@@ -9,6 +9,12 @@
 /// - Consultas directas a Firebase Firestore cuando sea necesario
 /// - Fallbacks robustos para diferentes plataformas (Web, Android, iOS)
 /// 
+/// MOTIVO DE EXISTENCIA:
+/// El sistema actual es híbrido donde los usuarios ingresan desde GAS y son
+/// redirigidos a Flutter con parámetros de URL. Este servicio centraliza toda
+/// la lógica compleja de detectar el usuario actual desde múltiples fuentes
+/// posibles y proporciona una API limpia para el resto del sistema.
+/// 
 /// INTEGRACIÓN CON SISTEMA HÍBRIDO:
 /// 1. Usuario ingresa email en sistema GAS (pageLogin.html)
 /// 2. Selecciona "Pádel" y es redirigido a Flutter Web con parámetros URL
@@ -22,15 +28,29 @@
 /// 3. **Firebase Firestore**: Consulta directa por email cuando sea necesario
 /// 4. **Fallbacks por Plataforma**: Web vs Android/iOS con valores apropiados
 /// 
+/// CASOS DE USO PRINCIPALES:
+/// - Auto-completado del organizador en formularios de reserva
+/// - Identificación del usuario actual para validaciones de conflictos
+/// - Integración con sistema de emails (remitente de confirmaciones)
+/// - Testing y desarrollo con usuarios configurables
+/// - Transición futura a autenticación Flutter nativa (sin GAS)
+/// 
 /// COMPATIBILIDAD MULTIPLATAFORMA:
 /// - **Web**: Lectura de URL parameters + fallbacks web
 /// - **Android/iOS**: Configuración manual + fallbacks móvil
 /// - **Desarrollo**: Sistema flexible para testing offline
 /// - **Futuro**: Base para migración a Firebase Auth completo
+/// 
+/// DEBUGGING Y LOGS:
+/// - Logs detallados de cada paso del proceso de detección
+/// - Información de URL parsing para debugging de integración GAS
+/// - Identificación clara de qué fuente de datos se está usando
+/// - Warnings apropiados cuando se usan fallbacks
+
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/foundation.dart' show kIsWeb, kDebugMode;
 
-// Solo importar dart:html en web con conditional import
+// Importación condicional para dart:html solo en plataforma Web
 import 'dart:html' as html show window;
 
 /// Servicio de alto nivel para gestión del usuario actual
@@ -51,6 +71,7 @@ class UserService {
   /// Email del usuario actual cacheado en memoria
   /// Puede ser establecido desde URL, configuración manual, o consulta Firebase
   static String? _currentUserEmail;
+  
   /// Nombre del usuario actual cacheado en memoria
   /// Correspondiente al email actual, usado para auto-completado
   static String? _currentUserName;
@@ -126,28 +147,29 @@ class UserService {
   /// @platform Web: Prioriza URL parameters, fallback a configuración manual
   /// @platform Mobile: Usa configuración manual o fallback específico móvil
   static Future<String> getCurrentUserEmail() async {
-    // 1. 🔥 NUEVO: Intentar leer email de la URL primero (SOLO EN WEB)
+    // 1. PRIORIDAD MÁXIMA: URL Parameters (solo en Web)
     if (kIsWeb) {
       try {
         final uri = Uri.parse(html.window.location.href);
-        // 🐛 DEBUG DETALLADO
+        
+        // Debugging detallado para troubleshooting integración GAS
         print('🔍 URL completa: ${html.window.location.href}');
         print('🔍 URI parseada: $uri');
         print('🔍 Query string: ${uri.query}');
         print('🔍 Todos los parámetros: ${uri.queryParameters}');
         print('🔍 Parámetro email específico: ${uri.queryParameters['email']}');
-        
-        // 🚀 NUEVO DEBUG EXTRA - Agregar estas líneas:
         print('🔍 Location search: ${html.window.location.search}');
         print('🔍 Location href: ${html.window.location.href}');
         print('🔍 Hash: ${html.window.location.hash}');
+        
+        // Log de todos los parámetros encontrados para debugging
         uri.queryParameters.forEach((key, value) {
           print('🔍 Parámetro encontrado: "$key" = "$value"');
         });
 
         final emailFromUrl = uri.queryParameters['email'];
         if (emailFromUrl != null && emailFromUrl.isNotEmpty) {
-          _currentUserEmail = emailFromUrl; // Actualizar usuario actual
+          _currentUserEmail = emailFromUrl; // Cachear para futuras llamadas
           print('✅ Email obtenido de URL: $emailFromUrl');
           return emailFromUrl;
         }
@@ -156,20 +178,20 @@ class UserService {
       }
     }
 
-    // 2. Si hay usuario configurado manualmente, usarlo
+    // 2. CONFIGURACIÓN MANUAL: Usuario establecido programáticamente
     if (_currentUserEmail != null && _currentUserEmail!.isNotEmpty) {
       print('✅ Email desde configuración manual: $_currentUserEmail');
       return _currentUserEmail!;
     }
 
-    // 3. 📱 FALLBACK ANDROID/MÓVIL
+    // 3. FALLBACK MÓVIL: Email específico para plataformas Android/iOS
     if (!kIsWeb) {
       const fallbackEmail = 'usuario.android@cgp.cl';
       print('📱 Android: Usando email por defecto: $fallbackEmail');
       return fallbackEmail;
     }
 
-    // 4. Fallback final para web
+    // 4. FALLBACK WEB: Email por defecto cuando no hay URL parameters
     const fallbackEmail = 'fgarciabenitez@gmail.com';
     print('🔄 Usando email fallback: $fallbackEmail');
     return fallbackEmail;
@@ -243,24 +265,25 @@ class UserService {
   static Future<String> getCurrentUserName() async {
     print('🎯 DEBUG getName: Iniciando getCurrentUserName()');
     
-    // 1. Obtener email primero
+    // 1. Obtener email primero (necesario para consulta Firebase)
     final email = await getCurrentUserEmail();
     print('🎯 DEBUG getName: Email obtenido: "$email"');
     
-    // 2. Si hay usuario configurado manualmente, usarlo
+    // 2. CONFIGURACIÓN MANUAL: Nombre establecido programáticamente
     if (_currentUserName != null && _currentUserName!.isNotEmpty) {
       print('✅ Nombre desde configuración manual: $_currentUserName');
       return _currentUserName!;
     }
 
-    // 3. Intentar leer nombre de la URL primero (SOLO EN WEB)
+    // 3. URL PARAMETERS: Extraer nombre desde query string (solo Web)
     if (kIsWeb) {
       try {
         final uri = Uri.parse(html.window.location.href);
         final nameFromUrl = uri.queryParameters['name'];
         if (nameFromUrl != null && nameFromUrl.isNotEmpty) {
+          // Decodificar URL encoding (%20 → espacios) y normalizar formato
           final decodedName = Uri.decodeComponent(nameFromUrl).toUpperCase();
-          _currentUserName = decodedName;
+          _currentUserName = decodedName; // Cachear para futuras llamadas
           print('✅ Nombre obtenido de URL: $decodedName');
           return decodedName;
         }
@@ -269,23 +292,23 @@ class UserService {
       }
     }
 
-    // 4. 🔥 NUEVO: Consultar Firestore por email
-    if (email != null && email.isNotEmpty && email != 'unknown') {
+    // 4. FIREBASE FIRESTORE: Consulta displayName por email
+    if (email.isNotEmpty && email != 'unknown') {
       final displayName = await getDisplayNameFromFirestore(email);
       if (displayName != 'USUARIO NO ENCONTRADO' && displayName != 'ERROR DE CONEXIÓN') {
-        _currentUserName = displayName;
+        _currentUserName = displayName; // Cachear resultado exitoso
         print('🔥 Nombre obtenido de Firestore: $displayName');
         return displayName;
       }
     }
 
-    // 5. Fallback para móvil
+    // 5. FALLBACK MÓVIL: Nombre específico para plataformas Android/iOS
     if (!kIsWeb) {
       const fallbackName = 'USUARIO ANDROID';
       return fallbackName;
     }
 
-    // 6. Fallback final
+    // 6. FALLBACK WEB FINAL: Cuando todas las fuentes fallan
     const fallbackName = 'USUARIO DESCONOCIDO';
     print('⚠️ Usando fallback: $fallbackName');
     return fallbackName;
