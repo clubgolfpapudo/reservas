@@ -309,13 +309,13 @@ exports.syncUsersFromSheets = onRequest({
         }
 
         const email = (row.EMAIL || '').trim().toLowerCase();
-        const nombres = (row['NOMBRE(S)'] || '').trim();
-        const apellidoPaterno = (row.APELLIDO_PATERNO || '').trim();
-        const apellidoMaterno = (row.APELLIDO_MATERNO || '').trim();
-        const rutPasaporte = (row['RUT/PASAPORTE'] || '').trim();
-        const fechaNacimiento = (row['FECHA NACIMIENTO'] || '').trim();
-        const relacion = (row.RELACION || '').trim();
-        const celular = (row.CELULAR || '').trim();
+        const nombres = (row['GIVEN_NAMES'] || '').trim();
+        const apellidoPaterno = (row.LAST_NAME || '').trim();
+        const apellidoMaterno = (row['SECOND_LAST_NAME'] || '').trim();
+        const rutPasaporte = (row.ID_DOCUMENT || '').trim();
+        const fechaNacimiento = (row.BIRTH_DATE || '').trim();
+        const relacion = (row.RELATION || '').trim();
+        const celular = (row.PHONE || '').trim();
 
         // Validar email
         if (!email || !email.includes('@')) {
@@ -330,22 +330,34 @@ exports.syncUsersFromSheets = onRequest({
         const userData = {
           // CAMPOS INGLÉS (SISTEMA UNIFICADO)
           email: email,
-          firstName: nombres,
+          givenNames: nombres,
           lastName: apellidoPaterno,
-          middleName: apellidoMaterno,
+          secondLastName: apellidoMaterno,
           phone: celular,
           relation: relacion,
-          idNumber: rutPasaporte,
+          idDocument: rutPasaporte,
           birthDate: fechaNacimiento,
 
           // CAMPOS CALCULADOS
-          name: formatCorrectDisplayName(nombres, apellidoPaterno, apellidoMaterno),
+          name: formattedName,
           displayName: formattedName,
+
+          // CAMPOS COMPATIBILIDAD (ALIAS)
+          firstName: nombres,           // ← ALIAS para compatibilidad
+          middleName: apellidoMaterno,  // ← ALIAS para compatibilidad
+
+          // CAMPOS COMPATIBILIDAD (ESPAÑOL) - TEMPORALES
+          nombres: nombres,
+          apellidoPaterno: apellidoPaterno,
+          apellidoMaterno: apellidoMaterno,
+          rutPasaporte: rutPasaporte,
+          fechaNacimiento: fechaNacimiento,
+          relacion: relacion,
 
           // CAMPOS SISTEMA
           isActive: true,
           lastSyncFromSheets: admin.firestore.FieldValue.serverTimestamp(),
-          source: 'google_sheets_background'
+          source: 'google_sheets_auto'
         };
 
         // Verificar si el usuario ya existe
@@ -1280,26 +1292,29 @@ exports.dailyUserSync = onSchedule({
         const userData = {
           // CAMPOS INGLÉS (SISTEMA UNIFICADO)
           email: email,
-          firstName: nombres,
+          givenNames: nombres,
           lastName: apellidoPaterno,
-          middleName: apellidoMaterno,
-          phone: celular,              // ← CORREGIDO: Solo 'phone', no 'celular'
+          secondLastName: apellidoMaterno,
+          phone: celular,
           relation: relacion,
-          idNumber: rutPasaporte,
+          idDocument: rutPasaporte,
           birthDate: fechaNacimiento,
 
           // CAMPOS CALCULADOS
           name: formattedName,
           displayName: formattedName,
 
-          // CAMPOS COMPATIBILIDAD (ESPAÑOL)
+          // CAMPOS COMPATIBILIDAD (ALIAS)
+          firstName: nombres,           // ← ALIAS para compatibilidad
+          middleName: apellidoMaterno,  // ← ALIAS para compatibilidad
+
+          // CAMPOS COMPATIBILIDAD (ESPAÑOL) - TEMPORALES
           nombres: nombres,
           apellidoPaterno: apellidoPaterno,
           apellidoMaterno: apellidoMaterno,
           rutPasaporte: rutPasaporte,
           fechaNacimiento: fechaNacimiento,
           relacion: relacion,
-          // celular: celular,         // ← ELIMINADO: No crear campo duplicado
 
           // CAMPOS SISTEMA
           isActive: true,
@@ -2238,5 +2253,180 @@ exports.migratePhonesByEmail = onRequest({
   } catch (error) {
     console.error('❌ Error en migración:', error);
     res.status(500).json({ error: error.message });
+  }
+});
+
+// ============================================================================
+// LIMPIEZA COMPLETA DE CAMPOS REDUNDANTES - VERSION FINAL
+// ============================================================================
+exports.cleanupRedundantFields = onRequest({
+  cors: true,
+  memory: "1GiB",
+  timeoutSeconds: 540,
+}, async (req, res) => {
+  
+  // Respuesta inmediata
+  res.json({
+    success: true,
+    message: "✅ Limpieza completa de campos redundantes iniciada",
+    status: "processing_in_background",
+    timestamp: new Date().toISOString(),
+    fieldsToRemove: [
+      "nombres", "apellidoPaterno", "apellidoMaterno", 
+      "rutPasaporte", "fechaNacimiento", "relacion", 
+      "idNumber", "firstName", "middleName"
+    ],
+    finalStructure: [
+      "email", "givenNames", "lastName", "secondLastName", 
+      "idDocument", "relation", "birthDate", "phone",
+      "name", "displayName", "isActive", "source", "lastSyncFromSheets"
+    ]
+  });
+
+  try {
+    console.log('🧹 === INICIANDO LIMPIEZA COMPLETA ===');
+    console.log('⏰ Timestamp inicio:', new Date().toISOString());
+
+    const db = admin.firestore();
+    const usersRef = db.collection('users');
+
+    // Estadísticas
+    const stats = {
+      processed: 0,
+      cleaned: 0,
+      errors: 0,
+      totalFieldsRemoved: 0,
+      startTime: Date.now()
+    };
+
+    // Obtener todos los usuarios
+    const allUsers = await usersRef.get();
+    console.log(`👥 Usuarios encontrados: ${allUsers.size}`);
+
+    // TODOS los campos redundantes a eliminar
+    const fieldsToRemove = [
+      // CAMPOS ESPAÑOLES LEGACY
+      'nombres',           // ← Redundante con givenNames
+      'apellidoPaterno',   // ← Redundante con lastName  
+      'apellidoMaterno',   // ← Redundante con secondLastName
+      'rutPasaporte',      // ← Redundante con idDocument
+      'fechaNacimiento',   // ← Redundante con birthDate
+      'relacion',          // ← Redundante con relation
+      
+      // ALIAS INGLÉS (ya no necesarios)
+      'firstName',         // ← Flutter ahora usa givenNames
+      'middleName',        // ← Flutter ahora usa secondLastName
+      'idNumber'           // ← Redundante con idDocument
+    ];
+
+    console.log('🗑️ Campos a eliminar (9 total):', fieldsToRemove);
+
+    // Procesar en lotes para mejor performance
+    const batch = db.batch();
+    let batchOperations = 0;
+    const BATCH_SIZE = 400; // Reducir para mayor estabilidad
+
+    for (const userDoc of allUsers.docs) {
+      try {
+        stats.processed++;
+
+        // Log de progreso cada 50 usuarios
+        if (stats.processed % 50 === 0) {
+          console.log(`⏳ Progreso: ${stats.processed}/${allUsers.size} usuarios procesados...`);
+        }
+
+        const userData = userDoc.data();
+        
+        // Verificar qué campos tiene este usuario para eliminar
+        const updateData = {};
+        let fieldsRemovedForUser = 0;
+
+        fieldsToRemove.forEach(field => {
+          if (userData.hasOwnProperty(field)) {
+            updateData[field] = admin.firestore.FieldValue.delete();
+            fieldsRemovedForUser++;
+          }
+        });
+
+        if (fieldsRemovedForUser > 0) {
+          // Agregar timestamp de limpieza
+          updateData.lastCleanup = admin.firestore.FieldValue.serverTimestamp();
+          
+          batch.update(userDoc.ref, updateData);
+          batchOperations++;
+          stats.cleaned++;
+          stats.totalFieldsRemoved += fieldsRemovedForUser;
+
+          if (stats.processed <= 5) { // Log detallado para primeros usuarios
+            console.log(`🧹 ${userData.email}: ${fieldsRemovedForUser} campos eliminados`);
+          }
+        }
+
+        // Ejecutar batch cuando llegue al límite
+        if (batchOperations >= BATCH_SIZE) {
+          console.log(`📦 Ejecutando batch de ${batchOperations} operaciones...`);
+          await batch.commit();
+          
+          // Crear nuevo batch
+          const newBatch = db.batch();
+          batchOperations = 0;
+          
+          // Pequeña pausa para no sobrecargar
+          await new Promise(resolve => setTimeout(resolve, 100));
+        }
+
+      } catch (error) {
+        stats.errors++;
+        console.error(`❌ Error procesando usuario ${userDoc.id}:`, error.message);
+      }
+    }
+
+    // Ejecutar último batch si tiene operaciones pendientes
+    if (batchOperations > 0) {
+      console.log(`📦 Ejecutando último batch de ${batchOperations} operaciones...`);
+      await batch.commit();
+    }
+
+    // Guardar estadísticas de limpieza
+    const executionTime = Date.now() - stats.startTime;
+    
+    await db.collection('system').doc('cleanup_status').set({
+      lastCompleteCleanup: new Date(),
+      stats: stats,
+      fieldsRemoved: fieldsToRemove,
+      executionTime: executionTime,
+      averageFieldsPerUser: (stats.totalFieldsRemoved / stats.cleaned).toFixed(1),
+      source: 'complete_redundant_cleanup'
+    }, { merge: true });
+
+    console.log('🎉 === LIMPIEZA COMPLETA FINALIZADA ===');
+    console.log(`⏱️ Tiempo de ejecución: ${executionTime}ms (${(executionTime/1000/60).toFixed(2)} minutos)`);
+    console.log(`📋 Usuarios procesados: ${stats.processed}`);
+    console.log(`🧹 Usuarios limpiados: ${stats.cleaned}`);
+    console.log(`🗑️ Total campos eliminados: ${stats.totalFieldsRemoved}`);
+    console.log(`📊 Promedio campos/usuario: ${(stats.totalFieldsRemoved / stats.cleaned).toFixed(1)}`);
+    console.log(`❌ Errores: ${stats.errors}`);
+    console.log(`🎯 Tasa de éxito: ${((stats.cleaned / stats.processed) * 100).toFixed(1)}%`);
+    
+    const estimatedSavings = Math.round((stats.totalFieldsRemoved / (stats.processed * 20)) * 100);
+    console.log(`💾 Reducción estimada base de datos: ~${estimatedSavings}%`);
+    console.log('✅ SISTEMA COMPLETAMENTE OPTIMIZADO');
+
+  } catch (error) {
+    console.error('❌ ERROR CRÍTICO en limpieza completa:', error);
+    
+    // Guardar error para debugging
+    try {
+      await admin.firestore().collection('system').doc('cleanup_errors').set({
+        timestamp: new Date(),
+        error: error.message,
+        stack: error.stack,
+        source: 'complete_cleanup'
+      }, { merge: true });
+    } catch (e) {
+      console.error('❌ Error guardando log de error:', e);
+    }
+    
+    throw error;
   }
 });
