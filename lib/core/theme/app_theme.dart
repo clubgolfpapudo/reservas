@@ -436,7 +436,7 @@ class AppTheme {
       ),
       
       // Tarjetas
-      cardTheme: const CardTheme(
+      cardTheme: CardTheme(
         elevation: 2.0,
         shadowColor: Colors.black.withOpacity(0.1),
         shape: RoundedRectangleBorder(
@@ -447,7 +447,7 @@ class AppTheme {
       ),
       
       // Diálogos
-      dialogTheme: const DialogTheme(
+      dialogTheme: DialogTheme(
         elevation: 8.0,
         backgroundColor: Colors.white,
         shape: RoundedRectangleBorder(
