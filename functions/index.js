@@ -793,7 +793,6 @@ exports.getUsers = onRequest({
     const db = admin.firestore();
     const usersSnapshot = await db.collection('users')
       .where('isActive', '==', true)
-      .orderBy('name')
       .get();
     
     const users = [];
@@ -806,6 +805,9 @@ exports.getUsers = onRequest({
         relacion: userData.relation || userData.relacion || ''
       });
     });
+    
+    // Ordenar alfabéticamente en JavaScript
+    users.sort((a, b) => a.name.localeCompare(b.name));
     
     console.log(`👥 Enviando ${users.length} usuarios al frontend`);
     
