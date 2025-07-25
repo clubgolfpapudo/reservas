@@ -8,19 +8,19 @@ import '../widgets/booking/reservation_form_modal.dart';
 import '../widgets/booking/reservation_webview.dart';
 import '../widgets/booking/time_slot_block.dart';
 import '../widgets/common/date_navigation_header.dart';
-import '../../core/constants/app_constants.dart';
+import '../../core/constants/tennis_constants.dart';
 import '../../core/services/user_service.dart';
-import '../../core/theme/app_theme.dart';
+import '../../core/theme/tennis_theme.dart';
 import '../../domain/entities/booking.dart';
 
-class ReservationsPage extends StatefulWidget {
-  const ReservationsPage({Key? key}) : super(key: key);
+class TennisReservationsPage extends StatefulWidget {
+  const TennisReservationsPage({Key? key}) : super(key: key);
 
   @override
-  State<ReservationsPage> createState() => _ReservationsPageState();
+  State<TennisReservationsPage> createState() => _TennisReservationsPageState();
 }
 
-class _ReservationsPageState extends State<ReservationsPage> {
+class _TennisReservationsPageState extends State<TennisReservationsPage> {
   late PageController _pageController;
 
   @override
@@ -47,7 +47,6 @@ class _ReservationsPageState extends State<ReservationsPage> {
             children: [
               // Header con navegación de fechas
               DateNavigationHeader(
-                title: 'P�del',
                 currentDate: bookingProvider.selectedDate,
                 currentIndex: bookingProvider.currentDateIndex,
                 totalDays: bookingProvider.totalAvailableDays,
@@ -87,7 +86,6 @@ class _ReservationsPageState extends State<ReservationsPage> {
       children: [
         // Tabs de canchas mejorados
         EnhancedCourtTabs(
-          courtNames: AppConstants.courtNames,
           selectedCourt: provider.selectedCourtName,
           onCourtSelected: (courtName) {
             // Mapear nombre a ID
@@ -126,7 +124,7 @@ class _ReservationsPageState extends State<ReservationsPage> {
     if (provider.isLoading) {
       return const Center(
         child: CircularProgressIndicator(
-          color: Color(0xFF2E7AFF),
+          color: AppColors.primaryBlue,
         ),
       );
     }
@@ -156,7 +154,7 @@ class _ReservationsPageState extends State<ReservationsPage> {
                 provider.refresh();
               },
               style: ElevatedButton.styleFrom(
-                backgroundColor: const Color(0xFF2E7AFF),
+                backgroundColor: AppColors.primaryBlue,
                 foregroundColor: Colors.white,
               ),
               child: const Text('Reintentar'),
@@ -321,7 +319,7 @@ class _ReservationsPageState extends State<ReservationsPage> {
                     width: 40,
                     height: 40,
                     decoration: BoxDecoration(
-                      color: isSelected ? const Color(0xFF2E7AFF) : Colors.grey[100],
+                      color: isSelected ? AppColors.primaryBlue : Colors.grey[100],
                       borderRadius: BorderRadius.circular(20),
                     ),
                     child: Center(
@@ -337,7 +335,7 @@ class _ReservationsPageState extends State<ReservationsPage> {
                   title: Text(_formatDate(date)),
                   subtitle: Text(_getDayName(date)),
                   trailing: isSelected 
-                      ? const Icon(Icons.check, color: Color(0xFF2E7AFF))
+                      ? const Icon(Icons.check, color: AppColors.primaryBlue)
                       : null,
                   onTap: () {
                     _pageController.animateToPage(
@@ -364,7 +362,7 @@ class _ReservationsPageState extends State<ReservationsPage> {
   Color _getSlotBackgroundColor(BookingStatus? status) {
     switch (status) {
       case BookingStatus.complete:
-        return const Color(0xFF2E7AFF); // 🔧 HARDCODE (AppColors.confirmed NO EXISTE)
+        return AppColors.primaryBlue; // 🔧 HARDCODE (AppColors.confirmed NO EXISTE)
       case BookingStatus.incomplete:
         return AppColors.incomplete; // ✅ ESTE SÍ EXISTE
       default:
@@ -379,7 +377,7 @@ class _ReservationsPageState extends State<ReservationsPage> {
       case BookingStatus.incomplete:
         return AppColors.incompleteBorder; // ✅ ESTE SÍ EXISTE
       default:
-        return const Color(0xFF2E7AFF).withOpacity(0.2); // 🔧 HARDCODE
+        return AppColors.primaryBlue.withOpacity(0.2); // 🔧 HARDCODE
     }
   }
 
@@ -449,7 +447,7 @@ class _ReservationsPageState extends State<ReservationsPage> {
                 child: Container(
                   padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
                   decoration: BoxDecoration(
-                    color: const Color(0xFF2E7AFF),
+                    color: AppColors.primaryBlue,
                     borderRadius: BorderRadius.circular(8),
                   ),
                   child: const Row(
@@ -497,7 +495,7 @@ class _ReservationsPageState extends State<ReservationsPage> {
           height: 32,
           padding: const EdgeInsets.symmetric(horizontal: 8),
           decoration: BoxDecoration(
-            color: const Color(0xFF2E7AFF), // 🔧 HARDCODE (AppColors.confirmed NO EXISTE)
+            color: AppColors.primaryBlue, // 🔧 HARDCODE (AppColors.confirmed NO EXISTE)
             borderRadius: BorderRadius.circular(6),
           ),
           child: Row(
@@ -556,7 +554,7 @@ class _ReservationsPageState extends State<ReservationsPage> {
           child: ElevatedButton(
             onPressed: () => _handleReserveSlot(context, timeSlot),
             style: ElevatedButton.styleFrom(
-              backgroundColor: const Color(0xFF2E7AFF),
+              backgroundColor: AppColors.primaryBlue,
               foregroundColor: Colors.white,
               padding: const EdgeInsets.symmetric(horizontal: 12),
               shape: RoundedRectangleBorder(
@@ -604,7 +602,7 @@ class _ReservationsPageState extends State<ReservationsPage> {
     ScaffoldMessenger.of(context).showSnackBar(
       const SnackBar(
         content: Text('Función de agregar reserva próximamente'),
-        backgroundColor: Color(0xFF2E7AFF),
+        backgroundColor: AppColors.primaryBlue,
       ),
     );
   }
@@ -612,7 +610,7 @@ class _ReservationsPageState extends State<ReservationsPage> {
   /// MÉTODO PRINCIPAL - Muestra el modal nativo de reservas Flutter-Firebase
   void _handleReserveSlot(BuildContext context, String timeSlot) async {
     final provider = context.read<BookingProvider>();
-    final courtName = AppConstants.getCourtName(provider.selectedCourtId);
+    final courtName = 'Cancha ${provider.selectedCourtId}';
     
     await showDialog(
       context: context,
@@ -668,7 +666,7 @@ class _ReservationsPageState extends State<ReservationsPage> {
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text('Cancha: ${AppConstants.getCourtName(booking.courtNumber)}'),
+              Text('Cancha: ${booking.courtNumber}'),
               Text('Fecha: ${_formatDate(context.read<BookingProvider>().selectedDate)}'),
               Text('Estado: ${_getStatusText(booking.status)}'),
               const SizedBox(height: 8),

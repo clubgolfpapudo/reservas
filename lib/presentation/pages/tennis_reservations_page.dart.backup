@@ -8,19 +8,19 @@ import '../widgets/booking/reservation_form_modal.dart';
 import '../widgets/booking/reservation_webview.dart';
 import '../widgets/booking/time_slot_block.dart';
 import '../widgets/common/date_navigation_header.dart';
-import '../../core/constants/app_constants.dart';
+import '../../core/constants/tennis_constants.dart';
 import '../../core/services/user_service.dart';
-import '../../core/theme/app_theme.dart';
+import '../../core/theme/tennis_theme.dart';
 import '../../domain/entities/booking.dart';
 
-class ReservationsPage extends StatefulWidget {
-  const ReservationsPage({Key? key}) : super(key: key);
+class TennisReservationsPage extends StatefulWidget {
+  const TennisReservationsPage({Key? key}) : super(key: key);
 
   @override
-  State<ReservationsPage> createState() => _ReservationsPageState();
+  State<TennisReservationsPage> createState() => _TennisReservationsPageState();
 }
 
-class _ReservationsPageState extends State<ReservationsPage> {
+class _TennisReservationsPageState extends State<TennisReservationsPage> {
   late PageController _pageController;
 
   @override
@@ -47,7 +47,6 @@ class _ReservationsPageState extends State<ReservationsPage> {
             children: [
               // Header con navegación de fechas
               DateNavigationHeader(
-                title: 'P�del',
                 currentDate: bookingProvider.selectedDate,
                 currentIndex: bookingProvider.currentDateIndex,
                 totalDays: bookingProvider.totalAvailableDays,
@@ -87,7 +86,6 @@ class _ReservationsPageState extends State<ReservationsPage> {
       children: [
         // Tabs de canchas mejorados
         EnhancedCourtTabs(
-          courtNames: AppConstants.courtNames,
           selectedCourt: provider.selectedCourtName,
           onCourtSelected: (courtName) {
             // Mapear nombre a ID
@@ -612,7 +610,7 @@ class _ReservationsPageState extends State<ReservationsPage> {
   /// MÉTODO PRINCIPAL - Muestra el modal nativo de reservas Flutter-Firebase
   void _handleReserveSlot(BuildContext context, String timeSlot) async {
     final provider = context.read<BookingProvider>();
-    final courtName = AppConstants.getCourtName(provider.selectedCourtId);
+    final courtName = 'Cancha ${provider.selectedCourtId}';
     
     await showDialog(
       context: context,
@@ -668,7 +666,7 @@ class _ReservationsPageState extends State<ReservationsPage> {
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text('Cancha: ${AppConstants.getCourtName(booking.courtNumber)}'),
+              Text('Cancha: ${booking.courtNumber}'),
               Text('Fecha: ${_formatDate(context.read<BookingProvider>().selectedDate)}'),
               Text('Estado: ${_getStatusText(booking.status)}'),
               const SizedBox(height: 8),

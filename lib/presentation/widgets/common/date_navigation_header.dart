@@ -1,7 +1,8 @@
-// lib/presentation/widgets/common/date_navigation_header.dart - LAYOUT COMPACTO UNA L√çNEA
+// lib/presentation/widgets/common/date_navigation_header.dart - LAYOUT COMPACTO UNA LÕNEA
 import 'package:flutter/material.dart';
 
 class DateNavigationHeader extends StatelessWidget {
+  final String title;
   final DateTime currentDate;
   final int currentIndex;
   final int totalDays;
@@ -12,6 +13,7 @@ class DateNavigationHeader extends StatelessWidget {
   final VoidCallback? onDateTap;
 
   const DateNavigationHeader({
+    required this.title,
     Key? key,
     required this.currentDate,
     required this.currentIndex,
@@ -30,7 +32,7 @@ class DateNavigationHeader extends StatelessWidget {
         gradient: LinearGradient(
           begin: Alignment.topCenter,
           end: Alignment.bottomCenter,
-          colors: [Color(0xFF2E7AFF), Color(0xFF1a5ce6)],
+          colors: [Color(0xFF8D6E63), Color(0xFF6D4C41)],
         ),
       ),
       child: SafeArea(
@@ -38,16 +40,16 @@ class DateNavigationHeader extends StatelessWidget {
           padding: const EdgeInsets.fromLTRB(16, 8, 16, 12),
           child: Column(
             children: [
-              // ‚úÖ HEADER PRINCIPAL - TODO EN UNA L√çNEA CENTRADO
+              // ? HEADER PRINCIPAL - TODO EN UNA LÕNEA CENTRADO
               Row(
                 children: [
-                  // Bot√≥n atr√°s
+                  // BotÛn atr·s
                   _buildActionButton(
                     icon: Icons.arrow_back,
                     onPressed: onBackPressed,
                   ),
                   
-                  // ‚úÖ CENTRO: T√çTULO + FECHA + FLECHAS JUNTOS
+                  // ? CENTRO: TÕTULO + FECHA + FLECHAS JUNTOS
                   Expanded(
                     child: Center(
                       child: GestureDetector(
@@ -55,9 +57,9 @@ class DateNavigationHeader extends StatelessWidget {
                         child: Row(
                           mainAxisSize: MainAxisSize.min,
                           children: [
-                            // T√≠tulo principal
-                            const Text(
-                              'P√°del',
+                            // TÌtulo principal
+                            Text(
+                              title,
                               style: TextStyle(
                                 color: Colors.white,
                                 fontSize: 16,
@@ -67,7 +69,7 @@ class DateNavigationHeader extends StatelessWidget {
                             
                             // Separador
                             Text(
-                              ' ‚Ä¢ ',
+                              ' ï ',
                               style: TextStyle(
                                 color: Colors.white.withOpacity(0.7),
                                 fontSize: 16,
@@ -87,7 +89,7 @@ class DateNavigationHeader extends StatelessWidget {
                             
                             const SizedBox(width: 12),
                             
-                            // ‚úÖ FLECHAS INMEDIATAMENTE DESPU√âS DE LA FECHA
+                            // ? FLECHAS INMEDIATAMENTE DESPU…S DE LA FECHA
                             Row(
                               mainAxisSize: MainAxisSize.min,
                               children: [
@@ -108,7 +110,7 @@ class DateNavigationHeader extends StatelessWidget {
                     ),
                   ),
 
-                  // Bot√≥n agregar (equilibra el layout)
+                  // BotÛn agregar (equilibra el layout)
                   _buildActionButton(
                     icon: Icons.add,
                     onPressed: onAddPressed,
@@ -118,7 +120,7 @@ class DateNavigationHeader extends StatelessWidget {
 
               const SizedBox(height: 8),
 
-              // Indicadores de d√≠as (m√°s compactos)
+              // Indicadores de dÌas (m·s compactos)
               _buildDateIndicators(),
             ],
           ),
@@ -151,7 +153,7 @@ class DateNavigationHeader extends StatelessWidget {
     VoidCallback? onPressed,
   }) {
     return Container(
-      width: 28, // ‚úÖ Ligeramente m√°s grande para mejor usabilidad m√≥vil
+      width: 28, // ? Ligeramente m·s grande para mejor usabilidad mÛvil
       height: 28,
       decoration: BoxDecoration(
         color: Colors.white.withOpacity(onPressed != null ? 0.15 : 0.05),
@@ -162,7 +164,7 @@ class DateNavigationHeader extends StatelessWidget {
         icon: Icon(
           icon,
           color: Colors.white.withOpacity(onPressed != null ? 0.9 : 0.3),
-          size: 16, // ‚úÖ √çcono m√°s grande para mejor tap target
+          size: 16, // ? Õcono m·s grande para mejor tap target
         ),
         onPressed: onPressed,
       ),
@@ -188,7 +190,7 @@ class DateNavigationHeader extends StatelessWidget {
     );
   }
 
-  // ‚úÖ FORMATO DE FECHA COMPLETO PERO COMPACTO
+  // ? FORMATO DE FECHA COMPLETO PERO COMPACTO
   String _formatDateCompact(DateTime date) {
     const months = [
       '', 'Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio',

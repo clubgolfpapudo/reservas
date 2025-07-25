@@ -5,11 +5,13 @@ import '../../../core/constants/app_constants.dart';
 class EnhancedCourtTabs extends StatefulWidget {
   final String selectedCourt;
   final Function(String) onCourtSelected;
+  final List<String> courtNames;
 
   const EnhancedCourtTabs({
     Key? key,
     required this.selectedCourt,
     required this.onCourtSelected,
+    required this.courtNames,
   }) : super(key: key);
 
   @override
@@ -50,11 +52,11 @@ class _EnhancedCourtTabsState extends State<EnhancedCourtTabs>
     return Container(
       margin: const EdgeInsets.fromLTRB(20, 16, 20, 0),
       child: Row(
-        children: AppConstants.courtNames.map((courtName) {
+        children: widget.courtNames.map((courtName) {
           return Expanded(
             child: Padding(
               padding: EdgeInsets.only(
-                right: courtName != AppConstants.courtNames.last ? 8.0 : 0,
+                right: courtName != widget.courtNames.last ? 8.0 : 0,
               ),
               child: _buildTab(courtName),
             ),
@@ -81,11 +83,11 @@ class _EnhancedCourtTabsState extends State<EnhancedCourtTabs>
         padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
         decoration: BoxDecoration(
           // ✅ USAR COLOR SÓLIDO en lugar de gradiente para Android
-          color: isSelected ? primaryColor : Colors.grey[100],
+          color: isSelected ? primaryColor : _getCourtLightColor(courtName),
           borderRadius: BorderRadius.circular(8),
           border: isSelected
               ? Border.all(color: darkColor, width: 2) // ✅ Borde sólido
-              : Border.all(color: Colors.grey[300]!, width: 1),
+              : Border.all(color: _getCourtLightColor(courtName), width: 1),
           // ✅ SOMBRA SIMPLIFICADA para Android
           boxShadow: isSelected
               ? [
@@ -116,11 +118,17 @@ class _EnhancedCourtTabsState extends State<EnhancedCourtTabs>
   Color _getCourtPrimaryColor(String courtName) {
     switch (courtName) {
       case 'PITE':
+      case 'Cancha 1':
         return const Color(0xFFFF6B35); // 🟠 Naranja Intenso
       case 'LILEN':
+      case 'Cancha 2':
         return const Color(0xFF00C851); // 🟢 Verde Esmeralda
       case 'PLAIYA':
+      case 'Cancha 3':
+      case 'Cancha 3':
         return const Color(0xFF8E44AD); // 🟣 Púrpura Vibrante
+      case 'Cancha 4':
+        return const Color(0xFF8D6E63); // Caf� Tenis
       default:
         return const Color(0xFF2196F3); // Azul por defecto
     }
@@ -129,13 +137,37 @@ class _EnhancedCourtTabsState extends State<EnhancedCourtTabs>
   Color _getCourtDarkColor(String courtName) {
     switch (courtName) {
       case 'PITE':
+      case 'Cancha 1':
         return const Color(0xFFE55527); // Naranja más oscuro
       case 'LILEN':
+      case 'Cancha 2':
         return const Color(0xFF007E33); // Verde más oscuro
       case 'PLAIYA':
+      case 'Cancha 3':
+      case 'Cancha 3':
         return const Color(0xFF6C3483); // Púrpura más oscuro
+      case 'Cancha 4':
+        return const Color(0xFF8D6E63); // Caf� Tenis
       default:
         return const Color(0xFF1976D2); // Azul oscuro por defecto
+    }
+  }
+
+  Color _getCourtLightColor(String courtName) {
+    switch (courtName) {
+      case 'PITE':
+      case 'Cancha 1':
+        return const Color(0xFFFFE0D6);
+      case 'LILEN':
+      case 'Cancha 2':
+        return const Color(0xFFE8F5E8);
+      case 'PLAIYA':
+      case 'Cancha 3':
+        return const Color(0xFFF3E5F5);
+      case 'Cancha 4':
+        return const Color(0xFFEFEBE9);
+      default:
+        return const Color(0xFFE3F2FD);
     }
   }
 }
