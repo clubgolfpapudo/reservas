@@ -6,24 +6,22 @@ import 'package:flutter/services.dart';
 // COLORES DE LA APLICACIÓN
 // ═══════════════════════════════════════════════════════════════════════════════
 abstract class AppColors {
-  // Colores principales
-  static const Color primaryBlue = Color(0xFF2E7AFF);
-  static const Color primaryBlueLight = Color(0xFFE8F4F9);
-  static const Color primaryBlueDark = Color(0xFF1E6AEF);
-  static const Color primaryBlueBorder = Color(0xFFBFD9E8);
+// Colores principales - TENIS (Café)
+  static const Color primaryBlue = Color(0xFF8D6E63);        // Café principal (era azul)
+  static const Color primaryBlueLight = Color(0xFFEFEBE9);   // Café muy claro (era azul claro)
+  static const Color primaryBlueDark = Color(0xFF6D4C41);    // Café oscuro (era azul oscuro)
+  static const Color primaryBlueBorder = Color(0xFFD7CCC8);  // Café claro borde (era azul borde)
   
   // Colores de estado para reservas
-  static const Color available = primaryBlueLight;
-  static const Color availableBorder = primaryBlueBorder;
+  static const Color available = Color(0xFFF3E5AB);          // Beige disponible (era azul claro)
+  static const Color availableBorder = Color(0xFFD4AF37);    // Dorado claro borde
   static const Color availableText = Color(0xFF3A3A3C);
-  
-  static const Color reserved = primaryBlue;
-  static const Color reservedBorder = primaryBlueDark;
+  static const Color reserved = Color(0xFF8D6E63);           // Café principal reservado
+  static const Color reservedBorder = Color(0xFF6D4C41);     // Café oscuro borde
   static const Color reservedText = Colors.white;
-  
-  static const Color incomplete = Color(0xFFFFFACD);     // Amarillo dorado suave
-  static const Color incompleteBorder = Color(0xFFDAA520); // Borde dorado intenso
-  static const Color incompleteText = Color(0xFF8B4513);   // Texto marrón saddle brown
+  static const Color incomplete = Color(0xFFFFFACD);         // Mantener amarillo
+  static const Color incompleteBorder = Color(0xFFDAA520);   // Mantener borde dorado
+  static const Color incompleteText = Color(0xFF8B4513);     // Mantener texto marrón
   
   // Colores semánticos
   static const Color success = Color(0xFF34C759);
