@@ -37,6 +37,8 @@ class ReservationFormModal extends StatefulWidget {
   final String date;
   /// Slot de tiempo en formato HH:MM (ej: "09:00", "14:30")
   final String timeSlot;
+  /// Deporte actual (ej: "PADEL", "TENIS")
+  final String sport;
 
   const ReservationFormModal({
     Key? key,
@@ -44,6 +46,7 @@ class ReservationFormModal extends StatefulWidget {
     required this.courtName,
     required this.date,
     required this.timeSlot,
+    required this.sport,
   }) : super(key: key);
 
   @override
@@ -66,6 +69,13 @@ class _ReservationFormModalState extends State<ReservationFormModal> {
   /// Estado de carga para mostrar indicadores
   bool _isLoading = false;
   String? _errorMessage;
+
+  /// Métodos helper para parametrización por deporte
+  String get _sportDisplayName => widget.sport == 'TENIS' ? 'tenis' : 'pádel';
+  Color get _sportColor => widget.sport == 'TENIS' 
+      ? const Color(0xFF8B4513) // Café terracota para tenis
+      : const Color(0xFF2E7AFF); // Azul para pádel
+  String get _sportEmoji => widget.sport == 'TENIS' ? '🎾' : '🏓';
 
   @override
   void initState() {
@@ -388,6 +398,15 @@ class _ReservationFormModalState extends State<ReservationFormModal> {
     }
   }
 
+  // 🔧 AGREGAR ESTE MÉTODO AQUÍ (después de los otros helpers)
+  String _extractCourtNumber(String courtId) {
+    // Extraer número del final del ID
+    if (courtId.contains('_court_')) {
+      return courtId.split('_court_').last;
+    }
+    return '1'; // Fallback
+  }
+
   /// Getter que determina si se puede crear la reserva
   /// 
   /// Condiciones para crear reserva:
@@ -458,12 +477,17 @@ class _ReservationFormModalState extends State<ReservationFormModal> {
         ));
       }
 
+      // En el método _createReservation, ANTES de createBookingWithEmails
+      print('🚨 CREANDO RESERVA:');
+      print('  🔧 widget.courtId: ${widget.courtId}');
+      print('  🔧 widget.courtName: ${widget.courtName}');
+      print('  🔧 widget.sport: ${widget.sport}');
       print('🔥 Creando reserva con emails: ${widget.courtId} ${widget.date} ${widget.timeSlot}');
       print('🔥 Jugadores: ${playerNames.join(", ")}');
 
       // ✅ CRÍTICO: Crear reserva CON emails automáticos
       final success = await provider.createBookingWithEmails(
-        courtNumber: widget.courtId,
+        courtId: widget.courtId,  // ← USAR courtId COMPLETO
         date: widget.date,
         timeSlot: widget.timeSlot,
         players: bookingPlayers,
@@ -532,7 +556,7 @@ class _ReservationFormModalState extends State<ReservationFormModal> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(
-                'Tu reserva de pádel ha sido confirmada exitosamente:',
+                'Tu reserva de $_sportDisplayName ha sido confirmada exitosamente:',
                 style: TextStyle(fontSize: 16, color: Colors.grey[700]),
               ),
               const SizedBox(height: 12),
@@ -608,7 +632,7 @@ class _ReservationFormModalState extends State<ReservationFormModal> {
               Navigator.of(context).pop(); // Cerrar modal de reserva
             },
             style: TextButton.styleFrom(
-              backgroundColor: const Color(0xFF2E7AFF),
+              backgroundColor: _sportColor,
               foregroundColor: Colors.white,
               padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
               shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
@@ -665,6 +689,37 @@ class _ReservationFormModalState extends State<ReservationFormModal> {
     return widget.date;
   }
 
+  /// Convierte ID de cancha a nombre legible
+  String _getDisplayCourtName(String courtId) {
+    print('🔧 MODAL DEBUG: _getDisplayCourtName recibió: "$courtId"');
+    
+    switch (courtId) {
+      // PÁDEL - NOMBRES ORIGINALES
+      case 'PITE': 
+        print('🔧 MODAL DEBUG: Mapeando PITE → PITE');
+        return 'PITE';
+      case 'LILEN': return 'LILEN';  
+      case 'PLAIYA': return 'PLAIYA';
+      
+      // PÁDEL - IDs CON PREFIJO
+      case 'padel_court_1': 
+        print('🔧 MODAL DEBUG: Mapeando padel_court_1 → PITE');
+        return 'PITE';
+      case 'padel_court_2': return 'LILEN';
+      case 'padel_court_3': return 'PLAIYA';
+      
+      // TENIS - IDs CON PREFIJO
+      case 'tennis_court_1': return 'Cancha 1';
+      case 'tennis_court_2': return 'Cancha 2';
+      case 'tennis_court_3': return 'Cancha 3';
+      case 'tennis_court_4': return 'Cancha 4';
+      
+      default: 
+        print('🔧 MODAL DEBUG: FALLBACK - courtId no reconocido: "$courtId"');
+        return courtId; // Fallback
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     // 🔥 TEMPORAL - CONFIRMAR QUE SE USA ESTE ARCHIVO
@@ -684,7 +739,7 @@ class _ReservationFormModalState extends State<ReservationFormModal> {
             Container(
               padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
               decoration: BoxDecoration(
-                color: AppConstants.getCourtColorAsColor(widget.courtName),
+                color: _sportColor,
                 borderRadius: const BorderRadius.vertical(top: Radius.circular(16)),
               ),
               child: Row(
@@ -693,12 +748,12 @@ class _ReservationFormModalState extends State<ReservationFormModal> {
                   Expanded(
                     child: Row(
                       children: [
-                        const Text(
-                          '🎾 ',
-                          style: TextStyle(fontSize: 18),
+                        Text(
+                          '$_sportEmoji ',
+                          style: const TextStyle(fontSize: 18),
                         ),
                         Text(
-                          widget.courtName,
+                          _getDisplayCourtName(widget.courtName),  // ← Convertir ID a nombre legible
                           style: const TextStyle(
                             color: Colors.white,
                             fontSize: 18,

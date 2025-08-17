@@ -1,4 +1,4 @@
-// lib/presentation/widgets/common/date_navigation_header.dart - LAYOUT COMPACTO UNA LÕNEA
+// lib/presentation/widgets/common/date_navigation_header.dart - LAYOUT COMPACTO UNA LÔøΩNEA
 import 'package:flutter/material.dart';
 
 class DateNavigationHeader extends StatelessWidget {
@@ -28,11 +28,13 @@ class DateNavigationHeader extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      decoration: const BoxDecoration(
+      decoration: BoxDecoration(
         gradient: LinearGradient(
           begin: Alignment.topCenter,
           end: Alignment.bottomCenter,
-          colors: [Color(0xFF8D6E63), Color(0xFF6D4C41)],
+          colors: title == 'P√°del' 
+              ? [const Color(0xFF2E7AFF), const Color(0xFF1E5AFF)] // Azul para P√°del
+              : [const Color(0xFF8D6E63), const Color(0xFF6D4C41)], // Caf√© para Tenis
         ),
       ),
       child: SafeArea(
@@ -40,16 +42,16 @@ class DateNavigationHeader extends StatelessWidget {
           padding: const EdgeInsets.fromLTRB(16, 8, 16, 12),
           child: Column(
             children: [
-              // ? HEADER PRINCIPAL - TODO EN UNA LÕNEA CENTRADO
+              // ? HEADER PRINCIPAL - TODO EN UNA LÔøΩNEA CENTRADO
               Row(
                 children: [
-                  // BotÛn atr·s
+                  // BotÔøΩn atrÔøΩs
                   _buildActionButton(
                     icon: Icons.arrow_back,
                     onPressed: onBackPressed,
                   ),
                   
-                  // ? CENTRO: TÕTULO + FECHA + FLECHAS JUNTOS
+                  // ? CENTRO: TÔøΩTULO + FECHA + FLECHAS JUNTOS
                   Expanded(
                     child: Center(
                       child: GestureDetector(
@@ -57,7 +59,7 @@ class DateNavigationHeader extends StatelessWidget {
                         child: Row(
                           mainAxisSize: MainAxisSize.min,
                           children: [
-                            // TÌtulo principal
+                            // TÔøΩtulo principal
                             Text(
                               title,
                               style: TextStyle(
@@ -69,7 +71,7 @@ class DateNavigationHeader extends StatelessWidget {
                             
                             // Separador
                             Text(
-                              ' ï ',
+                              ' ‚Ä¢ ',  // ‚Üê PUNTO SIMPLE Y SEGURO
                               style: TextStyle(
                                 color: Colors.white.withOpacity(0.7),
                                 fontSize: 16,
@@ -89,7 +91,7 @@ class DateNavigationHeader extends StatelessWidget {
                             
                             const SizedBox(width: 12),
                             
-                            // ? FLECHAS INMEDIATAMENTE DESPU…S DE LA FECHA
+                            // ? FLECHAS INMEDIATAMENTE DESPUÔøΩS DE LA FECHA
                             Row(
                               mainAxisSize: MainAxisSize.min,
                               children: [
@@ -110,7 +112,7 @@ class DateNavigationHeader extends StatelessWidget {
                     ),
                   ),
 
-                  // BotÛn agregar (equilibra el layout)
+                  // BotÔøΩn agregar (equilibra el layout)
                   _buildActionButton(
                     icon: Icons.add,
                     onPressed: onAddPressed,
@@ -120,7 +122,7 @@ class DateNavigationHeader extends StatelessWidget {
 
               const SizedBox(height: 8),
 
-              // Indicadores de dÌas (m·s compactos)
+              // Indicadores de dÔøΩas (mÔøΩs compactos)
               _buildDateIndicators(),
             ],
           ),
@@ -153,7 +155,7 @@ class DateNavigationHeader extends StatelessWidget {
     VoidCallback? onPressed,
   }) {
     return Container(
-      width: 28, // ? Ligeramente m·s grande para mejor usabilidad mÛvil
+      width: 28, // ? Ligeramente mÔøΩs grande para mejor usabilidad mÔøΩvil
       height: 28,
       decoration: BoxDecoration(
         color: Colors.white.withOpacity(onPressed != null ? 0.15 : 0.05),
@@ -164,7 +166,7 @@ class DateNavigationHeader extends StatelessWidget {
         icon: Icon(
           icon,
           color: Colors.white.withOpacity(onPressed != null ? 0.9 : 0.3),
-          size: 16, // ? Õcono m·s grande para mejor tap target
+          size: 16, // ? ÔøΩcono mÔøΩs grande para mejor tap target
         ),
         onPressed: onPressed,
       ),

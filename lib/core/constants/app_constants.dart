@@ -237,16 +237,30 @@ abstract class AppConstants {
   
   // Mapeo de canchas ID -> Nombre  
   static const Map<String, String> courtIdToName = {
-    'court_1': 'PITE',
-    'court_2': 'LILEN', 
-    'court_3': 'PLAIYA',
+    // PÁDEL
+    'padel_court_1': 'PITE',
+    'padel_court_2': 'LILEN', 
+    'padel_court_3': 'PLAIYA',
+    
+    // TENIS ← AGREGAR ESTAS LÍNEAS
+    'tennis_court_1': 'Cancha 1',
+    'tennis_court_2': 'Cancha 2',
+    'tennis_court_3': 'Cancha 3',
+    'tennis_court_4': 'Cancha 4',
   };
 
   // Mapeo de canchas Nombre -> ID
   static const Map<String, String> courtNameToId = {
-    'PITE': 'court_1',
-    'LILEN': 'court_2',
-    'PLAIYA': 'court_3',
+    // PÁDEL
+    'PITE': 'padel_court_1',
+    'LILEN': 'padel_court_2',
+    'PLAIYA': 'padel_court_3',
+    
+    // TENIS ← AGREGAR ESTAS LÍNEAS
+    'Cancha 1': 'tennis_court_1',
+    'Cancha 2': 'tennis_court_2',
+    'Cancha 3': 'tennis_court_3',
+    'Cancha 4': 'tennis_court_4',
   };
 
   // Horarios disponibles para reservas (alias de allTimeSlots)

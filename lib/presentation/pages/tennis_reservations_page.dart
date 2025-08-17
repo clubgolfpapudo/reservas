@@ -13,6 +13,7 @@ import '../../core/services/user_service.dart';
 import '../../core/theme/tennis_theme.dart';
 import '../../core/constants/tennis_constants.dart';
 import '../../domain/entities/booking.dart';
+import '../../../core/constants/app_constants.dart';
 
 class TennisReservationsPage extends StatefulWidget {
   const TennisReservationsPage({Key? key}) : super(key: key);
@@ -30,12 +31,35 @@ class _TennisReservationsPageState extends State<TennisReservationsPage> {
     _pageController = PageController(
       initialPage: context.read<BookingProvider>().currentDateIndex,
     );
+    
+    // 🔧 DEBUG: Ver estado inicial del provider y forzar Tenis
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      final provider = context.read<BookingProvider>();
+      print('🎾 TENNIS INIT: provider.selectedCourtId = ${provider.selectedCourtId}');
+      
+      // Forzar selección inicial de Tenis
+      provider.selectCourt('tennis_court_1');
+      print('🎾 TENNIS INIT: Forzado a tennis_court_1');
+    });
   }
 
   @override
   void dispose() {
     _pageController.dispose();
     super.dispose();
+  }
+
+  String _mapCourtIdToTennisName(String? courtId) {
+    print('🔍 DEBUG MAPPING: courtId recibido = $courtId');
+    switch (courtId) {
+      case 'tennis_court_1': return 'Cancha 1';    // 🔧 NUEVO ID
+      case 'tennis_court_2': return 'Cancha 2';    // 🔧 NUEVO ID
+      case 'tennis_court_3': return 'Cancha 3';    // 🔧 NUEVO ID
+      case 'tennis_court_4': return 'Cancha 4';    // 🔧 NUEVO ID
+      default: 
+        print('⚠️ DEFAULT CASE: courtId no reconocido = $courtId');
+        return 'Cancha 1';
+    }
   }
 
   @override
@@ -89,24 +113,36 @@ class _TennisReservationsPageState extends State<TennisReservationsPage> {
         // Tabs de canchas mejorados
         EnhancedCourtTabs(
           courtNames: TennisConstants.COURT_NAMES,
-          selectedCourt: provider.selectedCourtName,
+          selectedCourt: _mapCourtIdToTennisName(provider.selectedCourtId),
           onCourtSelected: (courtName) {
-            // Mapear nombre a ID
+            print('🎾 Seleccionando cancha: $courtName');
+            
+            // Mapear nombre a ID de TENIS
             String courtId;
             switch (courtName) {
               case 'Cancha 1':
-                courtId = 'court_1';
+                courtId = 'tennis_court_1';
                 break;
               case 'Cancha 2':
-                courtId = 'court_2';
+                courtId = 'tennis_court_2';
                 break;
               case 'Cancha 3':
-                courtId = 'court_3';
+                courtId = 'tennis_court_3';
+                break;
+              case 'Cancha 4':
+                courtId = 'tennis_court_4';
                 break;
               default:
-                courtId = 'court_1';
+                courtId = 'tennis_court_1';
             }
+            
+            // 🔧 AGREGAR ESTAS LÍNEAS DE DEBUG
+            print('🔧 ANTES: provider.selectedCourtId = ${provider.selectedCourtId}');
+            print('🔧 LLAMANDO: provider.selectCourt($courtId)');
+            
             provider.selectCourt(courtId);
+            
+            print('🔧 DESPUÉS: provider.selectedCourtId = ${provider.selectedCourtId}');
           },
         ),
 
@@ -613,7 +649,15 @@ class _TennisReservationsPageState extends State<TennisReservationsPage> {
   /// MÉTODO PRINCIPAL - Muestra el modal nativo de reservas Flutter-Firebase
   void _handleReserveSlot(BuildContext context, String timeSlot) async {
     final provider = context.read<BookingProvider>();
-    final courtName = 'Cancha ${provider.selectedCourtId}';
+
+    print('🚨 DEBUG MODAL: provider.selectedCourtId = ${provider.selectedCourtId}');
+
+    // 🔧 NUEVO DEBUG ADICIONAL
+    print('🔧 DEBUG: Esperando 100ms para verificar si cambia...');
+    await Future.delayed(Duration(milliseconds: 100));
+    print('🔧 DEBUG: Después de 100ms: provider.selectedCourtId = ${provider.selectedCourtId}');
+    
+    final courtName = _mapCourtIdToTennisName(provider.selectedCourtId);
     
     await showDialog(
       context: context,
@@ -623,6 +667,7 @@ class _TennisReservationsPageState extends State<TennisReservationsPage> {
         courtName: courtName,
         date: _formatDateForSystem(provider.selectedDate),
         timeSlot: timeSlot,
+        sport: 'TENIS', // 🔧 NUEVO PARÁMETRO
       ),
     );
   }
@@ -669,7 +714,7 @@ class _TennisReservationsPageState extends State<TennisReservationsPage> {
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text('Cancha: ${booking.courtNumber}'),
+              Text('Cancha: ${AppConstants.getCourtName(booking.courtId)}'),  // ← CAMBIADO
               Text('Fecha: ${_formatDate(context.read<BookingProvider>().selectedDate)}'),
               Text('Estado: ${_getStatusText(booking.status)}'),
               const SizedBox(height: 8),

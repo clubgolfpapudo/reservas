@@ -7,7 +7,7 @@ import '../../domain/entities/booking.dart';
 
 class BookingModel {
   final String? id;
-  final String courtNumber;
+  final String courtId;
   final String date;
   final String timeSlot;
   final List<BookingPlayerModel> players;
@@ -17,7 +17,7 @@ class BookingModel {
 
   BookingModel({
     this.id,
-    required this.courtNumber,
+    required this.courtId,
     required this.date,
     required this.timeSlot,
     required this.players,
@@ -34,15 +34,15 @@ class BookingModel {
     print('🔍 FIRESTORE RAW DATA: $data');
     
     // 🔥 CORREGIDO: Mapear nombres correctos de campos
-    final courtNumber = data['courtNumber'] ?? data['courtId'] ?? '';
+    final courtId = data['courtId'] ?? data['courtNumber'] ?? '';
     final date = data['date'] ?? data['dateTime']?['date'] ?? '';
     final timeSlot = data['timeSlot'] ?? data['time'] ?? data['dateTime']?['time'] ?? '';
     
-    print('🔍 MAPPED VALUES: courtNumber="$courtNumber", date="$date", timeSlot="$timeSlot"');
+    print('🔍 MAPPED VALUES: courtId="$courtId", date="$date", timeSlot="$timeSlot"');
     
     return BookingModel(
       id: id,
-      courtNumber: courtNumber,
+      courtId: courtId,
       date: date,
       timeSlot: timeSlot,
       players: (data['players'] as List<dynamic>?)
@@ -60,7 +60,7 @@ class BookingModel {
   
   Map<String, dynamic> toFirestore() {
     return {
-      'courtNumber': courtNumber,  // ← Guarda como courtNumber
+      'courtId': courtId,  // ← Guarda como courtId
       'date': date,               // ← Guarda como date
       'timeSlot': timeSlot,       // ← Guarda como timeSlot
       'players': players.map((player) => player.toMap()).toList(),
@@ -77,7 +77,7 @@ class BookingModel {
   factory BookingModel.fromEntity(Booking booking) {
     return BookingModel(
       id: booking.id,
-      courtNumber: booking.courtNumber,
+      courtId: booking.courtId,
       date: booking.date,
       timeSlot: booking.timeSlot,
       players: booking.players.map((player) => BookingPlayerModel.fromPlayer(player)).toList(),
@@ -102,7 +102,7 @@ class BookingModel {
 
     return Booking(
       id: id,
-      courtNumber: courtNumber,
+      courtId: courtId,
       date: date,
       timeSlot: timeSlot,
       players: playersList,

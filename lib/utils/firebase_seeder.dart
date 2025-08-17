@@ -29,6 +29,16 @@ class FirebaseSeeder {
   
   static Future<void> _createCourts() async {
     final courts = [
+      // PÁDEL
+      {
+        'name': 'PITE',
+        'description': 'Cancha PITE',
+        'number': 1,
+        'displayOrder': 1,
+        'status': 'active',
+        'isAvailableForBooking': true,
+        'createdAt': FieldValue.serverTimestamp(),
+      },
       {
         'name': 'LILEN',
         'description': 'Cancha LILEN',
@@ -47,11 +57,53 @@ class FirebaseSeeder {
         'isAvailableForBooking': true,
         'createdAt': FieldValue.serverTimestamp(),
       },
+      // TENIS
+      {
+        'name': 'CANCHA_1',
+        'description': 'Cancha de Tenis 1',
+        'number': 4,
+        'displayOrder': 4,
+        'status': 'active',
+        'isAvailableForBooking': true,
+        'createdAt': FieldValue.serverTimestamp(),
+      },
+      {
+        'name': 'CANCHA_2',
+        'description': 'Cancha de Tenis 2',
+        'number': 5,
+        'displayOrder': 5,
+        'status': 'active',
+        'isAvailableForBooking': true,
+        'createdAt': FieldValue.serverTimestamp(),
+      },
+      {
+        'name': 'CANCHA_3',
+        'description': 'Cancha de Tenis 3',
+        'number': 6,
+        'displayOrder': 6,
+        'status': 'active',
+        'isAvailableForBooking': true,
+        'createdAt': FieldValue.serverTimestamp(),
+      },
+      {
+        'name': 'CANCHA_4',
+        'description': 'Cancha de Tenis 4',
+        'number': 7,
+        'displayOrder': 7,
+        'status': 'active',
+        'isAvailableForBooking': true,
+        'createdAt': FieldValue.serverTimestamp(),
+      },
     ];
-    
-    // Solo crear court_2 y court_3 (court_1 ya existe)
-    await _firestore.collection('courts').doc('court_2').set(courts[0]);
-    await _firestore.collection('courts').doc('court_3').set(courts[1]);
+
+    // Crear todas las canchas
+    await _firestore.collection('courts').doc('padel_court_1').set(courts[0]);
+    await _firestore.collection('courts').doc('padel_court_2').set(courts[1]);
+    await _firestore.collection('courts').doc('padel_court_3').set(courts[2]);
+    await _firestore.collection('courts').doc('tennis_court_1').set(courts[3]);
+    await _firestore.collection('courts').doc('tennis_court_2').set(courts[4]);
+    await _firestore.collection('courts').doc('tennis_court_3').set(courts[5]);
+    await _firestore.collection('courts').doc('tennis_court_4').set(courts[6]);
     
     print('✅ Canchas creadas');
   }
@@ -63,7 +115,7 @@ class FirebaseSeeder {
     final bookings = [
       // PITE - Reservas completas
       {
-        'courtNumber': 'court_1',
+        'courtId': 'padel_court_1',
         'date': dateStr,
         'timeSlot': '09:00',
         'players': [
@@ -76,7 +128,7 @@ class FirebaseSeeder {
         'createdAt': FieldValue.serverTimestamp(),
       },
       {
-        'courtNumber': 'court_1',
+        'courtId': 'padel_court_1',
         'date': dateStr,
         'timeSlot': '18:00',
         'players': [
@@ -90,7 +142,7 @@ class FirebaseSeeder {
       },
       // LILEN - Reserva incompleta
       {
-        'courtNumber': 'court_2',
+        'courtId': 'padel_court_2',
         'date': dateStr,
         'timeSlot': '12:00',
         'players': [
@@ -102,7 +154,7 @@ class FirebaseSeeder {
       },
       // PLAIYA - Reserva completa
       {
-        'courtNumber': 'court_3',
+        'courtId': 'padel_court_3',
         'date': dateStr,
         'timeSlot': '16:30',
         'players': [

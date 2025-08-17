@@ -47,7 +47,7 @@ class _ReservationsPageState extends State<ReservationsPage> {
             children: [
               // Header con navegación de fechas
               DateNavigationHeader(
-                title: 'P�del',
+                title: 'Pádel',
                 currentDate: bookingProvider.selectedDate,
                 currentIndex: bookingProvider.currentDateIndex,
                 totalDays: bookingProvider.totalAvailableDays,
@@ -94,16 +94,16 @@ class _ReservationsPageState extends State<ReservationsPage> {
             String courtId;
             switch (courtName) {
               case 'PITE':
-                courtId = 'court_1';
+                courtId = 'padel_court_1';
                 break;
               case 'LILEN':
-                courtId = 'court_2';
+                courtId = 'padel_court_2';
                 break;
               case 'PLAIYA':
-                courtId = 'court_3';
+                courtId = 'padel_court_3';
                 break;
               default:
-                courtId = 'court_1';
+                courtId = 'padel_court_1';
             }
             provider.selectCourt(courtId);
           },
@@ -622,6 +622,7 @@ class _ReservationsPageState extends State<ReservationsPage> {
         courtName: courtName,
         date: _formatDateForSystem(provider.selectedDate),
         timeSlot: timeSlot,
+        sport: 'PADEL', // 🔧 Para páginas de pádel
       ),
     );
   }
@@ -668,7 +669,7 @@ class _ReservationsPageState extends State<ReservationsPage> {
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text('Cancha: ${AppConstants.getCourtName(booking.courtNumber)}'),
+              Text('Cancha: ${AppConstants.getCourtName(booking.courtId)}'),  // ← CAMBIADO
               Text('Fecha: ${_formatDate(context.read<BookingProvider>().selectedDate)}'),
               Text('Estado: ${_getStatusText(booking.status)}'),
               const SizedBox(height: 8),

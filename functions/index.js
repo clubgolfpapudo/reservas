@@ -606,15 +606,15 @@ exports.cancelBooking = onRequest({
       
       if (idParts.length >= 5) {
         // ID formato: court1-2025-06-05-1200 → court_1, 2025-06-05, 12:00
-        const courtNumber = idParts[0];
+        const courtId = idParts[0];
         const date = `${idParts[1]}-${idParts[2]}-${idParts[3]}`;
         const timeRaw = idParts[4];
         const timeSlot = `${timeRaw.substring(0,2)}:${timeRaw.substring(2,4)}`;
         
-        console.log(`🔍 Buscando por: court=${courtNumber}, date=${date}, time=${timeSlot}`);
+        console.log(`🔍 Buscando por: court=${courtId}, date=${date}, time=${timeSlot}`);
         
         const alternativeSnapshot = await bookingsRef
-          .where('courtNumber', '==', courtNumber)
+          .where('courtId', '==', courtId)
           .where('date', '==', date)
           .where('timeSlot', '==', timeSlot)
           .get();
@@ -671,7 +671,7 @@ exports.cancelBooking = onRequest({
           const reservationInfo = {
             date: bookingData.date,
             timeSlot: bookingData.timeSlot,
-            courtNumber: bookingData.courtNumber,
+            courtId: bookingData.courtId,
             originalPlayers: originalPlayers,
             remainingPlayers: updatedPlayers,
             cancelingPlayerName: cancelingPlayerName,
@@ -1273,7 +1273,7 @@ function generateBookingEmailHtml(booking, organizerName, isVisitorBooking = fal
               <!-- BOTÓN CANCELAR -->
               <tr>
                 <td style="padding: 0 40px 20px 40px; text-align: center;">
-                  <a href="https://us-central1-cgpreservas.cloudfunctions.net/cancelBooking?id=${booking.id || `${booking.courtNumber || booking.courtId}-${booking.date}-${(booking.timeSlot || booking.time || '').replace(/:/g, '')}`}&email=${encodeURIComponent(email)}" style="background: #dc2626; color: white; padding: 16px 32px; text-decoration: none; border-radius: 8px; font-weight: bold; font-size: 16px; display: inline-block;">
+                  <a href="https://us-central1-cgpreservas.cloudfunctions.net/cancelBooking?id=${booking.id || `${booking.courtId || booking.courtId}-${booking.date}-${(booking.timeSlot || booking.time || '').replace(/:/g, '')}`}&email=${encodeURIComponent(email)}" style="background: #dc2626; color: white; padding: 16px 32px; text-decoration: none; border-radius: 8px; font-weight: bold; font-size: 16px; display: inline-block;">
                     ❌ Cancelar mi Participación
                   </a>
                 </td>
@@ -1309,7 +1309,7 @@ async function sendCancellationNotification(remainingPlayer, reservationInfo) {
     const {
       date,
       timeSlot,
-      courtNumber,
+      courtId,
       cancelingPlayerName,
       cancelingPlayerEmail,
       remainingPlayers
@@ -1317,7 +1317,7 @@ async function sendCancellationNotification(remainingPlayer, reservationInfo) {
 
     const formattedDate = formatDate(date);
     const endTime = getEndTime(timeSlot);
-    const courtName = getCourtName(courtNumber);
+    const courtName = getCourtName(courtId);
 
     const emailHtml = `
       <!DOCTYPE html>

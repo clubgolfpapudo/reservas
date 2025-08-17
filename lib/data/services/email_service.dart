@@ -21,13 +21,13 @@ class EmailService {
     try {
       print('📧 INICIANDO ENVÍO DE EMAILS');
       print('📧 URL: $FUNCTIONS_URL');
-      print('📧 Reserva: ${booking.courtNumber} ${booking.date} ${booking.timeSlot}');
+      print('📧 Reserva: ${booking.courtId} ${booking.date} ${booking.timeSlot}');
       print('📧 Jugadores: ${booking.players.length}');
       
       // Preparar datos para el endpoint
       final requestData = {
         'booking': {
-          'courtNumber': booking.courtNumber,
+          'courtId': booking.courtId,
           'date': booking.date,
           'timeSlot': booking.timeSlot,
           'players': booking.players.map((player) => {
@@ -36,8 +36,8 @@ class EmailService {
             'isConfirmed': player.isConfirmed,
           }).toList(),
           'courtInfo': {
-            'name': AppConstants.getCourtName(booking.courtNumber),
-            'color': AppConstants.getCourtColor(AppConstants.getCourtName(booking.courtNumber)),
+            'name': AppConstants.getCourtName(booking.courtId),
+            'color': AppConstants.getCourtColor(AppConstants.getCourtName(booking.courtId)),
           }
         }
       };
@@ -96,7 +96,7 @@ class EmailService {
       final requestData = {
         'type': 'cancellation',
         'booking': {
-          'courtNumber': booking.courtNumber,
+          'courtId': booking.courtId,
           'date': booking.date,
           'timeSlot': booking.timeSlot,
           'players': otherPlayers.map((player) => {
@@ -105,8 +105,8 @@ class EmailService {
             'isConfirmed': player.isConfirmed,
           }).toList(),
           'courtInfo': {
-            'name': AppConstants.getCourtName(booking.courtNumber),
-            'color': AppConstants.getCourtColor(AppConstants.getCourtName(booking.courtNumber)),
+            'name': AppConstants.getCourtName(booking.courtId),
+            'color': AppConstants.getCourtColor(AppConstants.getCourtName(booking.courtId)),
           }
         },
         'cancelingPlayer': {

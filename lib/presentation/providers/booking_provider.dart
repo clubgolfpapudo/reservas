@@ -50,8 +50,8 @@ class BookingProvider extends ChangeNotifier {
   List<Court> _courts = [];
   /// Lista de todas las reservas cargadas desde Firebase
   List<Booking> _bookings = [];
-  /// ID de la cancha actualmente seleccionada (ej: "court_1")
-  String _selectedCourtId = 'court_1';
+  /// ID de la cancha actualmente seleccionada (ej: "padel_court_1")
+  String _selectedCourtId = 'padel_court_1';
   /// Fecha actualmente seleccionada para mostrar reservas  
   DateTime _selectedDate = DateTime.now();
   /// Estado de carga global del provider
@@ -138,11 +138,11 @@ class BookingProvider extends ChangeNotifier {
     
     // 🔥 DEBUG: Mostrar TODAS las reservas primero
     for (var booking in _bookings) {
-      print('   📋 ALL: ${booking.courtNumber} | ${booking.date} | ${booking.timeSlot} | ${booking.players.length} jugadores');
+      print('   📋 ALL: ${booking.courtId} | ${booking.date} | ${booking.timeSlot} | ${booking.players.length} jugadores');
     }
     
     final filteredBookings = _bookings.where((booking) => 
-      booking.courtNumber == _selectedCourtId && 
+      booking.courtId == _selectedCourtId && 
       booking.date == selectedDateStr
     ).toList();
     
@@ -172,7 +172,7 @@ class BookingProvider extends ChangeNotifier {
     print('   Para fecha específica: ${bookingsForDate.length}');
     
     for (var booking in bookingsForDate) {
-      print('   📋 ${booking.courtNumber} ${booking.timeSlot} (${booking.players.length} jugadores)');
+      print('   📋 ${booking.courtId} ${booking.timeSlot} (${booking.players.length} jugadores)');
     }
     
     return bookingsForDate;
@@ -196,7 +196,7 @@ class BookingProvider extends ChangeNotifier {
   /// - Usuarios VISITA (PADEL1-4 VISITA) pueden estar en múltiples reservas
   /// - Comparación de nombres case-insensitive con limpieza de espacios
   /// 
-  /// @param courtId ID de la cancha (ej: "court_1")
+  /// @param courtId ID de la cancha (ej: "padel_court_1")
   /// @param date Fecha en formato YYYY-MM-DD
   /// @param timeSlot Hora en formato HH:MM
   /// @param playerNames Lista de nombres de jugadores a validar
@@ -213,7 +213,7 @@ class BookingProvider extends ChangeNotifier {
     // 1. Verificar reserva duplicada exacta (mismo slot, misma cancha)
     final exactDuplicates = _bookings.where(
       (booking) => 
-        booking.courtNumber == courtId && 
+        booking.courtId == courtId && 
         booking.date == date && 
         booking.timeSlot == timeSlot,
     ).toList();
@@ -235,13 +235,13 @@ class BookingProvider extends ChangeNotifier {
     // 2. Verificar conflictos de jugadores en otras canchas
     final allBookingsForDate = getAllBookingsForDate(DateTime.parse(date));
     final conflictingBookings = allBookingsForDate.where((booking) => 
-      booking.timeSlot == timeSlot && booking.courtNumber != courtId
+      booking.timeSlot == timeSlot && booking.courtId != courtId
     ).toList();
 
     print('🔍 Reservas en otras canchas para $timeSlot: ${conflictingBookings.length}');
 
     for (final booking in conflictingBookings) {
-      print('   📋 Verificando ${booking.courtNumber}: ${booking.players.map((p) => p.name).join(", ")}');
+      print('   📋 Verificando ${booking.courtId}: ${booking.players.map((p) => p.name).join(", ")}');
       
       for (final existingPlayer in booking.players) {
         for (final newPlayerName in playerNames) {
@@ -255,10 +255,10 @@ class BookingProvider extends ChangeNotifier {
           if (_playersMatch(existingPlayer.name, newPlayerName)) {
             print('❌ VALIDACIÓN: Conflicto detectado!');
             print('   Jugador: ${existingPlayer.name}');
-            print('   Ya reservado en: ${booking.courtNumber} a las $timeSlot');
+            print('   Ya reservado en: ${booking.courtId} a las $timeSlot');
             return ValidationResult(
               isValid: false,
-              reason: 'El jugador "${existingPlayer.name}" ya tiene una reserva a las $timeSlot en ${_getCourtDisplayName(booking.courtNumber)}.'
+              reason: 'El jugador "${existingPlayer.name}" ya tiene una reserva a las $timeSlot en ${_getCourtDisplayName(booking.courtId)}.'
             );
           }
         }
@@ -307,9 +307,15 @@ class BookingProvider extends ChangeNotifier {
   /// @return Nombre legible de la cancha
   String _getCourtDisplayName(String courtId) {
     switch (courtId) {
-      case 'court_1': return 'PITE';
-      case 'court_2': return 'LILEN';
-      case 'court_3': return 'PLAIYA';
+      // PÁDEL
+      case 'padel_court_1': return 'PITE';
+      case 'padel_court_2': return 'LILEN';
+      case 'padel_court_3': return 'PLAIYA';
+      // TENIS
+      case 'tennis_court_1': return 'CANCHA_1';
+      case 'tennis_court_2': return 'CANCHA_2';
+      case 'tennis_court_3': return 'CANCHA_3';
+      case 'tennis_court_4': return 'CANCHA_4';
       default: return courtId;
     }
   }
@@ -513,9 +519,9 @@ class BookingProvider extends ChangeNotifier {
   /// del club. En una implementación futura podría cargar desde Firebase.
   /// 
   /// Canchas configuradas:
-  /// - PITE (court_1)
-  /// - LILEN (court_2) 
-  /// - PLAIYA (court_3)
+  /// - PITE (padel_court_1)
+  /// - LILEN (padel_court_2) 
+  /// - PLAIYA (padel_court_3)
   /// 
   /// @throws Captura errores y los convierte en _setError()
   Future<void> _loadCourts() async {
@@ -524,8 +530,9 @@ class BookingProvider extends ChangeNotifier {
       
       final now = DateTime.now();
       _courts = [
+        // PÁDEL - Mantener IDs originales
         Court(
-          id: 'court_1',
+          id: 'padel_court_1',  // 🔧 CAMBIAR: era 'court_1'
           name: 'PITE',
           description: 'Cancha de pádel PITE',
           number: 1,
@@ -536,7 +543,7 @@ class BookingProvider extends ChangeNotifier {
           updatedAt: now,
         ),
         Court(
-          id: 'court_2',
+          id: 'padel_court_2',  // 🔧 CAMBIAR: era 'court_2'
           name: 'LILEN',
           description: 'Cancha de pádel LILEN',
           number: 2,
@@ -547,11 +554,56 @@ class BookingProvider extends ChangeNotifier {
           updatedAt: now,
         ),
         Court(
-          id: 'court_3',
+          id: 'padel_court_3',  // 🔧 CAMBIAR: era 'court_3'
           name: 'PLAIYA',
           description: 'Cancha de pádel PLAIYA',
           number: 3,
           displayOrder: 3,
+          status: 'active',
+          isAvailableForBooking: true,
+          createdAt: now,
+          updatedAt: now,
+        ),
+        // TENIS - Nuevos IDs únicos
+        Court(
+          id: 'tennis_court_1',  // 🔧 CAMBIAR: era 'court_4'
+          name: 'CANCHA_1',
+          description: 'Cancha de tenis 1',
+          number: 4,
+          displayOrder: 4,
+          status: 'active',
+          isAvailableForBooking: true,
+          createdAt: now,
+          updatedAt: now,
+        ),
+        Court(
+          id: 'tennis_court_2',  // 🔧 NUEVO
+          name: 'CANCHA_2',
+          description: 'Cancha de tenis 2',
+          number: 5,
+          displayOrder: 5,
+          status: 'active',
+          isAvailableForBooking: true,
+          createdAt: now,
+          updatedAt: now,
+        ),
+        Court(
+          id: 'tennis_court_3',  // 🔧 NUEVO
+          name: 'CANCHA_3',
+          description: 'Cancha de tenis 3',
+          number: 6,
+          displayOrder: 6,
+          status: 'active',
+          isAvailableForBooking: true,
+          createdAt: now,
+          updatedAt: now,
+        ),
+        Court(
+          id: 'tennis_court_4',  // 🔧 NUEVO
+          name: 'CANCHA_4',
+          description: 'Cancha de tenis 4',
+          number: 7,
+          displayOrder: 7,
           status: 'active',
           isAvailableForBooking: true,
           createdAt: now,
@@ -595,7 +647,7 @@ class BookingProvider extends ChangeNotifier {
           
           // 🔥 DEBUG: mostrar reservas cargadas CON DETALLES COMPLETOS
           for (var booking in _bookings) {
-            print('   📋 LOADED: courtNumber="${booking.courtNumber}" | date="${booking.date}" | timeSlot="${booking.timeSlot}" | players=${booking.players.length} | status="${booking.status}"');
+            print('   📋 LOADED: courtId="${booking.courtId}" | date="${booking.date}" | timeSlot="${booking.timeSlot}" | players=${booking.players.length} | status="${booking.status}"');
             for (var player in booking.players.take(2)) {
               print('      - ${player.name} (${player.email})');
             }
@@ -742,7 +794,7 @@ class BookingProvider extends ChangeNotifier {
       // 🔥 VALIDACIÓN COMPLETA
       final playerNames = booking.players.map((p) => p.name).toList();
       final validation = canCreateBooking(
-        booking.courtNumber, 
+        booking.courtId, 
         booking.date, 
         booking.timeSlot, 
         playerNames
@@ -779,14 +831,14 @@ class BookingProvider extends ChangeNotifier {
   /// - _isLoading: Para operaciones de Firebase
   /// - _isSendingEmails: Para operaciones de email específicamente
   /// 
-  /// @param courtNumber ID de la cancha
+  /// @param courtId ID de la cancha
   /// @param date Fecha en formato YYYY-MM-DD
   /// @param timeSlot Hora en formato HH:MM
   /// @param players Lista completa de BookingPlayer con emails y teléfonos
   /// @return true si todo fue exitoso, false si hubo errores
   /// @throws Exception Si validación falla o hay errores críticos
   Future<bool> createBookingWithEmails({
-    required String courtNumber,
+    required String courtId,  // ← NUEVO PARÁMETRO
     required String date,
     required String timeSlot,
     required List<BookingPlayer> players,
@@ -797,7 +849,7 @@ class BookingProvider extends ChangeNotifier {
       
       // 1. Validación completa (usar método existente)
       final playerNames = players.map((p) => p.name).toList();
-      final validation = canCreateBooking(courtNumber, date, timeSlot, playerNames);
+      final validation = canCreateBooking(courtId, date, timeSlot, playerNames);
       
       if (!validation.isValid) {
         throw Exception(validation.reason!);
@@ -805,7 +857,7 @@ class BookingProvider extends ChangeNotifier {
       
       // 2. Crear reserva en Firebase (usar método existente)
       final booking = Booking(
-        courtNumber: courtNumber,
+        courtId: courtId,
         date: date,
         timeSlot: timeSlot,
         players: players,

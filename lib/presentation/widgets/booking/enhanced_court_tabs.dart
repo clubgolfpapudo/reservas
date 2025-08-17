@@ -125,10 +125,9 @@ class _EnhancedCourtTabsState extends State<EnhancedCourtTabs>
         return const Color(0xFF00C851); // 🟢 Verde Esmeralda
       case 'PLAIYA':
       case 'Cancha 3':
-      case 'Cancha 3':
         return const Color(0xFF8E44AD); // 🟣 Púrpura Vibrante
       case 'Cancha 4':
-        return const Color(0xFF8D6E63); // Caf� Tenis
+        return const Color(0xFFE91E63); // 🌸 Rosa/Fucsia vibrante
       default:
         return const Color(0xFF2196F3); // Azul por defecto
     }
@@ -144,10 +143,9 @@ class _EnhancedCourtTabsState extends State<EnhancedCourtTabs>
         return const Color(0xFF007E33); // Verde más oscuro
       case 'PLAIYA':
       case 'Cancha 3':
-      case 'Cancha 3':
         return const Color(0xFF6C3483); // Púrpura más oscuro
       case 'Cancha 4':
-        return const Color(0xFF8D6E63); // Caf� Tenis
+        return const Color(0xFF8D6E63); // Caf� Tenis
       default:
         return const Color(0xFF1976D2); // Azul oscuro por defecto
     }

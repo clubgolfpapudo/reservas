@@ -6,7 +6,7 @@ import 'package:equatable/equatable.dart';
 
 class Booking extends Equatable {
   final String? id;
-  final String courtNumber;  // ← AGREGADO
+  final String courtId;  // ← AGREGADO
   final String date;         // ← AGREGADO  
   final String timeSlot;     // ← AGREGADO
   final List<BookingPlayer> players;
@@ -16,7 +16,7 @@ class Booking extends Equatable {
 
   const Booking({
     this.id,
-    required this.courtNumber,
+    required this.courtId,
     required this.date,
     required this.timeSlot,
     required this.players,
@@ -28,7 +28,7 @@ class Booking extends Equatable {
   @override
   List<Object?> get props => [
     id,
-    courtNumber,
+    courtId,
     date,
     timeSlot,
     players,
@@ -47,7 +47,7 @@ class Booking extends Equatable {
   
   Booking copyWith({
     String? id,
-    String? courtNumber,
+    String? courtId,
     String? date,
     String? timeSlot,
     List<BookingPlayer>? players,
@@ -57,7 +57,7 @@ class Booking extends Equatable {
   }) {
     return Booking(
       id: id ?? this.id,
-      courtNumber: courtNumber ?? this.courtNumber,
+      courtId: courtId ?? this.courtId,
       date: date ?? this.date,
       timeSlot: timeSlot ?? this.timeSlot,
       players: players ?? this.players,

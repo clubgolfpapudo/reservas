@@ -27,7 +27,7 @@ class IcsGenerator {
     final endDateTime = startDateTime.add(const Duration(hours: 1, minutes: 30));
     
     // Información de la cancha
-    final courtName = _getCourtName(booking.courtNumber);
+    final courtName = _getCourtName(booking.courtId);
     
     // Lista de jugadores
     final playerNames = booking.players.map((p) => p.name).join(', ');
@@ -76,16 +76,36 @@ END:VCALENDAR''';
         'Z';
   }
 
-  static String _getCourtName(String courtNumber) {
-    switch (courtNumber) {
+  static String _getCourtName(String courtId) {  // ← CAMBIAR PARÁMETRO
+    switch (courtId) {
+      // PÁDEL
+      case 'padel_court_1':
+        return 'Cancha 1 - PITE';
+      case 'padel_court_2':
+        return 'Cancha 2 - LILEN';
+      case 'padel_court_3':
+        return 'Cancha 3 - PLAIYA';
+      
+      // TENIS
+      case 'tennis_court_1':
+        return 'Cancha 1 - Tenis';
+      case 'tennis_court_2':
+        return 'Cancha 2 - Tenis';
+      case 'tennis_court_3':
+        return 'Cancha 3 - Tenis';
+      case 'tennis_court_4':
+        return 'Cancha 4 - Tenis';
+      
+      // COMPATIBILIDAD CON IDs VIEJOS
       case 'court_1':
         return 'Cancha 1 - PITE';
       case 'court_2':
         return 'Cancha 2 - LILEN';
       case 'court_3':
         return 'Cancha 3 - PLAIYA';
+      
       default:
-        return courtNumber;
+        return courtId;
     }
   }
   
