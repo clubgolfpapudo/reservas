@@ -435,27 +435,27 @@ class AppTheme {
         ),
       ),
       
-      // Tarjetas
-      cardTheme: CardThemeData(
-        elevation: 2.0,
-        shadowColor: Colors.black.withOpacity(0.1),
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(AppSizes.radiusM),
-        ),
-        margin: const EdgeInsets.symmetric(vertical: AppSizes.spacingS),
-        color: Colors.white,
-      ),
+      // // Tarjetas
+      // cardTheme: CardThemeData(
+      //   elevation: 2.0,
+      //   shadowColor: Colors.black.withOpacity(0.1),
+      //   shape: RoundedRectangleBorder(
+      //     borderRadius: BorderRadius.circular(AppSizes.radiusM),
+      //   ),
+      //   margin: const EdgeInsets.symmetric(vertical: AppSizes.spacingS),
+      //   color: Colors.white,
+      // ),
       
-      // Diálogos
-      dialogTheme: DialogThemeData(
-        elevation: 8.0,
-        backgroundColor: Colors.white,
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(AppSizes.radiusL),
-        ),
-        titleTextStyle: AppTextStyles.headline3,
-        contentTextStyle: AppTextStyles.bodyMedium,
-      ),
+      // // Diálogos
+      // dialogTheme: DialogThemeData(
+      //   elevation: 8.0,
+      //   backgroundColor: Colors.white,
+      //   shape: RoundedRectangleBorder(
+      //     borderRadius: BorderRadius.circular(AppSizes.radiusL),
+      //   ),
+      //   titleTextStyle: AppTextStyles.headline3,
+      //   contentTextStyle: AppTextStyles.bodyMedium,
+      // ),
       
       // Bottom Sheet
       bottomSheetTheme: const BottomSheetThemeData(
@@ -581,22 +581,22 @@ class AppTheme {
         elevation: 6.0,
       ),
       
-      // TabBar
-      tabBarTheme: const TabBarThemeData(
-        labelColor: AppColors.primaryBlue,
-        unselectedLabelColor: AppColors.mediumGray,
-        indicatorColor: AppColors.primaryBlue,
-        labelStyle: TextStyle(
-          fontSize: 16.0,
-          fontWeight: FontWeight.w500,
-          fontFamily: AppTextStyles.fontFamily,
-        ),
-        unselectedLabelStyle: TextStyle(
-          fontSize: 16.0,
-          fontWeight: FontWeight.normal,
-          fontFamily: AppTextStyles.fontFamily,
-        ),
-      ),
+      // // TabBar
+      // tabBarTheme: const TabBarThemeData(
+      //   labelColor: AppColors.primaryBlue,
+      //   unselectedLabelColor: AppColors.mediumGray,
+      //   indicatorColor: AppColors.primaryBlue,
+      //   labelStyle: TextStyle(
+      //     fontSize: 16.0,
+      //     fontWeight: FontWeight.w500,
+      //     fontFamily: AppTextStyles.fontFamily,
+      //   ),
+      //   unselectedLabelStyle: TextStyle(
+      //     fontSize: 16.0,
+      //     fontWeight: FontWeight.normal,
+      //     fontFamily: AppTextStyles.fontFamily,
+      //   ),
+      // ),
       
       // FloatingActionButton
       floatingActionButtonTheme: const FloatingActionButtonThemeData(

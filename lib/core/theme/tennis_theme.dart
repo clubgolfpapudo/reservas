@@ -3,21 +3,21 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
 // ═══════════════════════════════════════════════════════════════════════════════
-// COLORES DE LA APLICACIÓN
+// COLORES DE LA APLICACIÓN - TENIS (TIERRA BATIDA)
 // ═══════════════════════════════════════════════════════════════════════════════
 abstract class AppColors {
-// Colores principales - TENIS (Café)
-  static const Color primaryBlue = Color(0xFF8D6E63);        // Café principal (era azul)
-  static const Color primaryBlueLight = Color(0xFFEFEBE9);   // Café muy claro (era azul claro)
-  static const Color primaryBlueDark = Color(0xFF6D4C41);    // Café oscuro (era azul oscuro)
-  static const Color primaryBlueBorder = Color(0xFFD7CCC8);  // Café claro borde (era azul borde)
+  // Colores principales - TENIS (Tierra Batida) 🎾
+  static const Color primaryBlue = Color(0xFFD2691E);        // 🏆 TIERRA BATIDA AUTÉNTICA (era café)
+  static const Color primaryBlueLight = Color(0xFFFFF8DC);   // 🏺 Cornsilk claro (era café claro)
+  static const Color primaryBlueDark = Color(0xFFB8860B);    // 🥉 Dark Goldenrod (era café oscuro)
+  static const Color primaryBlueBorder = Color(0xFFDEB887);  // 🍂 Burlywood borde (era café borde)
   
   // Colores de estado para reservas
-  static const Color available = Color(0xFFF3E5AB);          // Beige disponible (era azul claro)
-  static const Color availableBorder = Color(0xFFD4AF37);    // Dorado claro borde
+  static const Color available = Color(0xFFF3E5AB);          // Beige disponible (mantener)
+  static const Color availableBorder = Color(0xFFD4AF37);    // Dorado claro borde (mantener)
   static const Color availableText = Color(0xFF3A3A3C);
-  static const Color reserved = Color(0xFF8D6E63);           // Café principal reservado
-  static const Color reservedBorder = Color(0xFF6D4C41);     // Café oscuro borde
+  static const Color reserved = Color(0xFFD2691E);           // 🎾 TIERRA BATIDA reservado
+  static const Color reservedBorder = Color(0xFFB8860B);     // 🎾 Dark Goldenrod borde
   static const Color reservedText = Colors.white;
   static const Color incomplete = Color(0xFFFFFACD);         // Mantener amarillo
   static const Color incompleteBorder = Color(0xFFDAA520);   // Mantener borde dorado
@@ -27,23 +27,23 @@ abstract class AppColors {
   static const Color success = Color(0xFF34C759);
   static const Color warning = Color(0xFFFF9500);
   static const Color error = Color(0xFFFF3A30);
-  static const Color info = primaryBlue;
+  static const Color info = primaryBlue;                     // 🎾 Ahora tierra batida
   
-  // Grises
+  // Grises (sin cambios)
   static const Color darkGray = Color(0xFF3A3A3C);
   static const Color mediumGray = Color(0xFF8E8E93);
   static const Color lightGray = Color(0xFFF2F2F7);
   static const Color borderGray = Color(0xFFD1D1D6);
   static const Color backgroundGray = Color(0xFFFAFAFA);
   
-  // Colores de categorías de usuario
+  // Colores de categorías de usuario (sin cambios)
   static const Color adminColor = Color(0xFF9C27B0);     // Púrpura
   static const Color socioColor = Color(0xFF4CAF50);     // Verde
   static const Color hijoSocioColor = Color(0xFF2196F3); // Azul
   static const Color visitaColor = Color(0xFFFF9800);    // Naranja
   static const Color filialColor = Color(0xFF795548);    // Marrón
   
-  // Colores de canchas
+  // Colores de canchas (sin cambios - estos son para canchas individuales)
   static const Color piteColor = Color(0xFFFF5722);   // Naranja
   static const Color lilenColor = Color(0xFF2196F3);  // Azul
   static const Color plaiyaColor = Color(0xFF4CAF50); // Verde
@@ -433,27 +433,27 @@ class AppTheme {
         ),
       ),
       
-      // Tarjetas
-      cardTheme: CardThemeData(
-        elevation: 2.0,
-        shadowColor: Colors.black.withOpacity(0.1),
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(AppSizes.radiusM),
-        ),
-        margin: const EdgeInsets.symmetric(vertical: AppSizes.spacingS),
-        color: Colors.white,
-      ),
+      // // Tarjetas
+      // cardTheme: CardThemeData(
+      //   elevation: 2.0,
+      //   shadowColor: Colors.black.withOpacity(0.1),
+      //   shape: RoundedRectangleBorder(
+      //     borderRadius: BorderRadius.circular(AppSizes.radiusM),
+      //   ),
+      //   margin: const EdgeInsets.symmetric(vertical: AppSizes.spacingS),
+      //   color: Colors.white,
+      // ),
       
-      // Diálogos
-      dialogTheme: DialogThemeData(
-        elevation: 8.0,
-        backgroundColor: Colors.white,
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(AppSizes.radiusL),
-        ),
-        titleTextStyle: AppTextStyles.headline3,
-        contentTextStyle: AppTextStyles.bodyMedium,
-      ),
+      // // Diálogos
+      // dialogTheme: DialogThemeData(
+      //   elevation: 8.0,
+      //   backgroundColor: Colors.white,
+      //   shape: RoundedRectangleBorder(
+      //     borderRadius: BorderRadius.circular(AppSizes.radiusL),
+      //   ),
+      //   titleTextStyle: AppTextStyles.headline3,
+      //   contentTextStyle: AppTextStyles.bodyMedium,
+      // ),
       
       // Bottom Sheet
       bottomSheetTheme: const BottomSheetThemeData(
@@ -579,22 +579,22 @@ class AppTheme {
         elevation: 6.0,
       ),
       
-      // TabBar
-      tabBarTheme: TabBarThemeData(
-        labelColor: AppColors.primaryBlue,
-        unselectedLabelColor: AppColors.mediumGray,
-        indicatorColor: AppColors.primaryBlue,
-        labelStyle: TextStyle(
-          fontSize: 16.0,
-          fontWeight: FontWeight.w500,
-          fontFamily: AppTextStyles.fontFamily,
-        ),
-        unselectedLabelStyle: TextStyle(
-          fontSize: 16.0,
-          fontWeight: FontWeight.normal,
-          fontFamily: AppTextStyles.fontFamily,
-        ),
-      ),
+      // // TabBar
+      // tabBarTheme: TabBarThemeData(
+      //   labelColor: AppColors.primaryBlue,
+      //   unselectedLabelColor: AppColors.mediumGray,
+      //   indicatorColor: AppColors.primaryBlue,
+      //   labelStyle: TextStyle(
+      //     fontSize: 16.0,
+      //     fontWeight: FontWeight.w500,
+      //     fontFamily: AppTextStyles.fontFamily,
+      //   ),
+      //   unselectedLabelStyle: TextStyle(
+      //     fontSize: 16.0,
+      //     fontWeight: FontWeight.normal,
+      //     fontFamily: AppTextStyles.fontFamily,
+      //   ),
+      // ),
       
       // FloatingActionButton
       floatingActionButtonTheme: const FloatingActionButtonThemeData(

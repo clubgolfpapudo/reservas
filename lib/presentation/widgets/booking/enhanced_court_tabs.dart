@@ -119,7 +119,7 @@ class _EnhancedCourtTabsState extends State<EnhancedCourtTabs>
     switch (courtName) {
       case 'PITE':
       case 'Cancha 1':
-        return const Color(0xFFFF6B35); // 🟠 Naranja Intenso
+        return const Color(0xFF00BCD4); // 🔵 Cyan
       case 'LILEN':
       case 'Cancha 2':
         return const Color(0xFF00C851); // 🟢 Verde Esmeralda
@@ -137,7 +137,7 @@ class _EnhancedCourtTabsState extends State<EnhancedCourtTabs>
     switch (courtName) {
       case 'PITE':
       case 'Cancha 1':
-        return const Color(0xFFE55527); // Naranja más oscuro
+        return const Color(0xFF0097A7); // 🔵 Cyan oscuro
       case 'LILEN':
       case 'Cancha 2':
         return const Color(0xFF007E33); // Verde más oscuro
@@ -155,7 +155,7 @@ class _EnhancedCourtTabsState extends State<EnhancedCourtTabs>
     switch (courtName) {
       case 'PITE':
       case 'Cancha 1':
-        return const Color(0xFFFFE0D6);
+        return const Color(0xFFB2EBF2);  // 🔵 Cyan muy claro
       case 'LILEN':
       case 'Cancha 2':
         return const Color(0xFFE8F5E8);

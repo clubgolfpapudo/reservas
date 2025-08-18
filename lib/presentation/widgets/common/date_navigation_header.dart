@@ -34,7 +34,7 @@ class DateNavigationHeader extends StatelessWidget {
           end: Alignment.bottomCenter,
           colors: title == 'Pádel' 
               ? [const Color(0xFF2E7AFF), const Color(0xFF1E5AFF)] // Azul para Pádel
-              : [const Color(0xFF8D6E63), const Color(0xFF6D4C41)], // Café para Tenis
+              : [const Color(0xFFD2691E), const Color(0xFFB8860B)], // TIERRA BATIDA para Tenis
         ),
       ),
       child: SafeArea(
