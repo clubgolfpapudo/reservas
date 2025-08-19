@@ -73,7 +73,7 @@ class _TennisReservationsPageState extends State<TennisReservationsPage> {
               // Header con navegación de fechas
               DateNavigationHeader(
                 title: 'Tenis',
-                currentDate: bookingProvider.selectedDate,
+                selectedDate: bookingProvider.selectedDate,
                 currentIndex: bookingProvider.currentDateIndex,
                 totalDays: bookingProvider.totalAvailableDays,
                 onBackPressed: () => Navigator.of(context).pop(),

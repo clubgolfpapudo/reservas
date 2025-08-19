@@ -75,7 +75,6 @@ class _ReservationFormModalState extends State<ReservationFormModal> {
   Color get _sportColor => widget.sport == 'TENIS' 
       ? const Color(0xFFD2691E) // Tierra batida para tenis
       : const Color(0xFF2E7AFF); // Azul para pádel
-  String get _sportEmoji => widget.sport == 'TENIS' ? '🎾' : '🏓';
 
   @override
   void initState() {
@@ -570,7 +569,7 @@ class _ReservationFormModalState extends State<ReservationFormModal> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    _buildDetailRow(Icons.sports_tennis, 'Cancha', widget.courtName),
+                    _buildDetailRow(Icons.sports_handball, 'Cancha', widget.courtId),
                     _buildDetailRow(Icons.calendar_today, 'Fecha', _formatDisplayDate()),
                     _buildDetailRow(Icons.access_time, 'Hora', widget.timeSlot),
                     _buildDetailRow(Icons.group, 'Jugadores', '${_selectedPlayers.length}'),
@@ -752,10 +751,16 @@ class _ReservationFormModalState extends State<ReservationFormModal> {
                   Expanded(
                     child: Row(
                       children: [
-                        Text(
-                          '$_sportEmoji ',
-                          style: const TextStyle(fontSize: 18),
+                        Icon(
+                          widget.sport.toUpperCase().contains('PADEL') 
+                            ? Icons.sports_handball 
+                            : widget.sport.toUpperCase() == 'TENIS' 
+                              ? Icons.sports_baseball 
+                              : Icons.golf_course,
+                          color: Colors.white,  // ← BLANCO para contraste con fondo azul
+                          size: 20,
                         ),
+                        const SizedBox(width: 8),
                         Text(
                           _getDisplayCourtName(widget.courtName),  // ← Convertir ID a nombre legible
                           style: const TextStyle(

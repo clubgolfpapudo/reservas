@@ -193,7 +193,7 @@ class _SportSelectorPageState extends State<SportSelectorPage> {
               ] else ...[
                 // Selector de deportes
                 const Text(
-                  'Seleccione su deporte',
+                  'Selecciona tu deporte',
                   style: TextStyle(
                     fontSize: 20,
                     fontWeight: FontWeight.w600,

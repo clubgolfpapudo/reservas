@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:webview_flutter/webview_flutter.dart';
 import 'package:provider/provider.dart';
 import '../../providers/booking_provider.dart';
+import '../../../core/constants/app_constants.dart';
 
 class ReservationWebView extends StatefulWidget {
   final String userEmail;
@@ -556,7 +557,7 @@ class _ReservationWebViewState extends State<ReservationWebView> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  _buildDetailRow(Icons.sports_tennis, 'Cancha', _getCourtName()),
+                  _buildDetailRow(Icons.sports_handball, 'Cancha', AppConstants.courtIdToName[widget.courtId] ?? widget.courtId),
                   _buildDetailRow(Icons.calendar_today, 'Fecha', _formatDisplayDate()),
                   _buildDetailRow(Icons.access_time, 'Hora', widget.timeSlot),
                 ],
