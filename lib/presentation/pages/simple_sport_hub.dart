@@ -139,14 +139,7 @@ class SimpleSportHub extends StatelessWidget {
                   ),
                   
                   const SizedBox(height: 8),
-                  
-                //   const Text(
-                //     'Reserva tu cancha favorita',
-                //     style: TextStyle(
-                //       color: Colors.white70,
-                //       fontSize: 16,
-                //     ),
-                //   ),
+
                 ],
               ),
             ),

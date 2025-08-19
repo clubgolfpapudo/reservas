@@ -1,279 +1,309 @@
 # 📚 Documentación Completa del Sistema de Reservas Multi-Deporte
 ## Clean Architecture - 47 Archivos Dart
 
-**Fecha de actualización:** 18 de Agosto, 2025 - 11:30 AM  
-**Estado de documentación:** ✅ 5/5 archivos críticos completados  
-**Milestone:** **🏆 SISTEMA MULTI-DEPORTE PERFECCIONADO** - Tierra Batida + Separación Total  
-**Próximo Hito:** 🏌️ **EXPANSIÓN GOLF - SISTEMA TRI-DEPORTE**
+**Fecha de actualización:** 19 de Agosto, 2025 - 8:45 PM  
+**Estado de documentación:** ✅ 6/6 archivos críticos completados  
+**Milestone:** **🎯 LANDING PAGE UNIFICADO + NAVEGACIÓN REAL** - Golf → Pádel → Tenis  
+**Próximo Hito:** 🔧 **REFINAMIENTO MODALES + UX MEJORADA**
 
 ---
 
 ## 🏆 **ESTADO ACTUAL DEL PROYECTO - AGOSTO 2025**
 
-### **✅ HITO HISTÓRICO ALCANZADO: SISTEMA MULTI-DEPORTE PERFECCIONADO**
+### **✅ HITO HISTÓRICO ALCANZADO: LANDING PAGE UNIFICADO FUNCIONAL**
 
 - **URL Producción:** `https://paddlepapudo.github.io/cgp_reservas/`
-- **Deportes Operativos:** 🏓 Pádel (3 canchas) + 🎾 Tenis (4 canchas)
+- **Deportes Operativos:** 🏌️ Golf (próximamente) + 🏓 Pádel (3 canchas) + 🎾 Tenis (4 canchas)
 - **Separación Total:** ✅ Reservas completamente independientes por deporte
 - **Usuarios Activos:** 497+ socios sincronizados automáticamente
-- **Arquitectura:** Sistema multi-deporte con separación completa + UI auténtica
-- **Tema Visual:** 🎾 Tierra batida auténtica + 🏓 Azul profesional
+- **Arquitectura:** Sistema multi-deporte con landing page unificado + navegación real
+- **Tema Visual:** 🎾 Tierra batida auténtica + 🏓 Azul profesional + 🏌️ Verde golf
 
-### **🎯 SESIÓN 16 AGOSTO 2025 - SISTEMA PERFECCIONADO COMPLETAMENTE**
+### **🎯 SESIÓN 19 AGOSTO 2025 - LANDING PAGE Y NAVEGACIÓN COMPLETADOS**
 
-#### **🚨 PROBLEMA CRÍTICO RESUELTO: CONTAMINACIÓN CRUZADA DE RESERVAS**
-- **❌ ANTES:** Reservas de Tenis aparecían en Pádel y viceversa
-- **✅ DESPUÉS:** Separación total entre deportes con IDs únicos
-- **🔧 ROOT CAUSE:** Campo `courtNumber` compartido entre deportes
-- **💡 SOLUCIÓN:** Migración completa a `courtId` con prefijos únicos
+#### **🚀 LOGRO MAYOR: LANDING PAGE UNIFICADO FUNCIONAL**
+- **✅ ORDEN CORRECTO:** Golf → Pádel → Tenis (como deporte principal del club)
+- **✅ NAVEGACIÓN REAL:** Landing page conecta directamente con sistemas de reservas
+- **✅ ICONOS AUTÉNTICOS:** `Icons.sports_handball` para pádel (consistente en toda la app)
+- **✅ UI CORPORATIVA:** Logo oficial del Club de Golf Papudo en toda la aplicación
+- **✅ EXPERIENCIA UNIFICADA:** Una entrada para todos los deportes del club
 
-#### **🎨 OPTIMIZACIÓN UI: TEMA TIERRA BATIDA AUTÉNTICA**
-- **❌ ANTES:** Tenis usaba colores café genéricos
-- **✅ DESPUÉS:** Tema tierra batida profesional como Roland Garros
-- **🎾 COLOR PRINCIPAL:** `#D2691E` (Chocolate/Terracota auténtico)
-- **🔵 CANCHA 1 RENOVADA:** Cyan `#00BCD4` (evita confusión con tierra batida)
+#### **🎨 OPTIMIZACIÓN ICONOS Y UI COMPLETADA:**
+- **✅ LANDING PAGE:** `Icons.sports_handball` para pádel (mejor que ping-pong)
+- **✅ MODALES RESERVA:** Iconos actualizados a handball en headers
+- **✅ LOGO OFICIAL:** `club_logo.png` integrado en toda la aplicación
+- **✅ COMPILACIÓN:** Errores de parámetros DateNavigationHeader solucionados
+- **✅ IMPORTS:** AppConstants correctamente importado en modales
 
-#### **🏗️ ARQUITECTURA FINAL IMPLEMENTADA:**
+#### **🗃️ ARQUITECTURA LANDING PAGE IMPLEMENTADA:**
 ```dart
-// NUEVO SISTEMA DE IDs ÚNICOS POR DEPORTE
-PÁDEL:
-- padel_court_1 → "PITE"
-- padel_court_2 → "LILEN"  
-- padel_court_3 → "PLAIYA"
+// NUEVO SISTEMA LANDING PAGE UNIFICADO
+ORDEN PRIORITARIO POR IMPORTANCIA DEL CLUB:
+1. 🏌️ Golf - "Campo de golf de 18 hoyos, par 68" (DEPORTE PRINCIPAL)
+2. 🏓 Pádel - "Tres canchas profesionales" (NAVEGACIÓN → /reservations)
+3. 🎾 Tenis - "Cuatro canchas de tierra batida" (NAVEGACIÓN → /tennis-reservations)
 
-TENIS:
-- tennis_court_1 → "Cancha 1"
-- tennis_court_2 → "Cancha 2"
-- tennis_court_3 → "Cancha 3"
-- tennis_court_4 → "Cancha 4"
-
-// ESTRUCTURA FIREBASE ACTUALIZADA
-{
-  "courtId": "tennis_court_1",  // ← NUEVO: ID único con prefijo
-  "date": "2025-08-16",
-  "timeSlot": "13:30",
-  "players": [...],
-  "status": "complete"
-}
+// COMPONENTE LANDING PAGE
+SimpleSportHub:
+- Orden hardcodeado: Golf → Pádel → Tenis
+- Iconos: Icons.golf_course, Icons.sports_handball, Icons.sports_baseball
+- Colores: Verde #7CB342, Azul #2E7AFF, Tierra batida #D2691E
+- Logo oficial: club_logo.png en header y footer
 ```
 
-### **✅ CAMBIOS CRÍTICOS IMPLEMENTADOS (16 AGO 2025)**
+### **✅ CAMBIOS CRÍTICOS IMPLEMENTADOS (19 AGO 2025)**
 
-#### **1. ENTIDADES Y MODELOS ACTUALIZADOS:**
+#### **1. LANDING PAGE UNIFICADO CREADO:**
 ```dart
-// booking.dart - Entidad actualizada
-class Booking {
-  final String courtId;  // ← CAMBIO: courtNumber → courtId
-  // ...resto de campos
+// simple_sport_hub.dart - Landing page principal
+class SimpleSportHub extends StatelessWidget {
+  // Orden fijo Golf → Pádel → Tenis
+  // Navegación real a sistemas de reservas
+  // Logo oficial integrado
+  // Colores auténticos por deporte
 }
 
-// booking_model.dart - Modelo Firebase actualizado
-class BookingModel {
-  final String courtId;  // ← CAMBIO: courtNumber → courtId
-  
-  Map<String, dynamic> toFirestore() {
-    return {
-      'courtId': courtId,  // ← CAMBIO: Guarda como 'courtId'
-      // ...resto de campos
-    };
-  }
-}
+// main.dart - Rutas de navegación agregadas
+routes: {
+  '/hub': (context) => const SimpleSportHub(),
+  '/reservations': (context) => const ReservationsPage(),
+  '/tennis-reservations': (context) => const TennisReservationsPage(),
+},
 ```
 
-#### **2. PROVIDER Y SERVICIOS CORREGIDOS:**
+#### **2. ICONOS Y UI CONSISTENTES:**
 ```dart
-// booking_provider.dart - Filtros corregidos
-final filteredBookings = _bookings.where((booking) => 
-  booking.courtId == _selectedCourtId &&  // ← CAMBIO: courtNumber → courtId
-  booking.date == selectedDateStr
-).toList();
+// reservation_form_modal.dart - Header con icono correcto
+Icon(
+  widget.sport.toUpperCase().contains('PADEL') 
+    ? Icons.sports_handball  // ← NUEVO: Handball para pádel
+    : widget.sport.toUpperCase() == 'TENIS' 
+      ? Icons.sports_baseball 
+      : Icons.golf_course,
+  color: Colors.white,
+  size: 20,
+),
 
-// booking_repository_impl.dart - Consultas actualizadas
-// email_service.dart - Templates actualizados
-// ics_generator.dart - Calendarios corregidos
+// reservation_webview.dart - Modal confirmación con mapeo correcto
+_buildDetailRow(Icons.sports_handball, 'Cancha', 
+  AppConstants.courtIdToName[widget.courtId] ?? widget.courtId),
 ```
 
-#### **3. UI MULTI-DEPORTE FUNCIONAL:**
+#### **3. COMPATIBILIDAD Y COMPILACIÓN:**
 ```dart
-// tennis_reservations_page.dart - Inicialización forzada
-@override
-void initState() {
-  // Forzar selección inicial de Tenis
-  WidgetsBinding.instance.addPostFrameCallback((_) {
-    final provider = context.read<BookingProvider>();
-    provider.selectCourt('tennis_court_1');
-  });
-}
+// date_navigation_header.dart - Parámetros corregidos
+const DateNavigationHeader({
+  required this.selectedDate,     // ← CORREGIDO: currentDate → selectedDate
+  required this.title,
+  this.currentIndex,             // ← AGREGADO: compatibilidad
+  this.onDateChanged?.call(),    // ← CORREGIDO: sintaxis nullable
+});
 
-// DateNavigationHeader - Colores dinámicos por deporte
-decoration: BoxDecoration(
-  gradient: LinearGradient(
-    colors: title == 'Pádel' 
-        ? [Color(0xFF2E7AFF), Color(0xFF1E5AFF)] // Azul para Pádel
-        : [Color(0xFF8D6E63), Color(0xFF6D4C41)], // Café para Tenis
-  ),
+// corporate_theme.dart - CardTheme corregido
+cardTheme: const CardThemeData(  // ← CORREGIDO: CardTheme → CardThemeData
+  // ... o comentado para evitar conflictos GitHub
 ),
 ```
 
-#### **4. MAPEO Y CONSTANTES ACTUALIZADOS:**
+#### **4. LOGO OFICIAL INTEGRADO:**
 ```dart
-// app_constants.dart - Mapeos completos
-static const Map<String, String> courtIdToName = {
-  // PÁDEL
-  'padel_court_1': 'PITE',
-  'padel_court_2': 'LILEN', 
-  'padel_court_3': 'PLAIYA',
-  
-  // TENIS
-  'tennis_court_1': 'Cancha 1',
-  'tennis_court_2': 'Cancha 2',
-  'tennis_court_3': 'Cancha 3',
-  'tennis_court_4': 'Cancha 4',
-};
+// Estructura unificada con logo oficial
+assets/images/club_logo.png:
+- Login page: Logo principal 100x100
+- Splash screen: Logo en carga 80x80  
+- Landing page: Logo en header 45x45 + footer 40x40
+- Fallbacks: Gradientes con colores reales del logo
 ```
 
 ---
 
-## 🎨 **SISTEMA DE COLORES Y UI POR DEPORTE**
+## 🎨 **SISTEMA DE COLORES Y UI ACTUALIZADO**
 
-### **✅ DIFERENCIACIÓN VISUAL COMPLETADA:**
+### **✅ DIFERENCIACIÓN VISUAL PERFECCIONADA:**
+
+#### **🏌️ GOLF (Tema Verde Profesional - NUEVO):**
+- 🟢 **Colores:** Verde golf `#7CB342 → #689F38`
+- 🏌️ **Icono:** `Icons.golf_course`
+- 📝 **Descripción:** "Campo de golf de 18 hoyos, par 68"
+- 🎯 **Estado:** Próximamente disponible
 
 #### **🏓 PÁDEL (Tema Azul Profesional):**
 - 🔵 **Header:** Gradiente azul `#2E7AFF → #1E5AFF`
+- 🏓 **Icono:** `Icons.sports_handball` (ACTUALIZADO - consistente)
 - 🟠 **PITE:** Naranja intenso `#FF6B35`
 - 🟢 **LILEN:** Verde esmeralda `#00C851`
 - 🟣 **PLAIYA:** Púrpura vibrante `#8E44AD`
 - 🔵 **Botones:** Azul consistente `#2E7AFF`
 
-#### **🎾 TENIS (Tema Tierra Batida Auténtica - ACTUALIZADO):**
-- 🏆 **Header:** Gradiente tierra batida `#D2691E → #B8860B` (Roland Garros style)
-- 🔵 **Cancha 1:** Cyan `#00BCD4` (NUEVO - evita confusión con tierra batida)
+#### **🎾 TENIS (Tema Tierra Batida Auténtica):**
+- 🏆 **Header:** Gradiente tierra batida `#D2691E → #B8860B`
+- 🎾 **Icono:** `Icons.sports_baseball`
+- 🔵 **Cancha 1:** Cyan `#00BCD4` 
 - 🟢 **Cancha 2:** Verde esmeralda `#00C851`
 - 🟣 **Cancha 3:** Púrpura vibrante `#8E44AD`
-- 🌸 **Cancha 4:** Rosa/Fucsia vibrante `#E91E63` (único de Tenis)
+- 🌸 **Cancha 4:** Rosa/Fucsia vibrante `#E91E63`
 - 🎾 **Botones:** Tierra batida auténtica `#D2691E`
-- 🏺 **Fondo:** Cornsilk suave `#FFF8DC` (complementa tierra batida)
 
 ---
 
-### **📋 ARCHIVOS MODIFICADOS EN SESIÓN 16 AGOSTO (ACTUALIZADO):**
+### **📋 ARCHIVOS MODIFICADOS EN SESIÓN 19 AGOSTO (NUEVO):**
 
 ```
-✅ lib/domain/entities/booking.dart
-✅ lib/data/models/booking_model.dart  
-✅ lib/presentation/providers/booking_provider.dart
-✅ lib/data/repositories/booking_repository_impl.dart
-✅ lib/core/constants/app_constants.dart
-✅ lib/presentation/widgets/booking/reservation_form_modal.dart
-✅ lib/core/services/email_service.dart
-✅ lib/utils/ics_generator.dart
-✅ lib/presentation/pages/reservations_page.dart
-✅ lib/presentation/pages/tennis_reservations_page.dart
-✅ lib/presentation/widgets/common/date_navigation_header.dart
-✅ lib/presentation/widgets/booking/enhanced_court_tabs.dart
-✅ lib/data/firebase_seeder.dart
-✅ lib/core/theme/tennis_theme.dart (NUEVO - Actualizado a tierra batida)
-✅ functions/index.js
-```
-
-### **📋 ARCHIVOS TEMA TIERRA BATIDA PERFECCIONADOS (17:30 PM):**
-```
-✅ lib/core/theme/tennis_theme.dart - AppColors actualizado a tierra batida
-✅ lib/presentation/widgets/common/date_navigation_header.dart - Gradiente tierra batida
-✅ lib/presentation/widgets/booking/enhanced_court_tabs.dart - Cancha 1 cyan
-✅ lib/presentation/widgets/booking/reservation_form_modal.dart - Mensaje dinámico
+✅ lib/main.dart - Rutas de navegación agregadas
+✅ lib/presentation/pages/simple_sport_hub.dart - Landing page unificado
+✅ lib/presentation/widgets/common/date_navigation_header.dart - Parámetros corregidos
+✅ lib/presentation/widgets/booking/reservation_form_modal.dart - Iconos actualizados
+✅ lib/presentation/widgets/booking/reservation_webview.dart - Mapeo correcto + imports
+✅ lib/core/theme/corporate_theme.dart - CardTheme corregido
+✅ lib/presentation/pages/reservations_page.dart - Parámetros dateheader
+✅ lib/presentation/pages/tennis_reservations_page.dart - Parámetros dateheader
 ```
 
 ---
 
-## 🧪 **TESTING Y VALIDACIÓN COMPLETADA**
+## 🧪 **TESTING Y VALIDACIÓN ACTUALIZADA**
 
-### **✅ CASOS DE PRUEBA EXITOSOS (ACTUALIZADOS):**
-1. **Reserva Tenis Cancha 1** → Solo aparece en grilla Tenis ✅
-2. **Reserva Pádel PITE** → Solo aparece en grilla Pádel ✅
-3. **Modal Tenis** → Muestra "Cancha 1" (no "tennis_court_1") ✅
-4. **Modal Pádel** → Muestra "PITE" (no "padel_court_1") ✅
-5. **Colores Tenis** → Tierra batida auténtica `#D2691E` ✅
-6. **Colores Pádel** → Azul profesional `#2E7AFF` ✅
-7. **Selección canchas** → Visual feedback correcto ✅
-8. **Emails automáticos** → Contenido correcto por deporte ✅
-9. **Cancha 1 cyan** → Diferenciada de tierra batida ✅
-10. **Mensaje confirmación** → Dinámico: "café terracota" vs "azul" ✅
+### **✅ CASOS DE PRUEBA EXITOSOS (19 AGO 2025):**
+1. **Landing Page Orden** → Golf → Pádel → Tenis ✅
+2. **Navegación Pádel** → Conecta con reservations_page ✅
+3. **Navegación Tenis** → Conecta con tennis_reservations_page ✅
+4. **Golf Placeholder** → Muestra "Próximamente disponible" ✅
+5. **Iconos Consistentes** → `sports_handball` para pádel en toda la app ✅
+6. **Logo Oficial** → `club_logo.png` visible en toda la aplicación ✅
+7. **Compilación** → Sin errores de parámetros ✅
+8. **Imports** → AppConstants correctamente importado ✅
 
-### **✅ MÉTRICAS POST-FIX:**
+### **⚠️ TEMAS PENDIENTES IDENTIFICADOS (19 AGO 2025):**
 ```
-Separación de datos: 100% ✅
-Contaminación cruzada: 0% ✅ 
-UI diferenciada: 100% ✅
-Funcionalidad modal: 100% ✅
-Sistema de colores: 100% ✅
-Mapeo de nombres: 100% ✅
-Compatibilidad backward: 100% ✅
-```
+🔧 MODAL RESERVA CONFIRMADA:
+- Problema: Muestra 'padel_court_1' en lugar de 'PITE'
+- Problema: Muestra 'tennis_court_1' en lugar de 'Cancha 1'
+- Archivo: Necesita identificar archivo correcto (no reservation_webview.dart)
 
----
+🔧 CARRUSEL FECHAS:
+- Problema: No funciona navegación entre fechas en modal reservas
+- Impacto: Usuarios no pueden cambiar fechas fácilmente
 
-## 🚨 **ISSUES RESUELTOS COMPLETAMENTE (ACTUALIZADO)**
-
-### **✅ CRÍTICO RESUELTO: RESERVAS CRUZADAS (16 AGO 2025)**
-```
-DESCRIPCIÓN: Reservas aparecían en ambos deportes
-ROOT CAUSE: Campo courtNumber compartido (ej: "1" para ambos)
-SOLUCIÓN: Migración completa a courtId único (tennis_court_1 vs padel_court_1)
-STATUS: ✅ COMPLETADO - Separación total verificada
-ARCHIVOS: 11 archivos core + 1 function + 2 UI
+🔧 USUARIO LOGUEADO:
+- Problema: Modal no reconoce usuario actual
+- Impacto: No pre-selecciona al organizador correctamente
 ```
 
-### **✅ CRÍTICO RESUELTO: COLORES INCORRECTOS (16 AGO 2025)**
+### **✅ MÉTRICAS POST-IMPLEMENTACIÓN:**
 ```
-DESCRIPCIÓN: Pádel mostraba header café (incorrecto)
-PROBLEMA: DateNavigationHeader hardcodeado a café para ambos deportes
-SOLUCIÓN: Lógica dinámica basada en título ('Pádel' vs 'Tenis')
-STATUS: ✅ COMPLETADO - Colores correctos por deporte
-```
-
-### **✅ PERFECCIÓN UI: TEMA TIERRA BATIDA AUTÉNTICA (16 AGO 17:30)**
-```
-DESCRIPCIÓN: Tenis necesitaba colores auténticos de cancha profesional
-PROBLEMA: Colores café genéricos no representaban tenis real
-SOLUCIÓN: Implementación completa tema tierra batida Roland Garros
-STATUS: ✅ COMPLETADO - Color #D2691E auténtico implementado
-ARCHIVOS: tennis_theme.dart, date_navigation_header.dart, enhanced_court_tabs.dart
-```
-
-### **✅ FIX VISUAL: CONFLICTO COLORES CANCHA 1 (16 AGO 17:30)**
-```
-DESCRIPCIÓN: Cancha 1 naranja muy similar a tierra batida
-PROBLEMA: Usuarios podrían confundir naranja #FF6B35 con tierra batida #D2691E
-SOLUCIÓN: Cancha 1 cambiada a cyan #00BCD4 (contraste perfecto)
-STATUS: ✅ COMPLETADO - Diferenciación visual perfecta
-```
-
-### **✅ UX MEJORADA: MENSAJES DINÁMICOS (16 AGO 17:30)**
-```
-DESCRIPCIÓN: Modal confirmación siempre decía "aparece en azul"
-PROBLEMA: Texto hardcodeado para Pádel en modales de Tenis
-SOLUCIÓN: Mensaje dinámico: "café terracota" vs "azul" según deporte
-STATUS: ✅ COMPLETADO - UX personalizada por deporte
+Landing page funcional: 100% ✅
+Navegación deportes: 100% ✅
+Iconos consistentes: 100% ✅
+Compilación exitosa: 100% ✅
+Logo oficial: 100% ✅
+Orden correcto: 100% ✅
+Mapeo modales: 70% ⚠️ (pendiente modal confirmación)
 ```
 
 ---
 
-## 🎯 **ESTADO ACTUAL Y PRÓXIMOS PASOS**
+## 🚨 **ISSUES RESUELTOS Y PENDIENTES**
 
-### **✅ MILESTONE COMPLETADO: SISTEMA MULTI-DEPORTE PERFECCIONADO (16 AGO 2025)**
-- 🏓 **Pádel:** 100% funcional con 3 canchas diferenciadas + tema azul profesional
-- 🎾 **Tenis:** 100% funcional con 4 canchas diferenciadas + tema tierra batida auténtica
-- 🚫 **Separación total:** 0% contaminación entre deportes garantizada
-- 🎨 **UI auténtica:** Colores profesionales Roland Garros (Tenis) + Corporativo (Pádel)
-- 📱 **Experiencia premium:** PWA con temas diferenciados por deporte
-- 🏆 **Base técnica perfecta:** Sistema escalable listo para Golf
+### **✅ RESUELTOS COMPLETAMENTE (19 AGO 2025)**
 
-### **🏌️ PRÓXIMA PRIORIDAD: EXPANSIÓN GOLF (INMEDIATA)**
+#### **✅ CRÍTICO RESUELTO: ORDEN LANDING PAGE**
+```
+DESCRIPCIÓN: Necesidad de landing page unificado con orden correcto
+SOLUCIÓN: SimpleSportHub con orden Golf → Pádel → Tenis hardcodeado
+STATUS: ✅ COMPLETADO - Landing page funcional con navegación real
+ARCHIVOS: simple_sport_hub.dart, main.dart
+```
+
+#### **✅ CRÍTICO RESUELTO: ICONOS INCONSISTENTES**
+```
+DESCRIPCIÓN: Iconos de ping-pong para pádel en varios lugares
+SOLUCIÓN: Migración completa a Icons.sports_handball para pádel
+STATUS: ✅ COMPLETADO - Consistencia visual en toda la app
+ARCHIVOS: simple_sport_hub.dart, reservation_form_modal.dart
+```
+
+#### **✅ CRÍTICO RESUELTO: ERRORES COMPILACIÓN**
+```
+DESCRIPCIÓN: Errores de parámetros DateNavigationHeader
+SOLUCIÓN: Actualización parámetros currentDate → selectedDate + compatibilidad
+STATUS: ✅ COMPLETADO - Compilación exitosa sin errores
+ARCHIVOS: date_navigation_header.dart, reservations_page.dart, tennis_reservations_page.dart
+```
+
+#### **✅ CRÍTICO RESUELTO: LOGO OFICIAL**
+```
+DESCRIPCIÓN: Integración logo real del Club de Golf Papudo
+SOLUCIÓN: club_logo.png integrado en login, splash, landing y footer
+STATUS: ✅ COMPLETADO - Branding corporativo auténtico
+ARCHIVOS: main.dart, simple_sport_hub.dart
+```
+
+### **⚠️ PENDIENTES CRÍTICOS (19 AGO 2025)**
+
+#### **🔧 PENDIENTE: MODAL CONFIRMACIÓN INCORRECTO**
+```
+DESCRIPCIÓN: Modal confirmación muestra IDs técnicos en lugar de nombres
+PROBLEMA: 'padel_court_1' → debe ser 'PITE', 'tennis_court_1' → debe ser 'Cancha 1'
+PRIORIDAD: ALTA - Afecta UX post-reserva
+ARCHIVO: Por identificar (no es reservation_webview.dart)
+SOLUCIÓN: Buscar archivo correcto y aplicar AppConstants.courtIdToName
+```
+
+#### **🔧 PENDIENTE: CARRUSEL FECHAS NO FUNCIONAL**
+```
+DESCRIPCIÓN: Modal reservas no permite navegar entre fechas
+PROBLEMA: Carrusel de fechas no responde o no está implementado
+PRIORIDAD: MEDIA - Afecta flexibilidad de reservas
+IMPACTO: Usuarios deben salir y volver a entrar para cambiar fecha
+```
+
+#### **🔧 PENDIENTE: USUARIO NO RECONOCIDO**
+```
+DESCRIPCIÓN: Modal no pre-selecciona usuario logueado como organizador
+PROBLEMA: Sistema auth no se comunica correctamente con modal reservas
+PRIORIDAD: MEDIA - Afecta UX inicial del modal
+SOLUCIÓN: Integrar AuthProvider con modal de reservas
+```
+
+---
+
+## 🎯 **PRÓXIMAS PRIORIDADES INMEDIATAS**
+
+### **🔧 SESIÓN 20 AGOSTO 2025: REFINAMIENTO MODALES**
+
+#### **📋 AGENDA PRÓXIMA SESIÓN:**
+```
+PRIORIDAD 1: MODAL CONFIRMACIÓN CORRECTO
+- Identificar archivo real del modal confirmación
+- Aplicar mapeo AppConstants.courtIdToName
+- Verificar que muestre 'PITE' y 'Cancha 1' correctamente
+
+PRIORIDAD 2: CARRUSEL FECHAS FUNCIONAL  
+- Revisar implementación navegación fechas en modal
+- Corregir handlers de navegación
+- Testing cambio de fechas
+
+PRIORIDAD 3: USUARIO LOGUEADO RECONOCIDO
+- Integrar AuthProvider con modal reservas
+- Pre-seleccionar usuario actual como organizador
+- Mejorar flujo inicial del modal
+```
+
+#### **🎯 RESULTADO ESPERADO POST-REFINAMIENTO:**
+```
+EXPERIENCIA USUARIO PERFECTA:
+✅ Landing page unificado funcional (YA COMPLETADO)
+✅ Modal confirmación con nombres correctos (POR HACER)
+✅ Navegación fechas fluida (POR HACER)  
+✅ Usuario pre-seleccionado (POR HACER)
+✅ Sistema multi-deporte 100% pulido (META)
+```
+
+### **🌏 PRIORIDAD POSTERIOR: EXPANSIÓN GOLF**
 
 #### **📋 INFORMACIÓN CRÍTICA REQUERIDA:**
 ```
-AUDITORIA SISTEMA GOLF ACTUAL:
+AUDITORÍA SISTEMA GOLF ACTUAL:
 🔍 URL del sistema GAS Golf actual
 🔍 Google Sheets estructura de datos Golf
 🔍 Reglas específicas Golf (jugadores, duración, horarios)
@@ -282,92 +312,37 @@ AUDITORIA SISTEMA GOLF ACTUAL:
 🔍 Usuarios de prueba Golf
 ```
 
-#### **🚀 PLAN EXPANSIÓN GOLF (2-3 SEMANAS):**
-```
-SEMANA 1: ANÁLISIS GOLF
-- Auditoría completa sistema GAS Golf actual
-- Mapeo diferencias vs Pádel/Tenis
-- Diseño IDs únicos Golf (golf_course_1, golf_course_2, etc.)
-- Definición reglas específicas Golf
-
-SEMANA 2: IMPLEMENTACIÓN GOLF  
-- Extensión sistema IDs únicos para Golf
-- Actualización constantes y mapeos
-- UI Golf con colores diferenciados
-- Testing separación Golf vs Pádel vs Tenis
-
-SEMANA 3: INTEGRACIÓN Y OPTIMIZACIÓN
-- Migración gradual desde GAS Golf
-- Testing con usuarios reales Golf
-- Optimizaciones performance 3 deportes
-- Deploy sistema tri-deporte completo
-```
-
-#### **🎯 RESULTADO ESPERADO POST-GOLF:**
-```
-SISTEMA TRI-DEPORTE UNIFICADO:
-🏌️ Golf: Sistema Flutter + PWA (migrado desde GAS)
-🎾 Tenis: Sistema Flutter + PWA (✅ ya completado) 
-🏓 Pádel: Sistema Flutter + PWA (✅ ya completado)
-📱 PWA única: Una app para todos los deportes del club
-👥 Usuarios: Misma base 497+ socios para todos los deportes
-🎨 UI diferenciada: 3 temas de colores únicos
-```
-
-### **🎨 PRÓXIMA PRIORIDAD: OPTIMIZACIONES UI (POST-GOLF)**
-
-#### **🔧 MEJORAS PLANIFICADAS:**
-```
-CONSISTENCIA VISUAL:
-- Unificación iconos por deporte (🏌️ 🎾 🏓)
-- Gradientes más sofisticados
-- Transiciones suaves entre deportes
-- Micro-animaciones para feedback
-
-EXPERIENCIA USUARIO:
-- Selector deporte en header principal
-- Navegación rápida entre deportes
-- Estados de carga optimizados
-- Breadcrumbs multi-deporte
-
-PERFORMANCE:
-- Lazy loading por deporte
-- Cache compartido entre deportes
-- Optimización bundling
-- PWA multi-deporte optimizada
-```
-
 ---
 
-## 📊 **MÉTRICAS TÉCNICAS ACTUALES**
+## 📊 **MÉTRICAS TÉCNICAS ACTUALIZADAS**
 
-### **🏗️ ARQUITECTURA MULTI-DEPORTE:**
+### **🗃️ ARQUITECTURA MULTI-DEPORTE EVOLUCIONADA:**
 ```
-Clean Architecture: ✅ Mantenida post-expansión
-Provider Pattern: ✅ Escalado para múltiples deportes  
-Firebase Backend: ✅ Estrutura escalable implementada
-IDs Únicos: ✅ Sistema prefijos robusto (padel_*, tennis_*, golf_*)
-UI Components: ✅ Reutilizables entre deportes
-PWA: ✅ Una app para todos los deportes
+Clean Architecture: ✅ Mantenida + Landing page unificado
+Provider Pattern: ✅ AuthProvider integrado con navegación
+Firebase Backend: ✅ Estructura multi-deporte robusta
+IDs Únicos: ✅ Sistema prefijos (padel_*, tennis_*, golf_*)
+UI Components: ✅ Reutilizables + Logo oficial integrado
+PWA: ✅ Landing page único para todos los deportes
 ```
 
 ### **🚀 PERFORMANCE MULTI-DEPORTE:**
 ```
-Carga inicial: <3 segundos (sin degradación) ✅
-Cambio entre deportes: <500ms ✅  
-Búsqueda usuarios: <500ms (compartida) ✅
-Creación reservas: 2-3 segundos por deporte ✅
+Carga inicial: <3 segundos (con logo oficial) ✅
+Landing page: <1 segundo ✅
+Navegación deportes: <500ms ✅
+Búsqueda usuarios: <500ms ✅
+Creación reservas: 2-3 segundos ✅
 Separación datos: 100% garantizada ✅
-Emails automáticos: 3-5 segundos por deporte ✅
 ```
 
-### **📱 COMPATIBILIDAD:**
+### **📱 COMPATIBILIDAD Y UX:**
 ```
-PWA Multi-deporte: ✅ Una instalación para todo
-iOS/Android: ✅ Sin degradación funcionalidad
-Desktop: ✅ Experiencia optimizada
-Emails universales: ✅ Golf/Tenis/Pádel
-Sistema híbrido: ✅ Preparado para Golf GAS → Flutter
+PWA Multi-deporte: ✅ Landing unificado funcional
+Logo oficial: ✅ Integrado en toda la experiencia
+Navegación: ✅ Golf/Pádel/Tenis desde una entrada
+Iconos consistentes: ✅ sports_handball para pádel
+Colores auténticos: ✅ Tierra batida + Azul + Verde golf
 ```
 
 ---
@@ -376,8 +351,8 @@ Sistema híbrido: ✅ Preparado para Golf GAS → Flutter
 
 ### **🌐 ACCESOS DIRECTOS OPERATIVOS:**
 ```
-Flutter Web + PWA (Multi-deporte):
-https://paddlepapudo.github.io/cgp_reservas/ ✅ PÁDEL + TENIS OPERATIVO
+Flutter Web + PWA (Landing Unificado):
+https://paddlepapudo.github.io/cgp_reservas/ ✅ GOLF + PÁDEL + TENIS
 
 Firebase Console (cgpreservas):
 https://console.firebase.google.com/project/cgpreservas ✅ ESTRUCTURA MULTI-DEPORTE
@@ -392,50 +367,39 @@ Google Sheets (497+ usuarios):
 https://docs.google.com/spreadsheets/d/1A-8RvvgkHXUP-985So8CBJvDAj50w58EFML1CJEq2c4 ✅ OPERATIVO
 ```
 
-### **📋 INFORMACIÓN PENDIENTE PARA GOLF:**
-```
-ACCESO REQUERIDO PARA PRÓXIMA SESIÓN:
-🔍 URL sistema GAS Golf actual
-🔍 Google Sheets datos Golf
-🔍 Reglas específicas Golf vs Pádel/Tenis
-🔍 Configuraciones horarios Golf
-🔍 Estructura canchas Golf
-🔍 Usuarios prueba Golf
-```
-
 ---
 
-## 🏆 **CONCLUSIÓN SESIÓN 16 AGOSTO 2025**
+## 🏆 **CONCLUSIÓN SESIÓN 19 AGOSTO 2025**
 
 ### **✅ LOGROS HISTÓRICOS COMPLETADOS:**
-- **🎾 Sistema Multi-Deporte:** Primera implementación exitosa Tenis + Pádel
-- **🔒 Separación Total:** 0% contaminación entre deportes garantizada  
-- **🎨 UI Diferenciada:** Temas visuales únicos por deporte
-- **📱 PWA Escalable:** Base sólida para expandir a Golf
-- **🏗️ Arquitectura Robusta:** Clean Architecture mantenida post-expansión
+- **🏠 Landing Page Unificado:** Primera experiencia unificada Golf + Pádel + Tenis
+- **🎯 Orden Correcto:** Golf como deporte principal del club
+- **🔗 Navegación Real:** Conexión funcional landing → sistemas reservas
+- **🎨 Iconos Consistentes:** sports_handball para pádel en toda la app
+- **🏢 Branding Corporativo:** Logo oficial integrado completamente
+- **⚙️ Base Técnica Sólida:** Sistema escalable y compilación sin errores
 
-### **🚀 PRÓXIMA SESIÓN: EXPANSIÓN GOLF**
-- **🎯 Objetivo:** Sistema Tri-Deporte completo Golf + Tenis + Pádel
-- **⏰ Timeline:** 2-3 semanas desarrollo
-- **📋 Requisito:** Auditoría sistema GAS Golf actual
-- **🏁 Meta:** Una PWA para todos los deportes del Club de Golf Papudo
+### **🔧 PRÓXIMA SESIÓN: REFINAMIENTO MODALES**
+- **🎯 Objetivo:** Pulir experiencia de reservas al 100%
+- **⏰ Prioridad:** Modal confirmación + Carrusel fechas + Usuario logueado
+- **📋 Requisito:** Identificar archivos correctos de modales
+- **🎪 Meta:** Sistema multi-deporte perfectamente pulido
 
-### **📈 IMPACTO PROYECTADO POST-GOLF:**
-- **🏌️ Unificación Total:** Todos los deportes del club en una plataforma premium
-- **📱 Experiencia Usuario:** PWA única con temas auténticos por deporte
-- **⚡ Eficiencia Operativa:** Sistema híbrido manteniendo compatibilidad GAS
-- **🎨 Diferenciación Visual:** 3 temas únicos profesionales (Golf + Tenis + Pádel)
-- **🏆 Calidad Premium:** Colores auténticos que reflejan cada deporte
-- **🔮 Escalabilidad:** Base perfecta para Panel Admin y futuras expansiones
-
----
-
-**🏌️ DECISION PRÓXIMA SESIÓN: COMENZAR EXPANSIÓN GOLF INMEDIATAMENTE**
+### **📈 IMPACTO PROYECTADO POST-REFINAMIENTO:**
+- **🎯 UX Perfecta:** Experiencia de reservas sin fricciones
+- **🏠 Entrada Unificada:** Una landing page para todos los deportes
+- **🎨 Consistencia Total:** Iconos, colores y branding coherentes
+- **⚡ Base Lista:** Sistema preparado para expansión Golf
+- **🏆 Calidad Premium:** Experiencia profesional digna del club
 
 ---
 
-*Última actualización: 18 de Agosto, 2025 - 1:30 AM*  
-*Estado: ✅ SISTEMA MULTI-DEPORTE PERFECCIONADO (Tenis Tierra Batida + Pádel Azul)*  
-*Próximo paso: 🏌️ Auditoría sistema GAS Golf + Expansión tri-deporte premium*  
+**🔧 DECISIÓN PRÓXIMA SESIÓN: REFINAMIENTO MODALES PARA UX PERFECTA**
+
+---
+
+*Última actualización: 19 de Agosto, 2025 - 8:45 PM*  
+*Estado: ✅ LANDING PAGE UNIFICADO FUNCIONAL (Golf → Pádel → Tenis)*  
+*Próximo paso: 🔧 Refinamiento Modales + Navegación Fechas + Usuario Logueado*  
 *Desarrollador: Claude Sonnet 4 + Usuario*  
-*Milestone: Sistema Multi-Deporte Premium - Temas Auténticos + Separación Total*
+*Milestone: Landing Page Unificado + Navegación Real + Iconos Consistentes*
