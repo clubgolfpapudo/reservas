@@ -110,60 +110,26 @@ class FirebaseUserService {
   /// @return Lista de Maps con todos los usuarios y sus campos completos
   /// @throws No propaga excepciones, usa fallback en caso de error
   /// @debug Incluye logs detallados para debugging de cada usuario procesado
-  // ========================================================================
-  // CACHE SINGLETON - NUEVA IMPLEMENTACIÓN OPTIMIZADA
-  // ========================================================================
-
-  /// Cache estático de usuarios en memoria (sobrevive toda la sesión)
-  static List<Map<String, dynamic>>? _cachedUsers;
-
-  /// Flag para indicar si los usuarios ya fueron cargados al menos una vez
-  static bool _isLoaded = false;
-
-  /// Timestamp de última carga para determinar si el cache debe refrescarse
-  static DateTime? _lastLoaded;
-
-  /// Tiempo de vida del cache en minutos (30 minutos por defecto)
-  static const int _cacheLifetimeMinutes = 30;
-
-  /// Flag para debugging del cache
-  static bool _cacheDebugEnabled = true;
-
-  /// **MÉTODO PRINCIPAL OPTIMIZADO** - Carga usuarios con cache singleton
   static Future<List<Map<String, dynamic>>> getAllUsers() async {
     try {
-      // ✅ VERIFICAR CACHE VÁLIDO PRIMERO
-      if (_isCacheValid()) {
-        if (_cacheDebugEnabled) {
-          print('⚡ CACHE HIT: Retornando ${_cachedUsers!.length} usuarios desde memoria (${_getTimeSinceLoad()}min ago)');
-        }
-        return _cachedUsers!;
-      }
-
-      // ❌ CACHE EXPIRADO O NO EXISTE - CARGAR DESDE FIREBASE
-      if (_cacheDebugEnabled) {
-        print('🔄 CACHE MISS: Cargando usuarios desde Firebase...');
-      }
-      final startTime = DateTime.now();
-
       final QuerySnapshot snapshot = await FirebaseFirestore.instance
           .collection('users')
           .get();
 
       final List<Map<String, dynamic>> users = [];
-
+      
       for (var doc in snapshot.docs) {
         try {
           final data = doc.data() as Map<String, dynamic>;
-
+          
           // Validar que tenga email válido
-          if (data.containsKey('email') &&
-              data['email'] != null &&
+          if (data.containsKey('email') && 
+              data['email'] != null && 
               data['email'].toString().trim().isNotEmpty) {
-
+            
             String email = data['email'].toString().trim().toLowerCase();
             String name = _extractNameFromRealStructure(data);
-
+            
             if (name.isNotEmpty) {
               // Incluir todos los campos necesarios de Firebase
               users.add({
@@ -192,64 +158,13 @@ class FirebaseUserService {
 
       // Ordenar alfabéticamente por nombre
       users.sort((a, b) => a['name'].toString().compareTo(b['name'].toString()));
-
-      final finalUsers = users.isNotEmpty ? users : _getFallbackUsers();
-
-      // ✅ GUARDAR EN CACHE PARA FUTURAS LLAMADAS
-      _updateCache(finalUsers);
-
-      if (_cacheDebugEnabled) {
-        final loadTime = DateTime.now().difference(startTime).inMilliseconds;
-        print('✅ CACHE UPDATED: ${finalUsers.length} usuarios cargados y cacheados en ${loadTime}ms');
-      }
-
-      return finalUsers;
-
-    } catch (e) {
-      print('❌ Error cargando usuarios: $e');
       
-      // Si hay cache (aunque esté expirado), usarlo como fallback
-      if (_cachedUsers != null && _cachedUsers!.isNotEmpty) {
-        if (_cacheDebugEnabled) {
-          print('⚠️ CACHE FALLBACK: Usando cache expirado debido a error');
-        }
-        return _cachedUsers!;
-      }
-
-      // Último recurso: fallback estático
+      return users.isNotEmpty ? users : _getFallbackUsers();
+      
+    } catch (e) {
+      // En caso de error, usar sistema fallback
       return _getFallbackUsers();
     }
-  }
-
-  // ========================================================================
-  // MÉTODOS DE GESTIÓN DE CACHE
-  // ========================================================================
-
-  /// Verifica si el cache actual es válido
-  static bool _isCacheValid() {
-    if (!_isLoaded || _cachedUsers == null || _cachedUsers!.isEmpty) {
-      return false;
-    }
-
-    if (_lastLoaded == null) {
-      return false;
-    }
-
-    final minutesSinceLoad = DateTime.now().difference(_lastLoaded!).inMinutes;
-    return minutesSinceLoad < _cacheLifetimeMinutes;
-  }
-
-  /// Actualiza el cache con nuevos datos
-  static void _updateCache(List<Map<String, dynamic>> users) {
-    _cachedUsers = users;
-    _isLoaded = true;
-    _lastLoaded = DateTime.now();
-  }
-
-  /// Obtiene tiempo transcurrido desde última carga (para debugging)
-  static int _getTimeSinceLoad() {
-    if (_lastLoaded == null) return 0;
-    return DateTime.now().difference(_lastLoaded!).inMinutes;
   }
 
   /// Extracción inteligente de nombres desde estructura real de Firebase

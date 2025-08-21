@@ -55,6 +55,17 @@ class ReservationFormModal extends StatefulWidget {
 }
 
 class _ReservationFormModalState extends State<ReservationFormModal> {
+  // ✅ AGREGAR ESTA FUNCIÓN AQUÍ
+  IconData _getSportIcon(String courtId) {
+    if (courtId.startsWith('padel_')) {
+      return Icons.sports_handball;
+    } else if (courtId.startsWith('tennis_')) {
+      return Icons.sports_tennis;
+    } else if (courtId.startsWith('golf_')) {
+      return Icons.golf_course;
+    }
+    return Icons.sports_tennis; // Fallback
+  }
   /// Form key para validaciones del formulario
   final _formKey = GlobalKey<FormState>();
   /// Controlador para el campo de búsqueda de usuarios
@@ -686,7 +697,7 @@ class _ReservationFormModalState extends State<ReservationFormModal> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    _buildDetailRow(Icons.sports_handball, 'Cancha', _getDisplayCourtName(widget.courtId)),
+                    _buildDetailRow(_getSportIcon(widget.courtId), 'Cancha', _getDisplayCourtName(widget.courtId)),
                     _buildDetailRow(Icons.calendar_today, 'Fecha', _formatDisplayDate()),
                     _buildDetailRow(Icons.access_time, 'Hora', widget.timeSlot),
                     _buildDetailRow(Icons.group, 'Jugadores', '${_selectedPlayers.length}'),
