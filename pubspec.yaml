@@ -53,7 +53,7 @@ dependencies:
   # ┌─────────────────────────────────────────────────────────────────────────┐
   # │ UTILIDADES - Herramientas útiles                                       │
   # └─────────────────────────────────────────────────────────────────────────┘
-  intl: ^0.20.2                        # Formateo de fechas/números/idiomas
+  intl: 0.20.2                        # Formateo de fechas/números/idiomas
   logger: ^2.0.2+1                     # Sistema de logs (debug)
   connectivity_plus: ^6.1.4            # Detectar conexión a internet
   
