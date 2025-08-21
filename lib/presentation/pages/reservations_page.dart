@@ -26,8 +26,13 @@ class _ReservationsPageState extends State<ReservationsPage> {
   @override
   void initState() {
     super.initState();
+
+    // 🔧 FIX INMEDIATO: Cambiar ANTES de PageController
+    final provider = context.read<BookingProvider>();
+    provider.selectCourt('padel_court_1');
+
     _pageController = PageController(
-      initialPage: context.read<BookingProvider>().currentDateIndex,
+      initialPage: provider.currentDateIndex,
     );
   }
 

@@ -824,14 +824,6 @@ class _ReservationFormModalState extends State<ReservationFormModal> {
 
   /// Convierte ID de cancha a nombre legible
   String _getDisplayCourtName(String courtId) {
-    // 🔧 FIX SIMPLE: Auto-corrección para inconsistencias
-    if (widget.sport.toUpperCase() == 'PADEL' && courtId.startsWith('tennis_')) {
-      courtId = 'padel_court_1'; // Corregir a PITE
-    }
-    if (widget.sport.toUpperCase() == 'TENIS' && courtId.startsWith('padel_')) {
-      courtId = 'tennis_court_1'; // Corregir a Cancha 1
-    }
-    
     print('🔧 MODAL DEBUG: _getDisplayCourtName recibió: "$courtId"');
     
     switch (courtId) {

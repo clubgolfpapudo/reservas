@@ -1,9 +1,10 @@
 // lib/main.dart - CON RUTAS DE NAVEGACIÓN COMPLETAS
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:firebase_core/firebase_core.dart';
-import 'package:provider/provider.dart';
 import 'package:intl/date_symbol_data_local.dart';
+import 'package:provider/provider.dart';
 
 // Core
 import 'core/constants/app_constants.dart';
@@ -60,6 +61,19 @@ class CGPReservasApp extends StatelessWidget {
           visualDensity: VisualDensity.adaptivePlatformDensity,
           fontFamily: 'Roboto',
         ),
+        
+        // ✅ AGREGAR LOCALIZACIONES AQUÍ (después de theme):
+        localizationsDelegates: const [
+          GlobalMaterialLocalizations.delegate,
+          GlobalWidgetsLocalizations.delegate,
+          GlobalCupertinoLocalizations.delegate,
+        ],
+        supportedLocales: const [
+          Locale('es', 'CL'), // Español Chile
+          Locale('es', ''),   // Español genérico
+          Locale('en', ''),   // Inglés fallback
+        ],
+        locale: const Locale('es', 'CL'),
         
         // Ruta inicial
         home: const AuthWrapper(),

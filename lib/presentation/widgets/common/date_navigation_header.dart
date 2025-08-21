@@ -291,8 +291,11 @@ class DateNavigationHeader extends StatelessWidget {
   }
 
   void _navigateDate(int days) {
-    final newDate = selectedDate.add(Duration(days: days));
-    onDateChanged?.call(newDate);
+    if (days < 0) {
+      onPreviousDate?.call();
+    } else if (days > 0) {
+      onNextDate?.call();
+    }
   }
 
   bool _canNavigateBackward() {

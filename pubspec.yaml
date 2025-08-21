@@ -17,6 +17,11 @@ environment:
 dependencies:
   flutter:                             # SDK base de Flutter
     sdk: flutter
+  
+  # ✅ AGREGAR ESTAS DOS LÍNEAS AQUÍ:
+  flutter_localizations:
+    sdk: flutter
+  
   equatable: ^2.0.5
 
   # ┌─────────────────────────────────────────────────────────────────────────┐
