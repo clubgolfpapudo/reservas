@@ -6,6 +6,8 @@ import '../providers/user_provider.dart';
 import '../widgets/common/sport_selector.dart';
 import '../../core/constants/app_constants.dart';
 import '../../core/theme/corporate_theme.dart';
+import '../../features/admin/providers/admin_provider.dart';
+import '../../features/admin/presentation/widgets/admin_menu_button.dart';
 import 'reservations_page.dart';
 import 'tennis_reservations_page.dart';
 
@@ -50,70 +52,104 @@ class _SportSelectionPageState extends State<SportSelectionPage>
     ));
 
     _animationController.forward();
+    
+    // 🔐 CAMBIAR ESTA PARTE:
+    // WidgetsBinding.instance.addPostFrameCallback((_) {
+    //   _checkAdminStatus();
+    // });
+    
+    // POR ESTO:
+    Future.delayed(const Duration(milliseconds: 500), () {
+      _checkAdminStatus();
+    });
   }
 
-  @override
-  void dispose() {
-    _animationController.dispose();
-    super.dispose();
+  // 🔐 Verificar estado de administrador
+  // 🔐 Verificar estado de administrador
+  void _checkAdminStatus() {
+    final userProvider = Provider.of<UserProvider>(context, listen: false);
+    final adminProvider = Provider.of<AdminProvider>(context, listen: false);
+    
+    print('🔍 DEBUG: Email actual: ${userProvider.currentUser?.email}'); // ← AGREGAR
+    print('🔍 DEBUG: Es autenticado: ${userProvider.isAuthenticated}');   // ← AGREGAR
+    
+    if (userProvider.isAuthenticated) {
+      adminProvider.checkAdminStatus(userProvider.currentUser?.email);
+      print('🔍 DEBUG: Es admin: ${adminProvider.isAdmin}');              // ← AGREGAR
+    }
   }
 
   @override
   Widget build(BuildContext context) {
+    print('🏗️ BUILD: SportSelectionPage con módulo admin EJECUTÁNDOSE'); // ← AGREGAR ESTA LÍNEA
+    
     return Scaffold(
-      body: Container(
-        decoration: const BoxDecoration(
-          gradient: LinearGradient(
-            begin: Alignment.topCenter,
-            end: Alignment.bottomCenter,
-            colors: [
-              CorporateTheme.backgroundLight,
-              Color(0xFFF0F2F5),
-            ],
-          ),
-        ),
-        child: SafeArea(
-          child: AnimatedBuilder(
-            animation: _animationController,
-            builder: (context, child) {
-              return FadeTransition(
-                opacity: _fadeAnimation,
-                child: SlideTransition(
-                  position: _slideAnimation,
-                  child: CustomScrollView(
-                    slivers: [
-                      // Header corporativo
-                      _buildCorporateHeader(),
-                      
-                      // Contenido principal
-                      SliverToBoxAdapter(
-                        child: Padding(
-                          padding: const EdgeInsets.all(24),
-                          child: Column(
-                            children: [
-                              // Selector de deportes
-                              _buildSportSelector(),
-                              
-                              const SizedBox(height: 32),
-                              
-                              // Estadísticas rápidas
-                              _buildQuickStats(),
-                              
-                              const SizedBox(height: 32),
-                              
-                              // Información adicional
-                              _buildAdditionalInfo(),
-                            ],
-                          ),
+      body: Column(
+        children: [
+          // Contenido principal expandible
+          Expanded(
+            child: Container(
+              decoration: const BoxDecoration(
+                gradient: LinearGradient(
+                  begin: Alignment.topCenter,
+                  end: Alignment.bottomCenter,
+                  colors: [
+                    CorporateTheme.backgroundLight,
+                    Color(0xFFF0F2F5),
+                  ],
+                ),
+              ),
+              child: SafeArea(
+                child: AnimatedBuilder(
+                  animation: _animationController,
+                  builder: (context, child) {
+                    return FadeTransition(
+                      opacity: _fadeAnimation,
+                      child: SlideTransition(
+                        position: _slideAnimation,
+                        child: CustomScrollView(
+                          slivers: [
+                            // Header corporativo con menú admin integrado
+                            _buildCorporateHeader(),
+                            
+                            // Contenido principal
+                            SliverToBoxAdapter(
+                              child: Padding(
+                                padding: const EdgeInsets.all(24),
+                                child: Column(
+                                  children: [
+                                    // Selector de deportes
+                                    _buildSportSelector(),
+                                    
+                                    const SizedBox(height: 32),
+                                    
+                                    // Estadísticas rápidas
+                                    _buildQuickStats(),
+                                    
+                                    const SizedBox(height: 32),
+                                    
+                                    // Información adicional
+                                    _buildAdditionalInfo(),
+                                    
+                                    // Espacio adicional para el footer
+                                    const SizedBox(height: 20),
+                                  ],
+                                ),
+                              ),
+                            ),
+                          ],
                         ),
                       ),
-                    ],
-                  ),
+                    );
+                  },
                 ),
-              );
-            },
+              ),
+            ),
           ),
-        ),
+          
+          // 📱 Footer de navegación
+          _buildFooterNavigation(),
+        ],
       ),
       
       // FAB para acceso rápido
@@ -147,6 +183,16 @@ class _SportSelectionPageState extends State<SportSelectionPage>
                       ),
                     ),
                   ),
+                ),
+              ),
+              
+              // 🔐 MENÚ ADMIN (esquina inferior izquierda) - INTEGRADO CON MÓDULO
+              const Positioned(
+                bottom: 15,
+                left: 20,
+                child: AdminMenuButton(
+                  onTap: null, // Usa navegación por defecto
+                  showBadge: true,
                 ),
               ),
               
@@ -228,13 +274,23 @@ class _SportSelectionPageState extends State<SportSelectionPage>
                     
                     const SizedBox(height: 16),
                     
-                    // Mensaje de bienvenida
-                    Consumer<UserProvider>(
-                      builder: (context, userProvider, child) {
+                    // Mensaje de bienvenida con estado admin
+                    Consumer2<UserProvider, AdminProvider>(
+                      builder: (context, userProvider, adminProvider, child) {
+                        String welcomeMessage;
+                        
+                        if (userProvider.isAuthenticated) {
+                          if (adminProvider.isAdmin) {
+                            welcomeMessage = 'Bienvenido Admin, ${userProvider.displayName}';
+                          } else {
+                            welcomeMessage = 'Bienvenido, ${userProvider.displayName}';
+                          }
+                        } else {
+                          welcomeMessage = 'Selecciona tu deporte favorito';
+                        }
+                        
                         return Text(
-                          userProvider.isAuthenticated 
-                              ? 'Bienvenido, ${userProvider.displayName}'
-                              : 'Selecciona tu deporte favorito',
+                          welcomeMessage,
                           style: TextStyle(
                             color: Colors.white.withOpacity(0.9),
                             fontSize: 16,
@@ -250,7 +306,7 @@ class _SportSelectionPageState extends State<SportSelectionPage>
           ),
         ),
         title: const Text(
-          'Sistema de Reservas',
+          'Reservas y Servicios',
           style: TextStyle(
             color: Colors.white,
             fontSize: 18,
@@ -294,6 +350,122 @@ class _SportSelectionPageState extends State<SportSelectionPage>
     );
   }
 
+  // 📱 Footer de navegación (igual que antes)
+  Widget _buildFooterNavigation() {
+    return Container(
+      padding: const EdgeInsets.all(20),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        border: Border(
+          top: BorderSide(
+            color: const Color(0xFFEEEEEE),
+            width: 1,
+          ),
+        ),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.1),
+            spreadRadius: 0,
+            blurRadius: 12,
+            offset: const Offset(0, -4),
+          ),
+        ],
+      ),
+      child: LayoutBuilder(
+        builder: (context, constraints) {
+          if (constraints.maxWidth < 600) {
+            return GridView.count(
+              shrinkWrap: true,
+              physics: const NeverScrollableScrollPhysics(),
+              crossAxisCount: 2,
+              mainAxisSpacing: 10,
+              crossAxisSpacing: 10,
+              childAspectRatio: 2.5,
+              children: _buildFooterButtons(),
+            );
+          } else {
+            return Row(
+              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+              children: _buildFooterButtons(),
+            );
+          }
+        },
+      ),
+    );
+  }
+
+  List<Widget> _buildFooterButtons() {
+    return [
+      _buildFooterButton(
+        title: 'Mis Reservas',
+        icon: Icons.calendar_today,
+        onTap: () => _showComingSoonModal('Mis Reservas'),
+      ),
+      _buildFooterButton(
+        title: 'Mi Perfil',
+        icon: Icons.calendar_today,
+        onTap: () => _showComingSoonModal('Mi Perfil'),
+      ),
+      _buildFooterButton(
+        title: 'Historial',
+        icon: Icons.history,
+        onTap: () => _showComingSoonModal('Historial'),
+      ),
+      _buildFooterButton(
+        title: 'Noticias',
+        icon: Icons.article,
+        onTap: () => _showComingSoonModal('Noticias'),
+      ),
+      _buildFooterButton(
+        title: 'Avisos',
+        icon: Icons.notifications,
+        onTap: () => _showComingSoonModal('Avisos'),
+      ),
+    ];
+  }
+
+  Widget _buildFooterButton({
+    required String title,
+    required IconData icon,
+    required VoidCallback onTap,
+  }) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 15),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          border: Border.all(
+            color: const Color(0xFFE9ECEF),
+            width: 2,
+          ),
+          borderRadius: BorderRadius.circular(12),
+        ),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(
+              icon,
+              size: 24,
+              color: const Color(0xFF666666),
+            ),
+            const SizedBox(height: 8),
+            Text(
+              title,
+              style: const TextStyle(
+                fontSize: 12,
+                color: Color(0xFF666666),
+                fontWeight: FontWeight.w500,
+              ),
+              textAlign: TextAlign.center,
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
   Widget _buildSportSelector() {
     return Container(
       decoration: BoxDecoration(
@@ -308,15 +480,15 @@ class _SportSelectionPageState extends State<SportSelectionPage>
             // Título del selector
             Padding(
               padding: const EdgeInsets.all(16),
-              child: Text(
-                'Selecciona tu deporte',
-                style: TextStyle(
-                  fontSize: 20,
-                  fontWeight: FontWeight.bold,
-                  color: CorporateTheme.primaryNavyBlue,
-                ),
-                textAlign: TextAlign.center,
-              ),
+              // child: Text(
+              //   'Selecciona tu deporte',
+              //   style: TextStyle(
+              //     fontSize: 20,
+              //     fontWeight: FontWeight.bold,
+              //     color: CorporateTheme.primaryNavyBlue,
+              //   ),
+              //   textAlign: TextAlign.center,
+              // ),
             ),
             
             // SportSelector como cards
@@ -633,6 +805,52 @@ class _SportSelectionPageState extends State<SportSelectionPage>
     );
   }
 
+  // 📱 Modal para funciones del footer
+  void _showComingSoonModal(String feature) {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(12),
+          ),
+          title: Text(
+            feature,
+            style: const TextStyle(
+              fontSize: 18,
+              fontWeight: FontWeight.w600,
+              color: Color(0xFF333333),
+            ),
+          ),
+          content: const Text(
+            'Próximamente disponible',
+            style: TextStyle(
+              fontSize: 14,
+              color: Color(0xFF666666),
+            ),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(),
+              style: TextButton.styleFrom(
+                backgroundColor: CorporateTheme.primaryNavyBlue,
+                foregroundColor: Colors.white,
+                padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(6),
+                ),
+              ),
+              child: const Text(
+                'Cerrar',
+                style: TextStyle(fontWeight: FontWeight.w500),
+              ),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
   void _showProfileMenu() {
     showModalBottomSheet(
       context: context,
@@ -656,21 +874,44 @@ class _SportSelectionPageState extends State<SportSelectionPage>
             
             const SizedBox(height: 20),
             
-            Consumer<UserProvider>(
-              builder: (context, userProvider, child) {
+            Consumer2<UserProvider, AdminProvider>(
+              builder: (context, userProvider, adminProvider, child) {
                 return Column(
                   children: [
-                    CircleAvatar(
-                      radius: 30,
-                      backgroundColor: CorporateTheme.primaryNavyBlue,
-                      child: Text(
-                        userProvider.displayName?.substring(0, 1).toUpperCase() ?? 'U',
-                        style: const TextStyle(
-                          color: Colors.white,
-                          fontSize: 24,
-                          fontWeight: FontWeight.bold,
+                    Stack(
+                      children: [
+                        CircleAvatar(
+                          radius: 30,
+                          backgroundColor: CorporateTheme.primaryNavyBlue,
+                          child: Text(
+                            userProvider.displayName?.substring(0, 1).toUpperCase() ?? 'U',
+                            style: const TextStyle(
+                              color: Colors.white,
+                              fontSize: 24,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
                         ),
-                      ),
+                        // Badge de admin
+                        if (adminProvider.isAdmin)
+                          Positioned(
+                            bottom: 0,
+                            right: 0,
+                            child: Container(
+                              padding: const EdgeInsets.all(4),
+                              decoration: BoxDecoration(
+                                color: CorporateTheme.goldAccent,
+                                shape: BoxShape.circle,
+                                border: Border.all(color: Colors.white, width: 2),
+                              ),
+                              child: const Icon(
+                                Icons.admin_panel_settings,
+                                size: 12,
+                                color: Colors.white,
+                              ),
+                            ),
+                          ),
+                      ],
                     ),
                     
                     const SizedBox(height: 12),
@@ -691,7 +932,38 @@ class _SportSelectionPageState extends State<SportSelectionPage>
                       ),
                     ),
                     
+                    // Mostrar nivel de admin si aplica
+                    if (adminProvider.isAdmin)
+                      Container(
+                        margin: const EdgeInsets.only(top: 8),
+                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                        decoration: BoxDecoration(
+                          color: CorporateTheme.goldAccent.withOpacity(0.1),
+                          borderRadius: BorderRadius.circular(12),
+                          border: Border.all(color: CorporateTheme.goldAccent.withOpacity(0.3)),
+                        ),
+                        child: Text(
+                          'Administrador',
+                          style: TextStyle(
+                            fontSize: 12,
+                            color: CorporateTheme.goldAccent,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                      ),
+                    
                     const SizedBox(height: 20),
+                    
+                    // Botón de panel admin si es admin
+                    if (adminProvider.isAdmin)
+                      ListTile(
+                        leading: const Icon(Icons.dashboard),
+                        title: const Text('Panel de Administración'),
+                        onTap: () {
+                          Navigator.pop(context);
+                          Navigator.pushNamed(context, '/admin-dashboard');
+                        },
+                      ),
                     
                     ListTile(
                       leading: const Icon(Icons.logout),

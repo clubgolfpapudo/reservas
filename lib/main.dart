@@ -21,6 +21,10 @@ import 'presentation/pages/tennis_reservations_page.dart';
 // Firebase
 import 'firebase_options.dart';
 
+// Features
+import 'features/admin/presentation/pages/admin_dashboard_page.dart';
+import 'features/admin/providers/admin_provider.dart';
+
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   
@@ -50,6 +54,7 @@ class CGPReservasApp extends StatelessWidget {
       providers: [
         ChangeNotifierProvider(create: (_) => AuthProvider()),
         ChangeNotifierProvider(create: (_) => BookingProvider()),
+        ChangeNotifierProvider(create: (_) => AdminProvider()),
       ],
       child: MaterialApp(
         title: AppConstants.clubName,
@@ -83,6 +88,7 @@ class CGPReservasApp extends StatelessWidget {
           '/hub': (context) => const SimpleSportHub(),
           '/reservations': (context) => const ReservationsPage(),
           '/tennis-reservations': (context) => const TennisReservationsPage(),
+          '/admin-dashboard': (context) => const AdminDashboardPage(),
         },
         
         // Builder para manejar errores globales
@@ -270,7 +276,7 @@ class _SimpleLoginPageState extends State<SimpleLoginPage> {
                 const SizedBox(height: 8),
                 
                 Text(
-                  'Sistema de Reservas',
+                  'Reservas y Servicios',
                   style: TextStyle(
                     color: Colors.white.withOpacity(0.9),
                     fontSize: 16,

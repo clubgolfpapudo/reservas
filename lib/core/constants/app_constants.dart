@@ -17,7 +17,7 @@ abstract class AppConstants {
   // Información corporativa
   static const String clubName = 'Club de Golf Papudo';
   static const String clubYear = '1932';
-  static const String systemTitle = 'Sistema de Reservas';
+  static const String systemTitle = 'Reservas y Servicios';
   
   // ═══════════════════════════════════════════════════════════════════════════
   // 🎨 COLORES POR DEPORTE (ACTUALIZADOS CON SEPARACIÓN)
