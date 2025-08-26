@@ -48,7 +48,7 @@ class _TimeSlotBlockState extends State<TimeSlotBlock> {
           break;
         case BookingStatus.incomplete:
           blockColor = AppColors.incomplete; // Naranja
-          statusText = "Incompleta";
+          statusText = "Reservada";
           break;
         case BookingStatus.cancelled:
           blockColor = Colors.red;

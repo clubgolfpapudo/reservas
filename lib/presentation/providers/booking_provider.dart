@@ -1,23 +1,11 @@
 /// lib/presentation/providers/booking_provider.dart
 /// 
-/// PROPÓSITO:
-/// Provider central que gestiona todo el estado y lógica de negocio relacionada con reservas.
-/// Este es el cerebro del sistema de reservas que orquesta validaciones complejas de conflictos,
-/// estado reactivo, integración con múltiples servicios, y operaciones CRUD con emails automáticos.
-/// 
-/// RESPONSABILIDADES PRINCIPALES:
-/// 1. **Estado de Reservas**: Gestiona lista de reservas filtradas por fecha/cancha
-/// 2. **Validación de Conflictos**: Algoritmo complejo para detectar conflictos de jugadores
-/// 3. **Navegación de Fechas**: Manejo de fechas disponibles con reglas de 72 horas
-/// 4. **Operaciones CRUD**: Crear, leer, actualizar, eliminar reservas con validaciones
-/// 5. **Sistema de Emails**: Orquesta envío automático de confirmaciones y cancelaciones
-/// 6. **Estado de UI**: Proporciona datos reactivos para widgets de reservas
-/// 
-/// INTEGRACIONES:
-/// - FirestoreService: Persistencia de datos en tiempo real
-/// - EmailService: Envío automático de notificaciones
-/// - ScheduleService: Lógica de horarios y fechas inteligente
-/// - UserService: Auto-completado de usuario actual
+/// CAMBIOS IMPLEMENTADOS:
+/// ✅ Estados dinámicos según deporte y número de jugadores
+/// ✅ Pádel: Siempre BookingStatus.complete (4 jugadores obligatorio)
+/// ✅ Tenis: BookingStatus.incomplete para 2-3 jugadores, complete para 4
+/// ✅ Parámetro initialStatus en createBookingWithEmails
+/// ✅ Validación flexible por deporte
 
 import 'dart:async';
 import 'package:flutter/material.dart';
@@ -37,34 +25,21 @@ import '../../data/services/firestore_service.dart';
 import '../../core/constants/app_constants.dart';
 
 /// Provider principal para gestión de estado de reservas
-/// 
-/// Extiende ChangeNotifier para proporcionar estado reactivo a la UI.
-/// Maneja toda la lógica de negocio relacionada con reservas incluyendo
-/// validaciones de conflictos complejas, estados de carga, y sistema de emails.
 class BookingProvider extends ChangeNotifier {
   // ============================================================================
   // ESTADO PRIVADO
   // ============================================================================
   
-  /// Lista de canchas disponibles cargadas desde configuración
   List<Court> _courts = [];
-  /// Lista de todas las reservas cargadas desde Firebase
   List<Booking> _bookings = [];
-  /// ID de la cancha actualmente seleccionada (ej: "padel_court_1")
   String _selectedCourtId = 'padel_court_1';
-  /// Fecha actualmente seleccionada para mostrar reservas  
   DateTime _selectedDate = DateTime.now();
-  /// Estado de carga global del provider
   bool _isLoading = false;
-  /// Mensaje de error actual (null si no hay errores)
   String? _error;
   
-  /// Lista de fechas disponibles para navegación (4 días por defecto)
   List<DateTime> _availableDates = [];
-  /// Índice actual en la lista de fechas disponibles
   int _currentDateIndex = 0;
   
-  /// Estado específico para operaciones de envío de emails
   bool _isSendingEmails = false;
   
   // Streams subscriptions para limpiar recursos
@@ -72,39 +47,26 @@ class BookingProvider extends ChangeNotifier {
   StreamSubscription? _bookingsSubscription;
   
   // ============================================================================
-  // GETTERS PÚBLICOS - Acceso de solo lectura al estado
+  // GETTERS PÚBLICOS
   // ============================================================================
   
-  /// Todas las canchas disponibles
   List<Court> get courts => _courts;
-  /// Todas las reservas cargadas desde Firebase
   List<Booking> get bookings => _bookings;
-  /// ID de la cancha actualmente seleccionada
   String get selectedCourtId => _selectedCourtId;
-  /// Fecha actualmente seleccionada
   DateTime get selectedDate => _selectedDate;
-  /// Estado de carga global
   bool get isLoading => _isLoading;
-  /// Mensaje de error actual
   String? get error => _error;
   
-  /// Lista de fechas disponibles para navegación
   List<DateTime> get availableDates => _availableDates;
-  /// Índice actual en fechas disponibles
   int get currentDateIndex => _currentDateIndex;
-  /// Total de días disponibles para navegación  
   int get totalAvailableDays => _availableDates.length;
   
-  /// Estado específico de envío de emails
   bool get isSendingEmails => _isSendingEmails;
   
   // ============================================================================
-  // COMPUTED PROPERTIES - Propiedades calculadas dinámicamente
+  // COMPUTED PROPERTIES
   // ============================================================================
   
-  /// Obtiene la cancha actualmente seleccionada
-  /// 
-  /// @return Court seleccionada o null si no se encuentra
   Court? get selectedCourt {
     try {
       return _courts.firstWhere((court) => court.id == _selectedCourtId);
@@ -113,21 +75,10 @@ class BookingProvider extends ChangeNotifier {
     }
   }
   
-  /// Nombre legible de la cancha seleccionada
-  /// 
-  /// @return String con nombre de cancha o "Cancha" por defecto
   String get selectedCourtName {
     return selectedCourt?.name ?? 'Cancha';
   }
 
-  /// Lista filtrada de reservas para la fecha y cancha seleccionadas
-  /// 
-  /// Aplica filtros basados en:
-  /// - Cancha seleccionada (_selectedCourtId)
-  /// - Fecha seleccionada formateada para Firebase
-  /// 
-  /// @debug Incluye logs detallados para debugging
-  /// @return Lista de reservas filtradas
   List<Booking> get currentBookings {
     final selectedDateStr = _formatDateForFirebase(_selectedDate);
     
@@ -136,7 +87,7 @@ class BookingProvider extends ChangeNotifier {
     print('   Fecha seleccionada: $selectedDateStr ($_selectedDate)');
     print('   Total bookings en _bookings: ${_bookings.length}');
     
-    // 🔥 DEBUG: Mostrar TODAS las reservas primero
+    // Debug: Mostrar TODAS las reservas primero
     for (var booking in _bookings) {
       print('   📋 ALL: ${booking.courtId} | ${booking.date} | ${booking.timeSlot} | ${booking.players.length} jugadores');
     }
@@ -155,14 +106,6 @@ class BookingProvider extends ChangeNotifier {
     return filteredBookings;
   }
 
-  /// Obtiene todas las reservas para una fecha específica (todas las canchas)
-  /// 
-  /// Utilizado para validaciones de conflictos entre canchas.
-  /// No filtra por cancha, solo por fecha.
-  /// 
-  /// @param date Fecha para filtrar reservas
-  /// @return Lista de reservas para la fecha especificada
-  /// @debug Incluye logs para debugging de conflictos
   List<Booking> getAllBookingsForDate(DateTime date) {
     final dateStr = _formatDateForFirebase(date);
     final bookingsForDate = _bookings.where((booking) => booking.date == dateStr).toList();
@@ -179,29 +122,40 @@ class BookingProvider extends ChangeNotifier {
   }
   
   // ============================================================================
-  // VALIDACIÓN DE CONFLICTOS
+  // ✅ NUEVO: DETERMINACIÓN DE ESTADO INICIAL POR DEPORTE
   // ============================================================================
 
-  /// **MÉTODO PRINCIPAL** - Valida si se puede crear una reserva
+  /// Determina el estado inicial de una reserva según el deporte y número de jugadores
   /// 
-  /// Implementa el algoritmo completo de validación de conflictos:
-  /// 1. Verifica duplicados exactos (misma cancha, fecha, hora)
-  /// 2. Detecta conflictos de jugadores entre diferentes canchas
-  /// 3. Maneja casos especiales (usuarios VISITA)
-  /// 4. Aplica reglas de negocio específicas del club
+  /// REGLAS:
+  /// - PÁDEL: Siempre BookingStatus.complete (requiere exactamente 4 jugadores)
+  /// - TENIS: BookingStatus.incomplete para 2-3 jugadores, complete para 4+
   /// 
-  /// REGLAS IMPLEMENTADAS:
-  /// - No puede haber dos reservas en el mismo slot de la misma cancha
-  /// - Un jugador regular no puede estar en múltiples canchas al mismo tiempo
-  /// - Usuarios VISITA (PADEL1-4 VISITA) pueden estar en múltiples reservas
-  /// - Comparación de nombres case-insensitive con limpieza de espacios
-  /// 
-  /// @param courtId ID de la cancha (ej: "padel_court_1")
-  /// @param date Fecha en formato YYYY-MM-DD
-  /// @param timeSlot Hora en formato HH:MM
-  /// @param playerNames Lista de nombres de jugadores a validar
-  /// @return ValidationResult con resultado y razón si no es válida
-  /// @debug Incluye logs extensivos para debugging paso a paso
+  /// @param courtId ID de la cancha para identificar el deporte
+  /// @param playerCount Número de jugadores en la reserva
+  /// @return BookingStatus apropiado según las reglas de negocio
+  BookingStatus determineInitialBookingStatus(String courtId, int playerCount) {
+    print('🎯 DETERMINANDO ESTADO INICIAL:');
+    print('   Court ID: $courtId');
+    print('   Jugadores: $playerCount');
+    
+    if (courtId.startsWith('padel_')) {
+      print('   → PÁDEL detectado: BookingStatus.complete');
+      return BookingStatus.complete;
+    } else if (courtId.startsWith('tennis_')) {
+      print('   → TENIS detectado: BookingStatus.complete');
+      return BookingStatus.complete;
+    }
+    
+    print('   → FALLBACK: BookingStatus.complete');
+    return BookingStatus.complete;
+  }
+
+  // ============================================================================
+  // VALIDACIÓN DE CONFLICTOS - CON VALIDACIÓN POR DEPORTE
+  // ============================================================================
+
+  /// ✅ MEJORADO: Valida si se puede crear una reserva con reglas específicas por deporte
   ValidationResult canCreateBooking(String courtId, String date, String timeSlot, List<String> playerNames) {
     print('\n🔍 VALIDACIÓN COMPLETA - INICIO');
     print('   Court: $courtId');
@@ -210,6 +164,50 @@ class BookingProvider extends ChangeNotifier {
     print('   Jugadores: ${playerNames.join(", ")}');
     print('   Total reservas en memoria: ${_bookings.length}');
 
+    // ✅ NUEVO: Validación específica por deporte ANTES de conflictos
+    final sport = _getSportFromCourtId(courtId);
+    final playerCount = playerNames.length;
+    
+    print('🎯 VALIDANDO LÍMITES POR DEPORTE:');
+    print('   Deporte detectado: $sport');
+    print('   Jugadores proporcionados: $playerCount');
+    
+    if (sport == 'PADEL') {
+      // ✅ FIX: Solo validar límites al crear la reserva, no al abrir modal
+      if (playerCount < 1) {
+        print('❌ VALIDACIÓN: Pádel requiere al menos el organizador');
+        return ValidationResult(
+          isValid: false,
+          reason: 'Se requiere al menos un jugador.'
+        );
+      } else if (playerCount > 4) {
+        print('❌ VALIDACIÓN: Pádel permite máximo 4 jugadores');
+        return ValidationResult(
+          isValid: false,
+          reason: 'Pádel permite máximo 4 jugadores. Tienes $playerCount.'
+        );
+      }
+      print('✅ VALIDACIÓN: Pádel con $playerCount jugador(es) - validación inicial OK');
+    } else if (sport == 'TENIS') {
+      if (playerCount < 1) {
+        print('❌ VALIDACIÓN: Tenis requiere al menos el organizador');
+        return ValidationResult(
+          isValid: false,
+          reason: 'Se requiere al menos un jugador.'
+        );
+      } else if (playerCount > 4) {
+        print('❌ VALIDACIÓN: Tenis permite máximo 4 jugadores');
+        return ValidationResult(
+          isValid: false,
+          reason: 'Tenis permite máximo 4 jugadores. Tienes $playerCount.'
+        );
+      }
+      print('✅ VALIDACIÓN: Tenis con $playerCount jugador(es) - validación inicial OK');
+    }
+
+    print('✅ LÍMITES POR DEPORTE: Validación exitosa');
+
+    // El resto del método sigue igual...
     // 1. Verificar reserva duplicada exacta (mismo slot, misma cancha)
     final exactDuplicates = _bookings.where(
       (booking) => 
@@ -270,13 +268,15 @@ class BookingProvider extends ChangeNotifier {
     return ValidationResult(isValid: true, reason: null);
   }
 
+  /// ✅ NUEVO: Extrae el deporte del ID de cancha
+  String _getSportFromCourtId(String courtId) {
+    if (courtId.startsWith('padel_')) return 'PADEL';
+    if (courtId.startsWith('tennis_')) return 'TENIS';
+    if (courtId.startsWith('golf_')) return 'GOLF';
+    return 'UNKNOWN';
+  }
+
   /// Verifica si un jugador es especial (tipo VISITA)
-  /// 
-  /// Los usuarios VISITA pueden estar en múltiples reservas simultáneas.
-  /// Formatos reconocidos: PADEL1 VISITA, PADEL2 VISITA, etc.
-  /// 
-  /// @param playerName Nombre del jugador a verificar
-  /// @return true si es usuario VISITA, false en caso contrario
   bool _isSpecialVisitPlayer(String playerName) {
     final cleanName = playerName.trim().toUpperCase();
     return ['PADEL1 VISITA', 'PADEL2 VISITA', 'PADEL3 VISITA', 'PADEL4 VISITA']
@@ -284,15 +284,6 @@ class BookingProvider extends ChangeNotifier {
   }
 
   /// Compara nombres de jugadores con limpieza y case-insensitive
-  /// 
-  /// Implementa comparación robusta que:
-  /// - Elimina espacios en blanco
-  /// - Convierte a mayúsculas
-  /// - Maneja variaciones de nombres
-  /// 
-  /// @param name1 Primer nombre a comparar
-  /// @param name2 Segundo nombre a comparar
-  /// @return true si los nombres coinciden, false en caso contrario
   bool _playersMatch(String name1, String name2) {
     final clean1 = name1.trim().toUpperCase();
     final clean2 = name2.trim().toUpperCase();
@@ -300,11 +291,6 @@ class BookingProvider extends ChangeNotifier {
   }
 
   /// Obtiene nombre amigable de cancha para mostrar en mensajes
-  /// 
-  /// Convierte IDs técnicos a nombres legibles para usuarios.
-  /// 
-  /// @param courtId ID técnico de la cancha
-  /// @return Nombre legible de la cancha
   String _getCourtDisplayName(String courtId) {
     switch (courtId) {
       // PÁDEL
@@ -321,16 +307,9 @@ class BookingProvider extends ChangeNotifier {
   }
   
   // ============================================================================
-  // ESTADÍSTICAS PARA UI - Cálculos para widgets compactos
+  // ESTADÍSTICAS PARA UI
   // ============================================================================
 
-  /// Calcula estadísticas basadas solo en horarios visibles en pantalla
-  /// 
-  /// Optimización para widgets compactos que solo muestran ciertos horarios.
-  /// Evita procesar horarios no visibles para mejor performance.
-  /// 
-  /// @param visibleTimeSlots Lista de horarios actualmente visibles en UI
-  /// @return Map con conteos de: complete, incomplete, available
   Map<String, int> getStatsForVisibleTimeSlots(List<String> visibleTimeSlots) {
     int completeCount = 0;
     int incompleteCount = 0;
@@ -368,7 +347,6 @@ class BookingProvider extends ChangeNotifier {
     return getStatsForVisibleTimeSlots(visibleTimeSlots)['available'] ?? 0;
   }
 
-  /// NUEVO: Estado de emails para mostrar en UI
   String get emailStatus {
     if (_isSendingEmails) {
       return 'Enviando confirmaciones...';
@@ -377,16 +355,9 @@ class BookingProvider extends ChangeNotifier {
   }
   
   // ============================================================================
-  // MÉTODOS AUXILIARES - Búsqueda y verificación de slots
+  // MÉTODOS AUXILIARES
   // ============================================================================
 
-  /// **MÉTODO CRÍTICO** - Busca reserva específica para un horario
-  /// 
-  /// Busca en las reservas filtradas (currentBookings) una reserva
-  /// que coincida exactamente con el timeSlot especificado.
-  /// 
-  /// @param timeSlot Horario a buscar en formato HH:MM
-  /// @return Booking encontrada o null si no existe
   Booking? getBookingForTimeSlot(String timeSlot) {
     for (var booking in currentBookings) {
       if (booking.timeSlot == timeSlot) {
@@ -396,46 +367,26 @@ class BookingProvider extends ChangeNotifier {
     return null;
   }
 
-  /// Verifica si un slot de tiempo está disponible
-  /// 
-  /// @param timeSlot Horario a verificar
-  /// @return true si está disponible, false si está ocupado
   bool isTimeSlotAvailable(String timeSlot) {
     return getBookingForTimeSlot(timeSlot) == null;
   }
 
   // ============================================================================
-  // INICIALIZACIÓN - Setup del provider
+  // INICIALIZACIÓN
   // ============================================================================
   
-  /// Constructor que inicia la inicialización automática
   BookingProvider() {
     _initializeProvider();
   }
   
-  /// Inicializa el provider con todos los datos necesarios
-  /// 
-  /// Secuencia de inicialización:
-  /// 1. Genera fechas disponibles usando ScheduleService
-  /// 2. Carga canchas desde configuración estática
-  /// 3. Carga reservas desde Firebase con streams en tiempo real
-  /// 4. Inicializa usuario actual para auto-completado
   Future<void> _initializeProvider() async {
     print('🔥 Inicializando BookingProvider con Firebase...');
     _generateAvailableDates();
     await _loadCourts();
     await _loadBookings();
-    
-    // 🔥 AGREGAR ESTA LÍNEA:
     await initializeCurrentUser();
   }
 
-  /// Inicializa datos del usuario actual para auto-completado
-  /// 
-  /// Obtiene email y nombre del usuario actual desde UserService
-  /// y los cachea para uso en formularios de reserva.
-  /// 
-  /// @throws No propaga errores, usa fallback en caso de fallo
   Future<void> initializeCurrentUser() async {
     try {
       final email = await UserService.getCurrentUserEmail();
@@ -453,28 +404,18 @@ class BookingProvider extends ChangeNotifier {
     }
   }
 
-  // Agregar estas propiedades privadas al inicio de la clase
+  // Propiedades privadas para usuario actual
   String? _currentUserEmail;
   String? _currentUserName;
 
-  // Agregar estos getters públicos
+  // Getters públicos para usuario actual
   String? get currentUserEmail => _currentUserEmail;
   String? get currentUserName => _currentUserName;
   bool get hasCurrentUser => _currentUserEmail != null && _currentUserName != null;
 
-  /// Genera lista de fechas disponibles usando ScheduleService
-  /// 
-  /// Utiliza ScheduleService para determinar la fecha inicial inteligente
-  /// basada en horarios del club y genera 4 días consecutivos.
-  /// 
-  /// Configuración:
-  /// - 4 días disponibles por defecto
-  /// - Fecha inicial determinada por ScheduleService (puede ser hoy o mañana)
-  /// - Índice inicial en 0
   void _generateAvailableDates() {
     _availableDates.clear();
     
-    // 🔥 USAR FECHA INTELIGENTE en lugar de DateTime.now()
     final startDate = ScheduleService.getDefaultDisplayDate();
     
     print('🔥 ScheduleService determinó fecha de inicio: $startDate');
@@ -494,7 +435,6 @@ class BookingProvider extends ChangeNotifier {
     print('✅ Fecha seleccionada inicial: $_selectedDate');
   }
   
-  // Helper para formatear fechas
   String _formatDate(DateTime date) {
     const months = [
       '', 'Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio',
@@ -504,26 +444,14 @@ class BookingProvider extends ChangeNotifier {
     return '${date.day} de ${months[date.month]}';
   }
 
-  // 🔥 HELPER para formatear fecha para Firebase (YYYY-MM-DD)
   String _formatDateForFirebase(DateTime date) {
     return '${date.year}-${date.month.toString().padLeft(2, '0')}-${date.day.toString().padLeft(2, '0')}';
   }
   
   // ============================================================================
-  // CARGA DE DATOS DESDE FIREBASE - SIN CAMBIOS
+  // CARGA DE DATOS DESDE FIREBASE
   // ============================================================================
   
-  /// Carga canchas desde configuración estática
-  /// 
-  /// Crea objetos Court con configuración hardcodeada para las 3 canchas
-  /// del club. En una implementación futura podría cargar desde Firebase.
-  /// 
-  /// Canchas configuradas:
-  /// - PITE (padel_court_1)
-  /// - LILEN (padel_court_2) 
-  /// - PLAIYA (padel_court_3)
-  /// 
-  /// @throws Captura errores y los convierte en _setError()
   Future<void> _loadCourts() async {
     try {
       _setLoading(true);
@@ -532,7 +460,7 @@ class BookingProvider extends ChangeNotifier {
       _courts = [
         // PÁDEL - Mantener IDs originales
         Court(
-          id: 'padel_court_1',  // 🔧 CAMBIAR: era 'court_1'
+          id: 'padel_court_1',
           name: 'PITE',
           description: 'Cancha de pádel PITE',
           number: 1,
@@ -543,7 +471,7 @@ class BookingProvider extends ChangeNotifier {
           updatedAt: now,
         ),
         Court(
-          id: 'padel_court_2',  // 🔧 CAMBIAR: era 'court_2'
+          id: 'padel_court_2',
           name: 'LILEN',
           description: 'Cancha de pádel LILEN',
           number: 2,
@@ -554,7 +482,7 @@ class BookingProvider extends ChangeNotifier {
           updatedAt: now,
         ),
         Court(
-          id: 'padel_court_3',  // 🔧 CAMBIAR: era 'court_3'
+          id: 'padel_court_3',
           name: 'PLAIYA',
           description: 'Cancha de pádel PLAIYA',
           number: 3,
@@ -566,7 +494,7 @@ class BookingProvider extends ChangeNotifier {
         ),
         // TENIS - Nuevos IDs únicos
         Court(
-          id: 'tennis_court_1',  // 🔧 CAMBIAR: era 'court_4'
+          id: 'tennis_court_1',
           name: 'CANCHA_1',
           description: 'Cancha de tenis 1',
           number: 4,
@@ -577,7 +505,7 @@ class BookingProvider extends ChangeNotifier {
           updatedAt: now,
         ),
         Court(
-          id: 'tennis_court_2',  // 🔧 NUEVO
+          id: 'tennis_court_2',
           name: 'CANCHA_2',
           description: 'Cancha de tenis 2',
           number: 5,
@@ -588,7 +516,7 @@ class BookingProvider extends ChangeNotifier {
           updatedAt: now,
         ),
         Court(
-          id: 'tennis_court_3',  // 🔧 NUEVO
+          id: 'tennis_court_3',
           name: 'CANCHA_3',
           description: 'Cancha de tenis 3',
           number: 6,
@@ -599,7 +527,7 @@ class BookingProvider extends ChangeNotifier {
           updatedAt: now,
         ),
         Court(
-          id: 'tennis_court_4',  // 🔧 NUEVO
+          id: 'tennis_court_4',
           name: 'CANCHA_4',
           description: 'Cancha de tenis 4',
           number: 7,
@@ -618,19 +546,6 @@ class BookingProvider extends ChangeNotifier {
     }
   }
   
-  /// Carga reservas desde Firebase con streams en tiempo real
-  /// 
-  /// Configura un stream que escucha cambios en las reservas de la fecha
-  /// seleccionada y actualiza automáticamente la UI cuando hay cambios.
-  /// 
-  /// Características:
-  /// - Stream en tiempo real de Firebase
-  /// - Filtrado por fecha seleccionada
-  /// - Actualización automática de UI
-  /// - Logs detallados para debugging
-  /// - Manejo robusto de errores
-  /// 
-  /// @sideEffect Actualiza _bookings y notifica listeners automáticamente
   Future<void> _loadBookings() async {
     try {
       print('📋 Cargando reservas desde Firestore...');
@@ -638,14 +553,13 @@ class BookingProvider extends ChangeNotifier {
       // Cancelar suscripción anterior si existe
       _bookingsSubscription?.cancel();
       
-      // 🔥 CARGAR RESERVAS DE LA FECHA SELECCIONADA
       _bookingsSubscription = FirestoreService.getBookingsByDate(_selectedDate).listen(
         (bookings) {
           print('✅ Reservas cargadas desde Firebase: ${bookings.length}');
           
           _bookings = bookings;
           
-          // 🔥 DEBUG: mostrar reservas cargadas CON DETALLES COMPLETOS
+          // Debug: mostrar reservas cargadas CON DETALLES COMPLETOS
           for (var booking in _bookings) {
             print('   📋 LOADED: courtId="${booking.courtId}" | date="${booking.date}" | timeSlot="${booking.timeSlot}" | players=${booking.players.length} | status="${booking.status}"');
             for (var player in booking.players.take(2)) {
@@ -653,7 +567,6 @@ class BookingProvider extends ChangeNotifier {
             }
           }
           
-          // 🔥 FORZAR NOTIFICACIÓN INMEDIATA PARA ACTUALIZAR COLORES
           notifyListeners();
         },
         onError: (error) {
@@ -668,14 +581,10 @@ class BookingProvider extends ChangeNotifier {
   }
   
   // ============================================================================
-  // ACCIONES DEL USUARIO - Cambios de estado por interacción
+  // ACCIONES DEL USUARIO
   // ============================================================================
   
-  /// Selecciona una cancha específica
-  /// 
-  /// @param courtId ID de la cancha a seleccionar
-  /// @sideEffect Actualiza _selectedCourtId y notifica listeners si hay cambio
-    void selectCourt(String courtId) {
+  void selectCourt(String courtId) {
     if (_selectedCourtId != courtId) {
       _selectedCourtId = courtId;
       notifyListeners();
@@ -721,7 +630,7 @@ class BookingProvider extends ChangeNotifier {
   bool get canGoToNextDate => _currentDateIndex < _availableDates.length - 1;
 
   // ============================================================================
-  // FILTRADO DE HORARIOS POR REGLA 72 HORAS - SIN CAMBIOS
+  // FILTRADO DE HORARIOS POR REGLA 72 HORAS
   // ============================================================================
   
   List<String> getAvailableTimeSlotsForDate(DateTime date) {
@@ -737,7 +646,6 @@ class BookingProvider extends ChangeNotifier {
     final currentMinute = now.minute;
     final currentTimeInMinutes = currentHour * 60 + currentMinute;
     
-    // 🔥 USAR HORARIOS DINÁMICOS según la fecha seleccionada
     final allTimeSlots = AppConstants.getAllTimeSlots(date);
     
     final filteredSlots = allTimeSlots.where((timeSlot) {
@@ -758,7 +666,6 @@ class BookingProvider extends ChangeNotifier {
     return filteredSlots;
   }
   
-  // 🔥 MEJORADO: Refresh más agresivo
   Future<void> refresh() async {
     print('🔄 Refrescando datos...');
     await _loadBookings();
@@ -770,28 +677,16 @@ class BookingProvider extends ChangeNotifier {
   }
 
   // ============================================================================
-  // OPERACIONES CRUD - Creación, actualización y eliminación de reservas
+  // ✅ OPERACIONES CRUD - CON ESTADOS DINÁMICOS
   // ============================================================================
   
   /// Crea una reserva básica con validación completa
-  /// 
-  /// Método original que crea reservas sin envío automático de emails.
-  /// Incluye validación completa de conflictos antes de persistir.
-  /// 
-  /// PROCESO:
-  /// 1. Activa estado de carga
-  /// 2. Valida conflictos usando canCreateBooking()
-  /// 3. Persiste en Firebase usando FirestoreService
-  /// 4. Maneja errores y actualiza estado
-  /// 
-  /// @param booking Objeto Booking completo a crear
-  /// @throws Exception Si validación falla o hay errores de Firebase
   Future<void> createBooking(Booking booking) async {
     try {
       _setLoading(true);
       print('➕ Creando nueva reserva...');
       
-      // 🔥 VALIDACIÓN COMPLETA
+      // Validación completa
       final playerNames = booking.players.map((p) => p.name).toList();
       final validation = canCreateBooking(
         booking.courtId, 
@@ -815,39 +710,19 @@ class BookingProvider extends ChangeNotifier {
     }
   }
 
-  /// **MÉTODO PRINCIPAL** - Crea reserva con envío automático de emails
-  /// 
-  /// Método completo que combina creación de reserva con sistema de notificaciones.
-  /// Este es el método preferido para crear reservas desde la UI.
-  /// 
-  /// PROCESO COMPLETO:
-  /// 1. Validación de conflictos con algoritmo completo
-  /// 2. Creación de objeto Booking con datos completos
-  /// 3. Persistencia en Firebase con transacciones
-  /// 4. Envío automático de emails de confirmación a todos los jugadores
-  /// 5. Actualización de estados de carga específicos para cada paso
-  /// 
-  /// ESTADOS DE CARGA:
-  /// - _isLoading: Para operaciones de Firebase
-  /// - _isSendingEmails: Para operaciones de email específicamente
-  /// 
-  /// @param courtId ID de la cancha
-  /// @param date Fecha en formato YYYY-MM-DD
-  /// @param timeSlot Hora en formato HH:MM
-  /// @param players Lista completa de BookingPlayer con emails y teléfonos
-  /// @return true si todo fue exitoso, false si hubo errores
-  /// @throws Exception Si validación falla o hay errores críticos
+  /// ✅ MÉTODO PRINCIPAL MEJORADO - Crea reserva con estado dinámico y emails
   Future<bool> createBookingWithEmails({
-    required String courtId,  // ← NUEVO PARÁMETRO
+    required String courtId,
     required String date,
     required String timeSlot,
     required List<BookingPlayer> players,
+    BookingStatus? initialStatus, // ✅ NUEVO PARÁMETRO OPCIONAL
   }) async {
     try {
       _setLoading(true);
-      print('📝 Creando reserva con emails automáticos...');
+      print('🔍 Creando reserva con emails automáticos...');
       
-      // 1. Validación completa (usar método existente)
+      // 1. Validación completa
       final playerNames = players.map((p) => p.name).toList();
       final validation = canCreateBooking(courtId, date, timeSlot, playerNames);
       
@@ -855,27 +730,36 @@ class BookingProvider extends ChangeNotifier {
         throw Exception(validation.reason!);
       }
       
-      // 2. Crear reserva en Firebase (usar método existente)
+      // ✅ 2. NUEVO: Determinar estado inicial
+      final bookingStatus = initialStatus ?? determineInitialBookingStatus(courtId, players.length);
+      
+      print('🎯 ESTADO DETERMINADO PARA RESERVA:');
+      print('   Court ID: $courtId');
+      print('   Jugadores: ${players.length}');
+      print('   Estado asignado: $bookingStatus');
+      print('   Fue proporcionado externamente: ${initialStatus != null}');
+      
+      // 3. Crear reserva en Firebase
       final booking = Booking(
         courtId: courtId,
         date: date,
         timeSlot: timeSlot,
         players: players,
-        status: BookingStatus.complete,
+        status: bookingStatus, // ✅ USAR ESTADO DINÁMICO
         createdAt: DateTime.now(),
       );
       
-      print('📝 Guardando en Firebase...');
+      print('🔍 Guardando en Firebase...');
       final bookingId = await FirestoreService.createBooking(booking);
       
       if (bookingId.isEmpty) {
         throw Exception('Error al crear reserva en Firebase');
       }
       
-      // 3. Actualizar booking con ID para emails
+      // 4. Actualizar booking con ID para emails
       final savedBooking = booking.copyWith(id: bookingId);
       
-      // 4. Enviar emails de confirmación
+      // 5. Enviar emails de confirmación
       print('📧 Enviando emails de confirmación...');
       _isSendingEmails = true;
       notifyListeners();
@@ -890,7 +774,6 @@ class BookingProvider extends ChangeNotifier {
         return true;
       } else {
         print('⚠️ Reserva creada pero algunos emails fallaron');
-        // Considerar exitoso aunque algunos emails fallen
         return true;
       }
       
@@ -898,22 +781,11 @@ class BookingProvider extends ChangeNotifier {
       print('❌ Error creando reserva con emails: $e');
       _isSendingEmails = false;
       _setLoading(false);
-      rethrow; // Mantener manejo de errores existente
+      rethrow;
     }
   }
 
   /// Cancela reserva con notificaciones automáticas a participantes
-  /// 
-  /// Proceso completo de cancelación que incluye:
-  /// 1. Recuperación de datos completos de la reserva
-  /// 2. Envío de notificaciones a todos los demás participantes
-  /// 3. Eliminación de la reserva de Firebase
-  /// 4. Manejo de estados de carga específicos
-  /// 
-  /// @param bookingId ID único de la reserva a cancelar
-  /// @param cancelingPlayer Datos del jugador que cancela la reserva
-  /// @return true si la cancelación fue exitosa
-  /// @throws Exception si la reserva no existe o hay errores de red
   Future<bool> cancelBookingWithNotifications({
     required String bookingId,
     required BookingPlayer cancelingPlayer,
@@ -960,7 +832,7 @@ class BookingProvider extends ChangeNotifier {
     }
   }
 
-  // 🔥 HELPER: Obtener reserva por ID (buscar en memoria o Firebase)
+  // Helper: Obtener reserva por ID
   Future<Booking?> _getBookingById(String bookingId) async {
     try {
       // Buscar en las reservas cargadas primero
@@ -979,23 +851,15 @@ class BookingProvider extends ChangeNotifier {
   }
 
   // ============================================================================
-  // GESTIÓN DE ESTADO INTERNO - Control de loading, errores y notificaciones
+  // GESTIÓN DE ESTADO INTERNO
   // ============================================================================
   
-  /// Actualiza estado de carga y notifica listeners
-  /// 
-  /// @param loading Nuevo estado de carga
-  /// @sideEffect Limpia errores cuando se activa carga, notifica listeners
   void _setLoading(bool loading) {
     _isLoading = loading;
     if (loading) _error = null;
     notifyListeners();
   }
   
-  /// Establece mensaje de error y desactiva carga
-  /// 
-  /// @param error Mensaje de error a mostrar
-  /// @sideEffect Desactiva loading, notifica listeners
   void _setError(String error) {
     _error = error;
     _isLoading = false;
@@ -1016,23 +880,8 @@ class BookingProvider extends ChangeNotifier {
 }
 
 /// Clase para encapsular resultados de validación de reservas
-/// 
-/// Utilizada por canCreateBooking() para retornar tanto el resultado
-/// booleano como la razón específica del fallo si la validación no pasa.
-/// 
-/// PROPÓSITO:
-/// - Proporcionar feedback específico sobre por qué falló una validación
-/// - Permitir mostrar mensajes de error detallados al usuario
-/// - Encapsular lógica de validación en un tipo seguro
-/// 
-/// CASOS DE USO:
-/// - Validaciones de conflictos de horarios
-/// - Verificación de reglas de negocio
-/// - Feedback detallado en UI
 class ValidationResult {
-  /// Indica si la validación fue exitosa
   final bool isValid;
-  /// Razón específica del fallo (null si isValid es true)
   final String? reason;
 
   ValidationResult({required this.isValid, this.reason});

@@ -447,7 +447,7 @@ class _TennisReservationsPageState extends State<TennisReservationsPage> {
       case BookingStatus.complete:
         return 'Completa';
       case BookingStatus.incomplete:
-        return 'Incompleta';
+        return 'Reservada';
       default:
         return 'Disponible';
     }
@@ -574,7 +574,7 @@ class _TennisReservationsPageState extends State<TennisReservationsPage> {
               const SizedBox(width: 4),
               Flexible(
                 child: Text(
-                  'Incompleta',
+                  'Reservada',
                   style: TextStyle(
                     color: AppColors.incompleteText, // ✅ ESTE SÍ EXISTE
                     fontSize: 11,

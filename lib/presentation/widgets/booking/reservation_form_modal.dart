@@ -82,6 +82,16 @@ class _ReservationFormModalState extends State<ReservationFormModal> {
   bool _isLoading = false;
   String? _errorMessage;
 
+  // Límites dinámicos por deporte
+  int get _minPlayers => widget.sport == 'TENIS' ? 2 : 4;
+  int get _maxPlayers => 4;
+
+  // Determina si se puede crear la reserva según las nuevas reglas  
+  bool get _canCreateReservation => 
+      _selectedPlayers.length >= _minPlayers && 
+      _selectedPlayers.length <= _maxPlayers && 
+      _errorMessage == null;
+
   /// Métodos helper para parametrización por deporte
   String get _sportDisplayName => widget.sport == 'TENIS' ? 'tenis' : 'pádel';
   Color get _sportColor => widget.sport == 'TENIS' 
@@ -95,7 +105,7 @@ class _ReservationFormModalState extends State<ReservationFormModal> {
     _searchController.addListener(_filterPlayers);
     
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      _checkInitialSlotAvailability();
+    //   _checkInitialSlotAvailability();
       _filterPlayers();
     });
   }
@@ -534,13 +544,6 @@ class _ReservationFormModalState extends State<ReservationFormModal> {
     return '1'; // Fallback
   }
 
-  /// Getter que determina si se puede crear la reserva
-  /// 
-  /// Condiciones para crear reserva:
-  /// - Exactamente 4 jugadores seleccionados
-  /// - No hay mensajes de error activos
-  bool get _canCreateReservation => _selectedPlayers.length == 4 && _errorMessage == null;
-
   /// Crea la reserva con validación final y envío de emails
   /// 
   /// Proceso completo de creación:
@@ -660,6 +663,20 @@ class _ReservationFormModalState extends State<ReservationFormModal> {
   /// - Confirmación de envío de emails
   /// - Botón para cerrar modal y diálogo
   void _showSuccessDialog() {
+    final String deporte = _sportDisplayName.toLowerCase().trim();
+    final int numJugadores = _selectedPlayers.length;
+
+    String _getGrillaColorMensaje(String deporte, int numJugadores) {
+      if (deporte == 'pádel') return 'azul';
+      if (deporte == 'tenis') {
+        if (numJugadores >= 2 && numJugadores < 4) return 'amarillo';
+        if (numJugadores == 4) return 'color ladrillo';
+      }
+      return 'azul';
+    }
+
+    // final String grillaColor = _getGrillaColorMensaje(deporte, numJugadores);
+
     showDialog(
       context: context,
       barrierDismissible: false,
@@ -700,7 +717,7 @@ class _ReservationFormModalState extends State<ReservationFormModal> {
                     _buildDetailRow(_getSportIcon(widget.courtId), 'Cancha', _getDisplayCourtName(widget.courtId)),
                     _buildDetailRow(Icons.calendar_today, 'Fecha', _formatDisplayDate()),
                     _buildDetailRow(Icons.access_time, 'Hora', widget.timeSlot),
-                    _buildDetailRow(Icons.group, 'Jugadores', '${_selectedPlayers.length}'),
+                    _buildDetailRow(Icons.group, 'Jugadores', '$numJugadores'),
                     const SizedBox(height: 8),
                     const Text('Participantes:', style: TextStyle(fontWeight: FontWeight.w600)),
                     const SizedBox(height: 4),
@@ -719,7 +736,6 @@ class _ReservationFormModalState extends State<ReservationFormModal> {
                 ),
               ),
               const SizedBox(height: 12),
-              // 📧 NUEVO: Información sobre emails enviados
               Container(
                 padding: const EdgeInsets.all(12),
                 decoration: BoxDecoration(
@@ -735,7 +751,7 @@ class _ReservationFormModalState extends State<ReservationFormModal> {
                       child: Text(
                         'Se han enviado emails de confirmación a todos los jugadores',
                         style: TextStyle(
-                          fontSize: 14, 
+                          fontSize: 14,
                           color: Colors.green.shade700,
                           fontWeight: FontWeight.w500,
                         ),
@@ -746,11 +762,15 @@ class _ReservationFormModalState extends State<ReservationFormModal> {
               ),
               const SizedBox(height: 12),
               Text(
-                'La grilla ahora debe aparecer en ${_sportDisplayName == 'tenis' ? 'color ladrillo' : 'azul'} indicando "Reservada".',
+                widget.sport == 'TENIS'
+                    ? _selectedPlayers.length < 4
+                        ? 'La grilla ahora debe aparecer en color amarillo indicando "Reservada".'
+                        : 'La grilla ahora debe aparecer en color ladrillo indicando "Reservada".'
+                    : 'La grilla ahora debe aparecer en azul indicando "Reservada".',
                 style: TextStyle(
-                  fontSize: 14, 
-                  color: Colors.grey[600], 
-                  fontWeight: FontWeight.w500
+                  fontSize: 14,
+                  color: Colors.grey[600],
+                  fontWeight: FontWeight.w500,
                 ),
               ),
             ],
@@ -760,14 +780,9 @@ class _ReservationFormModalState extends State<ReservationFormModal> {
           TextButton(
             onPressed: () {
               print('🔥 DEBUG: Presionando Entendido');
-              print('🔥 DEBUG: Cerrando diálogo...');
-              Navigator.of(context).pop(); // Cerrar diálogo
-              
-              print('🔥 DEBUG: Esperando 100ms...');
+              Navigator.of(context).pop();
               Future.delayed(const Duration(milliseconds: 100), () {
-                print('🔥 DEBUG: Intentando cerrar modal con ROOT navigator...');
                 try {
-                  // 🔥 USAR ROOT NAVIGATOR
                   Navigator.of(context, rootNavigator: true).pop();
                   print('✅ DEBUG: Modal cerrado con ROOT navigator');
                 } catch (e) {
@@ -875,7 +890,15 @@ class _ReservationFormModalState extends State<ReservationFormModal> {
   @override
   Widget build(BuildContext context) {
     // 🔥 TEMPORAL - CONFIRMAR QUE SE USA ESTE ARCHIVO
-    print("🚀 MODAL V3 OPTIMIZADO! Sin overflow, compacto y funcional");
+    print("🚀 MODAL V4 FLEXIBLE! Pádel: 4 fijo, Tenis: 2-4 flexible");
+    // DEBUG temporal - agregar antes de los botones
+    print('🔍 DEBUG ESTADO BOTÓN:');
+    print('   sport: ${widget.sport}');
+    print('   _selectedPlayers.length: ${_selectedPlayers.length}');
+    print('   _minPlayers: $_minPlayers'); 
+    print('   _maxPlayers: $_maxPlayers');
+    print('   _errorMessage: $_errorMessage');
+    print('   _canCreateReservation: $_canCreateReservation');
 
     return Dialog(
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
@@ -967,7 +990,9 @@ class _ReservationFormModalState extends State<ReservationFormModal> {
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
                               Text(
-                                'Jugadores (${_selectedPlayers.length}/4)',
+                                widget.sport == 'TENIS' 
+                                ? 'Jugadores (${_selectedPlayers.length}/$_minPlayers-$_maxPlayers)'
+                                : 'Jugadores (${_selectedPlayers.length}/$_maxPlayers)',
                                 style: const TextStyle(
                                   fontSize: 15, // ✅ Aumentado de 14 a 15
                                   fontWeight: FontWeight.w600,
@@ -1103,7 +1128,11 @@ class _ReservationFormModalState extends State<ReservationFormModal> {
                         if (_selectedPlayers.length < 4) ...[
                           // Campo de búsqueda
                           Text(
-                            'Buscar jugador ${_selectedPlayers.length + 1} de 4:',
+                            widget.sport == 'TENIS'
+                                ? _selectedPlayers.length < _minPlayers
+                                    ? 'Buscar jugador ${_selectedPlayers.length + 1} (mínimo $_minPlayers para tenis):'
+                                    : 'Buscar jugador ${_selectedPlayers.length + 1} (opcional, máximo $_maxPlayers):'
+                                : 'Buscar jugador ${_selectedPlayers.length + 1} de $_maxPlayers:',
                             style: const TextStyle(
                               fontSize: 14, // 🔧 Reducido de 16 a 14
                               fontWeight: FontWeight.w600,
@@ -1304,15 +1333,15 @@ class _ReservationFormModalState extends State<ReservationFormModal> {
                                   backgroundColor: _canCreateReservation
                                       ? const Color(0xFF2E7AFF)
                                       : Colors.grey[300],
-                                  padding: const EdgeInsets.symmetric(vertical: 8), // 🔧 Reducido padding
+                                  padding: const EdgeInsets.symmetric(vertical: 8),
                                   shape: RoundedRectangleBorder(
                                     borderRadius: BorderRadius.circular(8),
                                   ),
                                 ),
                                 child: _isLoading
                                     ? const SizedBox(
-                                        height: 16, // 🔧 Reducido tamaño
-                                        width: 16, // 🔧 Reducido tamaño
+                                        height: 16,
+                                        width: 16,
                                         child: CircularProgressIndicator(
                                           strokeWidth: 2,
                                           valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
@@ -1320,12 +1349,18 @@ class _ReservationFormModalState extends State<ReservationFormModal> {
                                       )
                                     : Text(
                                         _canCreateReservation
-                                            ? 'Confirmar Reserva'
+                                            ? widget.sport == 'TENIS' && _selectedPlayers.length < 4
+                                                ? 'Confirmar (Reservada)'
+                                                : 'Confirmar Reserva'
                                             : _errorMessage != null
                                                 ? 'Resolver conflictos'
-                                                : 'Elije + ${4 - _selectedPlayers.length} players +',
+                                                : widget.sport == 'TENIS'
+                                                    ? _selectedPlayers.length < _minPlayers
+                                                        ? 'Mínimo $_minPlayers jugadores'
+                                                        : 'Agregar jugador'
+                                                    : 'Faltan ${_maxPlayers - _selectedPlayers.length} jugadores',
                                         style: TextStyle(
-                                          fontSize: 14, // 🔧 Reducido font
+                                          fontSize: 14,
                                           fontWeight: FontWeight.w600,
                                           color: _canCreateReservation ? Colors.white : Colors.grey[600],
                                         ),
