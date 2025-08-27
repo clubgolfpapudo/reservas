@@ -112,4 +112,10 @@ class AuthProvider with ChangeNotifier {
       'isValidated': _isUserValidated,
     };
   }
+  
+  void signOut() {
+    // Aquí puedes limpiar tokens, cerrar sesión en Firebase, etc.
+    print('[LOG] Usuario ha cerrado sesión');
+    // notifyListeners(); si aplica
+  }
 }

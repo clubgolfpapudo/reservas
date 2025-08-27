@@ -528,105 +528,90 @@ class _TennisReservationsPageState extends State<TennisReservationsPage> {
   }
 
   Widget _buildActionWidget(BookingStatus? status, String timeSlot) {
-  return Consumer<BookingProvider>(
-    builder: (context, provider, child) {
-      // Get the actual booking to check player count
-      final booking = provider.getBookingForTimeSlot(timeSlot);
-      final playerCount = booking?.players.length ?? 0;
-      
-      switch (status) {
-        case BookingStatus.complete:
-          return Container(
-            height: 32,
-            padding: const EdgeInsets.symmetric(horizontal: 8),
-            decoration: BoxDecoration(
-              color: AppColors.primaryBlue,
-              borderRadius: BorderRadius.circular(6),
-            ),
-            child: Row(
-              mainAxisSize: MainAxisSize.min,
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                const Icon(Icons.check, color: Colors.white, size: 14),
-                const SizedBox(width: 4),
-                Flexible(
-                  child: Text(
-                    'Reservada',
-                    style: TextStyle(
-                      color: Colors.white,
-                      fontSize: 11,
-                      fontWeight: FontWeight.w600,
-                    ),
-                    overflow: TextOverflow.ellipsis,
+    switch (status) {
+      case BookingStatus.complete:
+        return Container(
+          height: 32,
+          padding: const EdgeInsets.symmetric(horizontal: 8),
+          decoration: BoxDecoration(
+            color: AppColors.primaryBlue, // 🔧 HARDCODE (AppColors.confirmed NO EXISTE)
+            borderRadius: BorderRadius.circular(6),
+          ),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              const Icon(Icons.check, color: Colors.white, size: 14), // 🔧 HARDCODE
+              const SizedBox(width: 4),
+              Flexible(
+                child: Text(
+                  'Reservada',
+                  style: TextStyle(
+                    color: Colors.white, // 🔧 HARDCODE (AppColors.confirmedText NO EXISTE)
+                    fontSize: 11,
+                    fontWeight: FontWeight.w600,
                   ),
-                ),
-              ],
-            ),
-          );
-
-        case BookingStatus.incomplete:
-          // Determine text based on player count
-          final isReallyIncomplete = playerCount == 1;
-          
-          return Container(
-            height: 32,
-            padding: const EdgeInsets.symmetric(horizontal: 8),
-            decoration: BoxDecoration(
-              color: AppColors.incomplete,
-              borderRadius: BorderRadius.circular(6),
-            ),
-            child: Row(
-              mainAxisSize: MainAxisSize.min,
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Icon(
-                  isReallyIncomplete ? Icons.person : Icons.group, 
-                  color: AppColors.incompleteText, 
-                  size: 14
-                ),
-                const SizedBox(width: 4),
-                Flexible(
-                  child: Text(
-                    isReallyIncomplete ? 'Incompleta' : 'Reservada',
-                    style: TextStyle(
-                      color: AppColors.incompleteText,
-                      fontSize: 11,
-                      fontWeight: FontWeight.w600,
-                    ),
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                ),
-              ],
-            ),
-          );
-
-        default:
-          return SizedBox(
-            height: 32,
-            child: ElevatedButton(
-              onPressed: () => _handleReserveSlot(context, timeSlot),
-              style: ElevatedButton.styleFrom(
-                backgroundColor: AppColors.primaryBlue,
-                foregroundColor: Colors.white,
-                padding: const EdgeInsets.symmetric(horizontal: 12),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(6),
-                ),
-                minimumSize: const Size(0, 32),
-              ),
-              child: const Text(
-                'Reservar',
-                style: TextStyle(
-                  fontSize: 11,
-                  fontWeight: FontWeight.w600,
+                  overflow: TextOverflow.ellipsis,
                 ),
               ),
+            ],
+          ),
+        );
+
+      case BookingStatus.incomplete:
+        return Container(
+          height: 32,
+          padding: const EdgeInsets.symmetric(horizontal: 8),
+          decoration: BoxDecoration(
+            color: AppColors.incomplete, // ✅ ESTE SÍ EXISTE
+            borderRadius: BorderRadius.circular(6),
+          ),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Icon(Icons.group, color: AppColors.incompleteText, size: 14), // ✅ ESTE SÍ EXISTE
+              const SizedBox(width: 4),
+              Flexible(
+                child: Text(
+                  'Reservada',
+                  style: TextStyle(
+                    color: AppColors.incompleteText, // ✅ ESTE SÍ EXISTE
+                    fontSize: 11,
+                    fontWeight: FontWeight.w600,
+                  ),
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ),
+            ],
+          ),
+        );
+
+      default:
+        return SizedBox(
+          height: 32,
+          child: ElevatedButton(
+            onPressed: () => _handleReserveSlot(context, timeSlot),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: AppColors.primaryBlue,
+              foregroundColor: Colors.white,
+              padding: const EdgeInsets.symmetric(horizontal: 12),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(6),
+              ),
+              minimumSize: const Size(0, 32),
             ),
-          );
-      }
-    },
-  );
-}
+            child: const Text(
+              'Reservar',
+              style: TextStyle(
+                fontSize: 11,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+          ),
+        );
+    }
+  }
 
   // ============================================================================
   // MÉTODOS DE FORMATO

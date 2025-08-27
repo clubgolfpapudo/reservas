@@ -482,39 +482,38 @@ class _ReservationFormModalState extends State<ReservationFormModal> {
   /// 
   /// @param player Jugador a agregar a la reserva
   void _addPlayer(ReservationPlayer player) {
-    if (_selectedPlayers.length >= 4) return;
+    print('DEBUG: Attempting to add player: ${player.name}');
+    
+    if (_selectedPlayers.length >= _maxPlayers) return;
 
-    // Validar conflictos antes de agregar
+    // Validate conflicts
     final provider = context.read<BookingProvider>();
     final testPlayerNames = [..._selectedPlayers.map((p) => p.name), player.name];
     
     final validation = provider.canCreateBooking(
       widget.courtId,
-      widget.date, 
+      widget.date,
       widget.timeSlot,
       testPlayerNames
     );
 
     if (!validation.isValid) {
-      setState(() {
-        _errorMessage = validation.reason;
-      });
+      print('DEBUG: Conflict detected: ${validation.reason}');
       
-      // Limpiar error después de unos segundos
-      Future.delayed(const Duration(seconds: 4), () {
-        if (mounted) {
-          setState(() {
-            _errorMessage = null;
-          });
-        }
-      });
-      return;
+      // 🆕 MOSTRAR TOAST EN LUGAR DEL MENSAJE ABAJO
+      _showConflictToast(
+        player.name, 
+        validation.reason ?? 'El jugador ya tiene una reserva en este horario'
+      );
+      return; // No agregar el jugador
     }
 
+    // 🆕 SOLO UN setState - CORREGIDO
+    print('DEBUG: No conflict - adding player');
     setState(() {
       _selectedPlayers.add(player);
       _searchController.clear();
-      _errorMessage = null; // Limpiar errores previos
+      _errorMessage = null;
       _filterPlayers();
     });
   }
@@ -1194,28 +1193,34 @@ class _ReservationFormModalState extends State<ReservationFormModal> {
                                           ),
                                         ),
                                         child: ListTile(
-                                          dense: true, // 🔧 NUEVO: Hacer más compacto
-                                          contentPadding: const EdgeInsets.symmetric(horizontal: 10, vertical: 2), // 🔧 Reducido padding
+                                          dense: true,
+                                          contentPadding: const EdgeInsets.symmetric(horizontal: 10, vertical: 2),
                                           title: Text(
                                             player.name,
-                                            style: const TextStyle(fontWeight: FontWeight.w500, fontSize: 13), // 🔧 Reducido font
+                                            style: const TextStyle(fontWeight: FontWeight.w500, fontSize: 13),
                                           ),
                                           subtitle: isSpecialVisit 
                                               ? const Text(
                                                   'Puede jugar en múltiples canchas',
-                                                  style: TextStyle(fontSize: 10, color: Colors.orange), // 🔧 Reducido font
+                                                  style: TextStyle(fontSize: 10, color: Colors.orange),
                                                 )
                                               : null,
                                           trailing: IconButton(
-                                            onPressed: () => _addPlayer(player),
+                                            onPressed: () {
+                                              print('DEBUG: IconButton pressed for: ${player.name}');
+                                              _addPlayer(player);
+                                            },
                                             icon: Icon(
                                               Icons.add_circle, 
                                               color: isSpecialVisit ? Colors.orange : Colors.green, 
-                                              size: 20 // 🔧 Reducido de 24 a 20
+                                              size: 20
                                             ),
-                                            constraints: const BoxConstraints(minWidth: 30, minHeight: 30), // 🔧 Constraints más pequeños
+                                            constraints: const BoxConstraints(minWidth: 30, minHeight: 30),
                                           ),
-                                          onTap: () => _addPlayer(player),
+                                          onTap: () {
+                                            print('DEBUG: ListTile tapped for: ${player.name}');
+                                            _addPlayer(player);
+                                          },
                                         ),
                                       );
                                     },
@@ -1226,46 +1231,46 @@ class _ReservationFormModalState extends State<ReservationFormModal> {
                         const SizedBox(height: 8), // 🔧 Reducido de 12 a 8
                         
                         // 🔥 MENSAJE DE ERROR MEJORADO
-                        if (_errorMessage != null)
-                          Container(
-                            padding: const EdgeInsets.all(10), // 🔧 Reducido padding
-                            margin: const EdgeInsets.only(bottom: 12), // 🔧 Reducido margin
-                            decoration: BoxDecoration(
-                              color: Colors.red.withOpacity(0.1),
-                              borderRadius: BorderRadius.circular(8),
-                              border: Border.all(color: Colors.red.withOpacity(0.3)),
-                            ),
-                            child: Row(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                const Padding(
-                                  padding: EdgeInsets.only(top: 2),
-                                  child: Icon(Icons.error, color: Colors.red, size: 18), // 🔧 Reducido tamaño
-                                ),
-                                const SizedBox(width: 6), // 🔧 Reducido spacing
-                                Expanded(
-                                  child: Column(
-                                    crossAxisAlignment: CrossAxisAlignment.start,
-                                    children: [
-                                      const Text(
-                                        'Conflicto de horario:',
-                                        style: TextStyle(
-                                          color: Colors.red, 
-                                          fontSize: 13, // 🔧 Reducido font
-                                          fontWeight: FontWeight.w600
-                                        ),
-                                      ),
-                                      const SizedBox(height: 2), // 🔧 Reducido spacing
-                                      Text(
-                                        _errorMessage!,
-                                        style: const TextStyle(color: Colors.red, fontSize: 12), // 🔧 Reducido font
-                                      ),
-                                    ],
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
+                        // if (_errorMessage != null)
+                        //   Container(
+                        //     padding: const EdgeInsets.all(10),
+                        //     margin: const EdgeInsets.only(bottom: 12),
+                        //     decoration: BoxDecoration(
+                        //       color: Colors.red.withOpacity(0.1),
+                        //       borderRadius: BorderRadius.circular(8),
+                        //       border: Border.all(color: Colors.red.withOpacity(0.3)),
+                        //     ),
+                        //     child: Row(
+                        //       crossAxisAlignment: CrossAxisAlignment.start,
+                        //       children: [
+                        //         const Padding(
+                        //           padding: EdgeInsets.only(top: 2),
+                        //           child: Icon(Icons.error, color: Colors.red, size: 18),
+                        //         ),
+                        //         const SizedBox(width: 6),
+                        //         Expanded(
+                        //           child: Column(
+                        //             crossAxisAlignment: CrossAxisAlignment.start,
+                        //             children: [
+                        //               const Text(
+                        //                 'Conflicto de horario:',
+                        //                 style: TextStyle(
+                        //                   color: Colors.red, 
+                        //                   fontSize: 13,
+                        //                   fontWeight: FontWeight.w600
+                        //                 ),
+                        //               ),
+                        //               const SizedBox(height: 2),
+                        //               Text(
+                        //                 _errorMessage!,
+                        //                 style: const TextStyle(color: Colors.red, fontSize: 12),
+                        //               ),
+                        //             ],
+                        //           ),
+                        //         ),
+                        //       ],
+                        //     ),
+                        //   ),
 
                         // 📧 NUEVO: Indicador de progreso de emails
                         Consumer<BookingProvider>(
@@ -1385,6 +1390,53 @@ class _ReservationFormModalState extends State<ReservationFormModal> {
   void dispose() {
     _searchController.dispose();
     super.dispose();
+  }
+
+  // Método para mostrar nombres amigables de canchas
+  String _getCourtDisplayName(String courtId) {
+    switch (courtId) {
+      case 'padel_court_1': return 'PITE';
+      case 'padel_court_2': return 'LILEN';  
+      case 'padel_court_3': return 'PLAIYA';
+      case 'tennis_court_1': return 'Cancha 1';
+      case 'tennis_court_2': return 'Cancha 2';
+      case 'tennis_court_3': return 'Cancha 3';
+      case 'tennis_court_4': return 'Cancha 4';
+      default: return courtId;
+    }
+  }
+
+  // Método para mostrar toast de conflicto
+  void _showConflictToast(String playerName, String conflictReason) {
+    // Usar el context del Scaffold padre, no del modal
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Row(
+          children: [
+            Icon(Icons.warning, color: Colors.white, size: 20),
+            SizedBox(width: 12),
+            Expanded(
+              child: Text(
+                conflictReason,
+                style: TextStyle(
+                  fontSize: 14,
+                  fontWeight: FontWeight.w500,
+                ),
+              ),
+            ),
+          ],
+        ),
+        backgroundColor: Colors.red[600],
+        duration: Duration(seconds: 5),
+        behavior: SnackBarBehavior.floating,
+        margin: EdgeInsets.only(
+          top: 50,  // Cambiar de bottom a top
+          left: 16,
+          right: 16,
+        ),
+        elevation: 1000, // Z-index muy alto para aparecer sobre el modal
+      ),
+    );
   }
 }
 
