@@ -15,7 +15,7 @@ import 'presentation/providers/booking_provider.dart';
 
 // Pages
 import 'presentation/pages/simple_sport_hub.dart';
-import 'presentation/pages/reservations_page.dart';
+import 'presentation/pages/paddle_reservations_page.dart';
 import 'presentation/pages/tennis_reservations_page.dart';
 
 // Firebase
@@ -86,7 +86,7 @@ class CGPReservasApp extends StatelessWidget {
         // 🚀 RUTAS DE NAVEGACIÓN AGREGADAS
         routes: {
           '/hub': (context) => const SimpleSportHub(),
-          '/reservations': (context) => const ReservationsPage(),
+          '/paddle-reservations': (context) => const PaddleReservationsPage(),
           '/tennis-reservations': (context) => const TennisReservationsPage(),
           '/admin-dashboard': (context) => const AdminDashboardPage(),
         },

@@ -494,36 +494,4 @@ abstract class AppConstants {
     final colorInt = courtIdToColor[courtId] ?? corporateNavyBlue;
     return Color(colorInt);
   }
-
-  class GolfConstants {
-    // ✅ CONFIGURACIÓN ESPECÍFICA GOLF
-    static const String SPORT_ID = 'golf';
-    static const String DISPLAY_NAME = 'Golf';
-    static const String DESCRIPTION = 'Campo de golf de 18 hoyos, par 68';
-    
-    // ✅ COLORES TEMA GOLF
-    static const Color PRIMARY_COLOR = Color(0xFF7CB342);
-    static const Color SECONDARY_COLOR = Color(0xFF689F38);
-    static const Color ACCENT_COLOR = Color(0xFF8BC34A);
-    
-    // ✅ REGLAS ESPECÍFICAS GOLF - Actualizadas según especificaciones reales
-    static const int MAX_PLAYERS_PER_GROUP = 4;  // Máximo 4 jugadores
-    static const int MIN_PLAYERS_PER_GROUP = 1;  // Mínimo 1 jugador
-    static const Duration SLOT_INTERVAL = Duration(minutes: 12); // Cada 12 minutos
-    
-    // ✅ HORARIOS ESTACIONALES
-    static const String SUMMER_START = '08:00';   // Inicio siempre 08:00
-    static const String SUMMER_END = '17:00';     // Verano hasta 17:00
-    static const String WINTER_END = '16:00';     // Invierno hasta 16:00
-    
-    // ✅ CONFIGURACIÓN TEES
-    static const String TEE_1_ID = 'golf_tee_1';  // Hoyo 1 (Principal)
-    static const String TEE_10_ID = 'golf_tee_10'; // Hoyo 10 (Alternativa)
-    
-    // ✅ MENSAJES GOLF ACTUALIZADOS
-    static const String BOOKING_SUCCESS_MESSAGE = '⛳ Reserva Golf confirmada';
-    static const String BOOKING_EMAIL_SUBJECT = '🌟 Confirmación Reserva Golf - Club';
-    static const String CONFLICT_MESSAGE = 'Ya tienes una reserva de Golf en este horario';
-    static const String SEASONAL_INFO = 'Horarios varían según temporada: Verano hasta 17:00, Invierno hasta 16:00';
-  }
 }

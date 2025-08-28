@@ -13,14 +13,14 @@ import '../../core/services/user_service.dart';
 import '../../core/theme/app_theme.dart';
 import '../../domain/entities/booking.dart';
 
-class ReservationsPage extends StatefulWidget {
-  const ReservationsPage({Key? key}) : super(key: key);
+class PaddleReservationsPage extends StatefulWidget {
+  const PaddleReservationsPage({Key? key}) : super(key: key);
 
   @override
-  State<ReservationsPage> createState() => _ReservationsPageState();
+  State<PaddleReservationsPage> createState() => _ReservationsPageState();
 }
 
-class _ReservationsPageState extends State<ReservationsPage> {
+class _ReservationsPageState extends State<PaddleReservationsPage> {
   late PageController _pageController;
 
   @override
