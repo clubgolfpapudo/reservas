@@ -17,6 +17,7 @@ import 'presentation/providers/booking_provider.dart';
 import 'presentation/pages/simple_sport_hub.dart';
 import 'presentation/pages/paddle_reservations_page.dart';
 import 'presentation/pages/tennis_reservations_page.dart';
+import 'presentation/pages/golf_reservations_page.dart';
 
 // Firebase
 import 'firebase_options.dart';
@@ -88,6 +89,7 @@ class CGPReservasApp extends StatelessWidget {
           '/hub': (context) => const SimpleSportHub(),
           '/paddle-reservations': (context) => const PaddleReservationsPage(),
           '/tennis-reservations': (context) => const TennisReservationsPage(),
+          '/golf-reservations': (context) => const GolfReservationsPage(),
           '/admin-dashboard': (context) => const AdminDashboardPage(),
         },
         
