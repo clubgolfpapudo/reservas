@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
 // ═══════════════════════════════════════════════════════════════════════════════
-// COLORES DE LA APLICACIÓN
+// COLORES DE LA APLICACIÓN - PADEL
 // ═══════════════════════════════════════════════════════════════════════════════
 abstract class AppColors {
   // Colores principales

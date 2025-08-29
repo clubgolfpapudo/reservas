@@ -230,12 +230,7 @@ class _SimpleSportHubState extends State<SimpleSportHub> {
           color: const Color(0xFF7CB342),
           onTap: () {
             print("🏌️ TAP EN GOLF - PRIMER DEPORTE");
-            ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(
-                content: Text('🏌️ Golf - Próximamente disponible'),
-                backgroundColor: Color(0xFF7CB342),
-              ),
-            );
+            Navigator.pushNamed(context, '/golf-reservations');
           },
         ),
         
@@ -249,7 +244,7 @@ class _SimpleSportHubState extends State<SimpleSportHub> {
           color: const Color(0xFF2E7AFF),
           onTap: () {
             print("🏓 TAP EN PÁDEL - SEGUNDO DEPORTE");
-            Navigator.pushNamed(context, '/reservations');
+            Navigator.pushNamed(context, '/paddle-reservations');
           },
         ),
         
