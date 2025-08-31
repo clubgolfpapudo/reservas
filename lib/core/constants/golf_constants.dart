@@ -47,7 +47,8 @@ class GolfConstants {
     DateTime current = DateTime.parse('2024-01-01 $START_TIME:00');
     final end = DateTime.parse('2024-01-01 $endTime:00');
 
-    while (current.isBefore(end)) {
+    // CAMBIO: usar isAtSameMomentAs o isBefore para incluir el último horario
+    while (current.isBefore(end) || current.isAtSameMomentAs(end)) {
       final timeString = '${current.hour.toString().padLeft(2, '0')}:${current.minute.toString().padLeft(2, '0')}';
       slots.add(timeString);
       current = current.add(Duration(minutes: SLOT_DURATION_MINUTES));

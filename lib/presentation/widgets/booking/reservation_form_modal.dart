@@ -48,8 +48,11 @@ class ReservationFormModal extends StatefulWidget {
     required this.date,
     required this.timeSlot,
     required this.sport,
+    this.bookingToModify,
   }) : super(key: key);
 
+  final Booking? bookingToModify;
+  
   @override
   State<ReservationFormModal> createState() => _ReservationFormModalState();
 }
@@ -88,7 +91,7 @@ class _ReservationFormModalState extends State<ReservationFormModal> {
 
   // Determina si se puede crear la reserva según las nuevas reglas  
   bool get _canCreateReservation => 
-      _selectedPlayers.length >= _minPlayers && 
+      (widget.sport == 'GOLF' ? _selectedPlayers.length >= 1 : _selectedPlayers.length >= _minPlayers) &&
       _selectedPlayers.length <= _maxPlayers && 
       _errorMessage == null;
 
@@ -586,22 +589,30 @@ class _ReservationFormModalState extends State<ReservationFormModal> {
 
       // Crear booking players con teléfonos
       final List<BookingPlayer> bookingPlayers = [];
-      
+
       for (final selectedPlayer in _selectedPlayers) {
         String? userPhone;
+        String? userId;
         try {
+          // Buscar los datos del usuario en la lista de Firebase para obtener el teléfono y el ID
           final userData = usersData.firstWhere(
             (user) => user['email']?.toString().toLowerCase() == selectedPlayer.email.toLowerCase(),
           );
+          // Asumimos que la respuesta de Firebase ahora tiene un ID
+          userId = userData['id']?.toString(); 
           userPhone = userData['phone']?.toString();
         } catch (e) {
-          userPhone = null; // Usuario no encontrado
+          // Usuario no encontrado en la base de datos, no tiene ID ni teléfono
+          userId = null; 
+          userPhone = null; 
         }
-        
+
+        // ✅ CÓDIGO CORREGIDO: Usar directamente selectedPlayer y generar un UUID si falta el ID
         bookingPlayers.add(BookingPlayer(
+          id: userId ?? DateTime.now().millisecondsSinceEpoch.toString(), // Genera un ID temporal si no se encuentra en Firebase
           name: selectedPlayer.name,
           email: selectedPlayer.email,
-          phone: userPhone,  // ✅ TELÉFONO INCLUIDO
+          phone: userPhone,
           isConfirmed: true,
         ));
       }

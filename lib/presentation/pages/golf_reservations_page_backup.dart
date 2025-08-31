@@ -27,15 +27,50 @@ class _GolfReservationsPageState extends State<GolfReservationsPage> {
   @override
   void initState() {
     super.initState();
+
+    // VERIFICACIÓN DE AUTENTICACIÓN AL INICIO
+    WidgetsBinding.instance.addPostFrameCallback((_) async {
+      final firebaseUser = FirebaseAuth.instance.currentUser;
+      print('=== VERIFICACIÓN INICIAL GOLF PAGE ===');
+      print('Firebase user en initState: ${firebaseUser?.uid ?? "NULL"}');
+      print('Firebase user email: ${firebaseUser?.email ?? "NULL"}');
+      
+      if (firebaseUser == null) {
+        print('ERROR: Usuario no autenticado en Firebase, redirigiendo a login');
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Sesión expirada. Redirigiendo al login...'),
+            backgroundColor: Colors.red,
+          ),
+        );
+        // Redirigir al login después de 2 segundos
+        Future.delayed(const Duration(seconds: 2), () {
+          Navigator.of(context).pushNamedAndRemoveUntil('/', (route) => false);
+        });
+        return;
+      }
+      
+      // Resto del código existente...
+      final provider = context.read<BookingProvider>();
+      provider.fetchUsers();
+      print('Golf INIT: provider.selectedCourtId = ${provider.selectedCourtId}');
+      provider.selectCourt('golf_tee_1');
+      print('Golf INIT: Inicializado para vista combinada');
+    });
+
     _pageController = PageController(
       initialPage: context.read<BookingProvider>().currentDateIndex,
     );
-    
+
     WidgetsBinding.instance.addPostFrameCallback((_) {
       final provider = context.read<BookingProvider>();
-      provider.fetchUsers(); // Para cargar usuarios si es necesario
+      
+      // Agregar esta línea para cargar los usuarios
+      provider.fetchUsers();
+      
+      print('⛳ GOLF INIT: provider.selectedCourtId = ${provider.selectedCourtId}');
       provider.selectCourt('golf_tee_1');
-      print('Golf INIT: Inicializado correctamente');
+      print('⛳ GOLF INIT: Inicializado para vista combinada');
     });
   }
 
@@ -363,7 +398,8 @@ class _GolfReservationsPageState extends State<GolfReservationsPage> {
                 width: 1,
               ),
             ),
-            child: Container(
+            child: GestureDetector(
+              onTap: booking != null ? () => _handleSlotTap(context, booking!) : null,
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
@@ -431,15 +467,11 @@ class _GolfReservationsPageState extends State<GolfReservationsPage> {
                         // Reemplaza el GestureDetector que está en el bloque 'else'
                         GestureDetector(
                           onTap: () {
-                            print('DEBUG - onTap ejecutado para slot');
-                            print('DEBUG - playerCount: $playerCount');
-                            print('DEBUG - booking: ${booking?.id}');
-                              
                             if (playerCount == 0) {
-                              print('DEBUG - Ejecutando _handleReserveSlot');
+                              // Si el slot está vacío, usa la función para crear una nueva reserva
                               _handleReserveSlot(context, hoyoId, timeSlot);
                             } else {
-                              print('DEBUG - Ejecutando _handleSlotTap');
+                              // Si el slot está incompleto, usa la función para modificar la reserva existente
                               _handleSlotTap(context, booking!);
                             }
                           },
@@ -791,48 +823,227 @@ class _GolfReservationsPageState extends State<GolfReservationsPage> {
   }
 
   Future<void> _handleSlotTap(BuildContext context, Booking booking) async {
-    // Generar la lista de jugadores para mostrar en el modal
-    final playersList = booking.players.map((player) => player.name).join('\n');
+    final provider = context.read<BookingProvider>();
+
+    print('=== INICIO DEBUG AUTENTICACIÓN ===');
     
-    // Mostrar modal simple de confirmación primero
+    // 1. VERIFICAR ESTADO INICIAL DE FIREBASE AUTH
+    print('DEBUG - Firebase Auth inicializado: ${FirebaseAuth.instance.app != null}');
+    print('DEBUG - Firebase Auth current user (inicial): ${FirebaseAuth.instance.currentUser?.uid ?? "NULL"}');
+    print('DEBUG - Firebase Auth current user email: ${FirebaseAuth.instance.currentUser?.email ?? "NULL"}');
+    
+    String? currentUserId;
+    String? currentUserName;
+    
+    try {
+      // 1. Verificar el usuario actual directamente
+      final firebaseUser = FirebaseAuth.instance.currentUser;
+      print('DEBUG - Firebase user objeto: ${firebaseUser != null ? "EXISTS" : "NULL"}');
+      
+      if (firebaseUser != null) {
+        currentUserId = firebaseUser.uid;
+        currentUserName = firebaseUser.displayName ?? firebaseUser.email ?? 'Usuario';
+        print('DEBUG - Usuario obtenido de FirebaseAuth: $currentUserId');
+        print('DEBUG - Nombre usuario: $currentUserName');
+        print('DEBUG - Email usuario: ${firebaseUser.email}');
+        print('DEBUG - Usuario verificado: ${firebaseUser.emailVerified}');
+      } else {
+        print('DEBUG - firebaseUser es NULL, intentando forzar reload...');
+        
+        // 2. Intentar forzar un reload del usuario actual
+        try {
+          await FirebaseAuth.instance.currentUser?.reload();
+          final reloadedUser = FirebaseAuth.instance.currentUser;
+          print('DEBUG - Usuario después de reload: ${reloadedUser?.uid ?? "STILL NULL"}');
+          
+          if (reloadedUser != null) {
+            currentUserId = reloadedUser.uid;
+            currentUserName = reloadedUser.displayName ?? reloadedUser.email ?? 'Usuario';
+            print('DEBUG - Usuario obtenido tras reload: $currentUserId');
+          }
+        } catch (reloadError) {
+          print('ERROR en reload: $reloadError');
+        }
+      }
+      
+      // 3. Si sigue siendo null, intentar escuchar cambios de estado
+      if (currentUserId == null) {
+        print('DEBUG - Intentando escuchar authStateChanges...');
+        try {
+          final authState = await FirebaseAuth.instance.authStateChanges().first.timeout(
+            const Duration(seconds: 5),
+          );
+          print('DEBUG - AuthState user: ${authState?.uid ?? "NULL"}');
+          
+          if (authState != null) {
+            currentUserId = authState.uid;
+            currentUserName = authState.displayName ?? authState.email ?? 'Usuario';
+            print('DEBUG - Usuario obtenido de authStateChanges: $currentUserId');
+          }
+        } catch (timeoutError) {
+          print('ERROR en authStateChanges timeout: $timeoutError');
+        }
+      }
+      
+    } catch (e) {
+      print('ERROR GENERAL al obtener usuario: $e');
+      print('ERROR Stack trace: ${e.toString()}');
+    }
+
+    print('=== RESULTADO FINAL DEBUG ===');
+    print('DEBUG - currentUserId final: ${currentUserId ?? "NULL"}');
+    print('DEBUG - currentUserName final: ${currentUserName ?? "NULL"}');
+    
+    // 2. VERIFICAR SI SE PUDO IDENTIFICAR AL USUARIO
+    if (currentUserId == null) {
+      print('ERROR CRÍTICO - No se pudo identificar al usuario después de todos los intentos');
+      
+      // Mostrar información de diagnóstico al usuario
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: const Text('Error de autenticación. Su sesión puede haber expirado.'),
+          backgroundColor: Colors.red,
+          duration: const Duration(seconds: 6),
+          action: SnackBarAction(
+            label: 'Recargar App',
+            textColor: Colors.white,
+            onPressed: () {
+              // Forzar logout y recarga completa
+              FirebaseAuth.instance.signOut();
+              Navigator.of(context).pushNamedAndRemoveUntil('/', (route) => false);
+            },
+          ),
+        ),
+      );
+      return;
+    }
+
+    print('=== CONTINUANDO CON LÓGICA DE RESERVA ===');
+    print('DEBUG - Booking ID: ${booking.id}');
+    print('DEBUG - Jugadores actuales: ${booking.players.length}');
+    print('DEBUG - Provider users count: ${provider.users?.length ?? 0}');
+
+    // 3. VERIFICAR SI EL JUGADOR YA ESTÁ EN LA RESERVA
+    final isPlayerAlreadyInBooking = booking.players.any((player) {
+      print('DEBUG - Comparando player.id: ${player.id} con currentUserId: $currentUserId');
+      return player.id == currentUserId;
+    });
+
+    if (isPlayerAlreadyInBooking) {
+      print('DEBUG - Usuario ya está en la reserva');
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Ya eres parte de esta reserva.'),
+          duration: Duration(seconds: 3),
+        ),
+      );
+      return;
+    }
+
+    // 4. VERIFICAR CAPACIDAD MÁXIMA
+    if (booking.players.length >= 4) {
+      print('DEBUG - Reserva ya está completa');
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Esta reserva ya está completa.'),
+          duration: Duration(seconds: 3),
+        ),
+      );
+      return;
+    }
+
+    print('DEBUG - Mostrando diálogo de confirmación');
+    
+    // 5. PEDIR CONFIRMACIÓN
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
-        title: Text('Unirse - ${booking.timeSlot}'),
-        content: SingleChildScrollView(
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text('Jugadores: ${booking.players.length}/4'),
-              const SizedBox(height: 10),
-              Text('Jugadores ya inscritos:\n$playersList'),
-            ],
-          ),
+        title: const Text('Confirmar Reserva'),
+        content: Text(
+          '¿Deseas unirte a esta reserva?\n\n'
+          'Horario: ${booking.timeSlot}\n'
+          'Jugadores actuales: ${booking.players.length}/4\n'
+          'Quedarán ${3 - booking.players.length} espacios disponibles'
         ),
-        actions: [
-          TextButton(onPressed: () => Navigator.pop(context, false), child: Text('Cancelar')),
-          TextButton(onPressed: () => Navigator.pop(context, true), child: Text('Confirmar')),
+        actions: <Widget>[
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(false),
+            child: const Text('Cancelar'),
+          ),
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(true),
+            child: const Text('Confirmar'),
+          ),
         ],
       ),
     );
-    
-    // Si confirma, usar el modal de reservas (igual que slots vacíos)
+
+    print('DEBUG - Usuario confirmó: ${confirmed == true}');
+
+    // 6. SI CONFIRMA, AGREGAR EL JUGADOR
     if (confirmed == true) {
-      final provider = context.read<BookingProvider>();
-      final hoyoName = booking.courtId == 'golf_tee_1' ? 'Hoyo 1' : 'Hoyo 10';
-      
-      await showDialog(
-        context: context,
-        barrierDismissible: false,
-        builder: (context) => ReservationFormModal(
-          courtId: booking.courtId,
-          courtName: hoyoName,
-          date: booking.date,
-          timeSlot: booking.timeSlot,
-          sport: 'GOLF',
-        ),
-      );
+      try {
+        print('DEBUG - Iniciando proceso de agregar jugador...');
+        
+        // Buscar usuario en la lista del provider
+        BookingPlayer? currentUserData;
+        
+        if (provider.users != null && provider.users!.isNotEmpty) {
+          try {
+            currentUserData = provider.users!.firstWhere(
+              (user) => user.id == currentUserId,
+            );
+            print('DEBUG - Usuario encontrado en provider: ${currentUserData.name}');
+          } catch (e) {
+            print('DEBUG - Usuario no encontrado en provider, creando temporal...');
+            currentUserData = BookingPlayer(
+              id: currentUserId!,
+              name: currentUserName ?? 'Usuario Desconocido',
+            );
+          }
+        } else {
+          print('DEBUG - Provider users está vacío o null');
+          currentUserData = BookingPlayer(
+            id: currentUserId!,
+            name: currentUserName ?? 'Usuario Desconocido',
+          );
+        }
+
+        print('DEBUG - Llamando addPlayerToBooking con:');
+        print('  - bookingId: ${booking.id}');
+        print('  - playerId: ${currentUserData.id}');
+        print('  - playerName: ${currentUserData.name}');
+
+        await provider.addPlayerToBooking(
+          booking.id!, 
+          currentUserData.id, 
+          currentUserData.name
+        );
+        
+        print('DEBUG - addPlayerToBooking completado exitosamente');
+        
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Te has unido a la reserva con éxito.'),
+            backgroundColor: Colors.green,
+            duration: Duration(seconds: 3),
+          ),
+        );
+        
+      } catch (e) {
+        print('ERROR al agregar jugador: $e');
+        print('ERROR Stack trace completo: ${e.toString()}');
+        
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Error al unirse a la reserva: ${e.toString()}'),
+            backgroundColor: Colors.red,
+            duration: const Duration(seconds: 5),
+          ),
+        );
+      }
     }
+    
+    print('=== FIN DEBUG AUTENTICACIÓN ===');
   }
 }

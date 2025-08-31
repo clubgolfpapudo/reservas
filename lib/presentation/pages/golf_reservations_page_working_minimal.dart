@@ -1,4 +1,4 @@
-// lib/presentation/pages/tennis_reservations_page.dart - VERSIÓN CORREGIDA
+// lib/presentation/pages/Golf_reservations_page.dart - VERSIÓN CORREGIDA
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../providers/booking_provider.dart';
@@ -8,22 +8,29 @@ import '../widgets/booking/reservation_form_modal.dart';
 import '../widgets/booking/reservation_webview.dart';
 import '../widgets/booking/time_slot_block.dart';
 import '../widgets/common/date_navigation_header.dart';
-import '../../core/constants/tennis_constants.dart';
 import '../../core/services/user_service.dart';
-import '../../core/theme/tennis_theme.dart';
-import '../../core/constants/tennis_constants.dart';
+import '../../core/theme/golf_theme.dart';
+import '../../core/constants/golf_constants.dart';
 import '../../domain/entities/booking.dart';
 import '../../../core/constants/app_constants.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 
-class TennisReservationsPage extends StatefulWidget {
-  const TennisReservationsPage({Key? key}) : super(key: key);
+class GolfReservationsPageMinimal extends StatefulWidget {
+  const GolfReservationsPageMinimal({Key? key}) : super(key: key);
 
   @override
-  State<TennisReservationsPage> createState() => _TennisReservationsPageState();
+  State<GolfReservationsPageMinimal> createState() => _GolfReservationsPageMinimalState();
 }
 
-class _TennisReservationsPageState extends State<TennisReservationsPage> {
+class _GolfReservationsPageMinimalState extends State<GolfReservationsPageMinimal> {
   late PageController _pageController;
+
+  // Colores golf hardcodeados - TODOS los necesarios
+  static const Color primaryGreen = Color(0xFF4CAF50);
+  static const Color primaryGreenLight = Color(0xFFE8F5E8);
+  static const Color primaryGreenDark = Color(0xFF2E7D32);
+  static const Color primaryGreenLightBorder = Color(0xFFAED581);
+  static const Color primaryGreenLightText = Color(0xFF1B5E20);
 
   @override
   void initState() {
@@ -32,14 +39,14 @@ class _TennisReservationsPageState extends State<TennisReservationsPage> {
       initialPage: context.read<BookingProvider>().currentDateIndex,
     );
     
-    // 🔧 DEBUG: Ver estado inicial del provider y forzar Tenis
+    // ESTO DEBE ESTAR AQUÍ
     WidgetsBinding.instance.addPostFrameCallback((_) {
       final provider = context.read<BookingProvider>();
-      print('🎾 TENNIS INIT: provider.selectedCourtId = ${provider.selectedCourtId}');
+      print('⛳ GOLF INIT ANTES: provider.selectedCourtId = ${provider.selectedCourtId}');
       
-      // Forzar selección inicial de Tenis
-      provider.selectCourt('tennis_court_1');
-      print('🎾 TENNIS INIT: Forzado a tennis_court_1');
+      provider.selectCourt('golf_tee_1');
+      
+      print('⛳ GOLF INIT DESPUÉS: provider.selectedCourtId = ${provider.selectedCourtId}');
     });
   }
 
@@ -49,23 +56,23 @@ class _TennisReservationsPageState extends State<TennisReservationsPage> {
     super.dispose();
   }
 
-  String _mapCourtIdToTennisName(String? courtId) {
+  String _mapCourtIdToGolfName(String? courtId) {
     print('🔍 DEBUG MAPPING: courtId recibido = $courtId');
     switch (courtId) {
-      case 'tennis_court_1': return 'Cancha 1';    // 🔧 NUEVO ID
-      case 'tennis_court_2': return 'Cancha 2';    // 🔧 NUEVO ID
-      case 'tennis_court_3': return 'Cancha 3';    // 🔧 NUEVO ID
-      case 'tennis_court_4': return 'Cancha 4';    // 🔧 NUEVO ID
+      case 'Golf_court_1': return 'Hoyo 1';    // 🔧 NUEVO ID
+      case 'Golf_court_2': return 'Hoyo 10';    // 🔧 NUEVO ID
+      case 'Golf_court_3': return 'Hoyo 1';    // 🔧 NUEVO ID
+      case 'Golf_court_4': return 'Hoyo 10';    // 🔧 NUEVO ID
       default: 
         print('⚠️ DEFAULT CASE: courtId no reconocido = $courtId');
-        return 'Cancha 1';
+        return 'Hoyo 1';
     }
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: AppColors.primaryBlueLight,
+      backgroundColor: primaryGreenLight,
       body: Consumer<BookingProvider>(
         builder: (context, bookingProvider, child) {
           return Column(
@@ -110,30 +117,30 @@ class _TennisReservationsPageState extends State<TennisReservationsPage> {
   Widget _buildDateContent(BuildContext context, BookingProvider provider) {
     return Column(
       children: [
-        // Tabs de canchas mejorados
+        // Tabs de hoyos mejorados
         EnhancedCourtTabs(
-          courtNames: TennisConstants.COURT_NAMES,
-          selectedCourt: _mapCourtIdToTennisName(provider.selectedCourtId),
+          courtNames: ['Hoyo 1', 'Hoyo 10'],
+          selectedCourt: _mapCourtIdToGolfName(provider.selectedCourtId),
           onCourtSelected: (courtName) {
-            print('🎾 Seleccionando cancha: $courtName');
+            print('🎾 Seleccionando hoyo: $courtName');
             
             // Mapear nombre a ID de TENIS
             String courtId;
             switch (courtName) {
-              case 'Cancha 1':
-                courtId = 'tennis_court_1';
+              case 'Hoyo 1':
+                courtId = 'Golf_court_1';
                 break;
-              case 'Cancha 2':
-                courtId = 'tennis_court_2';
+              case 'Hoyo 10':
+                courtId = 'Golf_court_2';
                 break;
-              case 'Cancha 3':
-                courtId = 'tennis_court_3';
+              case 'Hoyo 1':
+                courtId = 'Golf_court_3';
                 break;
-              case 'Cancha 4':
-                courtId = 'tennis_court_4';
+              case 'Hoyo 10':
+                courtId = 'Golf_court_4';
                 break;
               default:
-                courtId = 'tennis_court_1';
+                courtId = 'Golf_court_1';
             }
             
             // 🔧 AGREGAR ESTAS LÍNEAS DE DEBUG
@@ -163,7 +170,7 @@ class _TennisReservationsPageState extends State<TennisReservationsPage> {
     if (provider.isLoading) {
       return const Center(
         child: CircularProgressIndicator(
-          color: AppColors.primaryBlue,
+          color: primaryGreen,
         ),
       );
     }
@@ -193,7 +200,7 @@ class _TennisReservationsPageState extends State<TennisReservationsPage> {
                 provider.refresh();
               },
               style: ElevatedButton.styleFrom(
-                backgroundColor: AppColors.primaryBlue,
+                backgroundColor: primaryGreen,
                 foregroundColor: Colors.white,
               ),
               child: const Text('Reintentar'),
@@ -358,7 +365,7 @@ class _TennisReservationsPageState extends State<TennisReservationsPage> {
                     width: 40,
                     height: 40,
                     decoration: BoxDecoration(
-                      color: isSelected ? AppColors.primaryBlue : Colors.grey[100],
+                      color: isSelected ? primaryGreen : Colors.grey[100],
                       borderRadius: BorderRadius.circular(20),
                     ),
                     child: Center(
@@ -374,7 +381,7 @@ class _TennisReservationsPageState extends State<TennisReservationsPage> {
                   title: Text(_formatDate(date)),
                   subtitle: Text(_getDayName(date)),
                   trailing: isSelected 
-                      ? const Icon(Icons.check, color: AppColors.primaryBlue)
+                      ? Icon(Icons.check, color: primaryGreen)
                       : null,
                   onTap: () {
                     _pageController.animateToPage(
@@ -401,9 +408,9 @@ class _TennisReservationsPageState extends State<TennisReservationsPage> {
   Color _getSlotBackgroundColor(BookingStatus? status) {
     switch (status) {
       case BookingStatus.complete:
-        return AppColors.primaryBlue; // 🔧 HARDCODE (AppColors.confirmed NO EXISTE)
+        return primaryGreen; // 🔧 HARDCODE (AppColors.confirmed NO EXISTE)
       case BookingStatus.incomplete:
-        return AppColors.incomplete; // ✅ ESTE SÍ EXISTE
+        return primaryGreenLight; // ✅ ESTE SÍ EXISTE
       default:
         return const Color(0xFFE8F4F9); // 🔧 HARDCODE (AppColors.available NO EXISTE)
     }
@@ -414,9 +421,9 @@ class _TennisReservationsPageState extends State<TennisReservationsPage> {
       case BookingStatus.complete:
         return const Color(0xFF1a5ce6); // 🔧 HARDCODE (AppColors.confirmedBorder NO EXISTE)
       case BookingStatus.incomplete:
-        return AppColors.incompleteBorder; // ✅ ESTE SÍ EXISTE
+        return primaryGreenLightBorder; // ✅ ESTE SÍ EXISTE
       default:
-        return AppColors.primaryBlue.withOpacity(0.2); // 🔧 HARDCODE
+        return primaryGreen.withOpacity(0.2); // 🔧 HARDCODE
     }
   }
 
@@ -425,7 +432,7 @@ class _TennisReservationsPageState extends State<TennisReservationsPage> {
       case BookingStatus.complete:
         return Colors.white; // 🔧 HARDCODE (AppColors.confirmedText NO EXISTE)
       case BookingStatus.incomplete:
-        return AppColors.incompleteText; // ✅ ESTE SÍ EXISTE
+        return primaryGreenLightText; // ✅ ESTE SÍ EXISTE
       default:
         return Colors.black87; // 🔧 HARDCODE
     }
@@ -436,7 +443,7 @@ class _TennisReservationsPageState extends State<TennisReservationsPage> {
       case BookingStatus.complete:
         return Colors.white.withOpacity(0.9); // 🔧 HARDCODE
       case BookingStatus.incomplete:
-        return AppColors.incompleteText.withOpacity(0.7); // ✅ ESTE SÍ EXISTE
+        return primaryGreenLightText.withOpacity(0.7); // ✅ ESTE SÍ EXISTE
       default:
         return Colors.grey[600]!; // Para disponible
     }
@@ -486,7 +493,7 @@ class _TennisReservationsPageState extends State<TennisReservationsPage> {
                 child: Container(
                   padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
                   decoration: BoxDecoration(
-                    color: AppColors.primaryBlue,
+                    color: primaryGreen,
                     borderRadius: BorderRadius.circular(8),
                   ),
                   child: const Row(
@@ -540,7 +547,7 @@ class _TennisReservationsPageState extends State<TennisReservationsPage> {
             height: 32,
             padding: const EdgeInsets.symmetric(horizontal: 8),
             decoration: BoxDecoration(
-              color: AppColors.primaryBlue,
+              color: primaryGreen,
               borderRadius: BorderRadius.circular(6),
             ),
             child: Row(
@@ -572,7 +579,7 @@ class _TennisReservationsPageState extends State<TennisReservationsPage> {
             height: 32,
             padding: const EdgeInsets.symmetric(horizontal: 8),
             decoration: BoxDecoration(
-              color: AppColors.incomplete,
+              color: primaryGreenLight,
               borderRadius: BorderRadius.circular(6),
             ),
             child: Row(
@@ -581,7 +588,7 @@ class _TennisReservationsPageState extends State<TennisReservationsPage> {
               children: [
                 Icon(
                   isReallyIncomplete ? Icons.person : Icons.group, 
-                  color: AppColors.incompleteText, 
+                  color: primaryGreenLightText, 
                   size: 14
                 ),
                 const SizedBox(width: 4),
@@ -589,7 +596,7 @@ class _TennisReservationsPageState extends State<TennisReservationsPage> {
                   child: Text(
                     isReallyIncomplete ? 'Incompleta' : 'Reservada',
                     style: TextStyle(
-                      color: AppColors.incompleteText,
+                      color: primaryGreenLightText,
                       fontSize: 11,
                       fontWeight: FontWeight.w600,
                     ),
@@ -606,7 +613,7 @@ class _TennisReservationsPageState extends State<TennisReservationsPage> {
             child: ElevatedButton(
               onPressed: () => _handleReserveSlot(context, timeSlot),
               style: ElevatedButton.styleFrom(
-                backgroundColor: AppColors.primaryBlue,
+                backgroundColor: primaryGreen,
                 foregroundColor: Colors.white,
                 padding: const EdgeInsets.symmetric(horizontal: 12),
                 shape: RoundedRectangleBorder(
@@ -656,7 +663,7 @@ class _TennisReservationsPageState extends State<TennisReservationsPage> {
     ScaffoldMessenger.of(context).showSnackBar(
       const SnackBar(
         content: Text('Función de agregar reserva próximamente'),
-        backgroundColor: AppColors.primaryBlue,
+        backgroundColor: primaryGreen,
       ),
     );
   }
@@ -672,7 +679,7 @@ class _TennisReservationsPageState extends State<TennisReservationsPage> {
     await Future.delayed(Duration(milliseconds: 100));
     print('🔧 DEBUG: Después de 100ms: provider.selectedCourtId = ${provider.selectedCourtId}');
     
-    final courtName = _mapCourtIdToTennisName(provider.selectedCourtId);
+    final courtName = _mapCourtIdToGolfName(provider.selectedCourtId);
     
     await showDialog(
       context: context,
@@ -729,7 +736,7 @@ class _TennisReservationsPageState extends State<TennisReservationsPage> {
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text('Cancha: ${AppConstants.getCourtName(booking.courtId)}'),  // ← CAMBIADO
+              Text('hoyo: ${AppConstants.getCourtName(booking.courtId)}'),  // ← CAMBIADO
               Text('Fecha: ${_formatDate(context.read<BookingProvider>().selectedDate)}'),
               Text('Estado: ${_getStatusText(booking.status)}'),
               const SizedBox(height: 8),

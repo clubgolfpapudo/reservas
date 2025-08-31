@@ -5,17 +5,17 @@
 import 'package:equatable/equatable.dart';
 
 class Booking extends Equatable {
-  final String? id;
-  final String courtId;  // ← AGREGADO
-  final String date;         // ← AGREGADO  
-  final String timeSlot;     // ← AGREGADO
+  final String id;
+  final String courtId;
+  final String date;
+  final String timeSlot;
   final List<BookingPlayer> players;
   final BookingStatus? status;
-  final DateTime? createdAt; // ← AGREGADO
-  final DateTime? updatedAt; // ← AGREGADO
+  final DateTime? createdAt;
+  final DateTime? updatedAt;
 
   const Booking({
-    this.id,
+    required this.id, // ✅ CORREGIDO: 'id' es ahora un parámetro requerido
     required this.courtId,
     required this.date,
     required this.timeSlot,
@@ -37,14 +37,6 @@ class Booking extends Equatable {
     updatedAt,
   ];
 
-  // ============================================================================
-  // MÉTODOS DE CONVENIENCIA
-  // ============================================================================
-  
-  bool get isComplete => players.length == 4;
-  bool get isIncomplete => players.isNotEmpty && players.length < 4;
-  bool get isEmpty => players.isEmpty;
-  
   Booking copyWith({
     String? id,
     String? courtId,
@@ -66,6 +58,10 @@ class Booking extends Equatable {
       updatedAt: updatedAt ?? this.updatedAt,
     );
   }
+
+  bool get isComplete => players.length == 4;
+  bool get isIncomplete => players.isNotEmpty && players.length < 4;
+  bool get isEmpty => players.isEmpty;
 }
 
 // ============================================================================
@@ -73,12 +69,14 @@ class Booking extends Equatable {
 // ============================================================================
 
 class BookingPlayer extends Equatable {
+  final String id;
   final String name;
-  final String? phone;    // ← AGREGADO
+  final String? phone;
   final String? email;
   final bool isConfirmed;
 
   const BookingPlayer({
+    required this.id,
     required this.name,
     this.phone,
     this.email,
@@ -86,19 +84,31 @@ class BookingPlayer extends Equatable {
   });
 
   @override
-  List<Object?> get props => [name, phone, email, isConfirmed];
-  
+  List<Object?> get props => [id, name, phone, email, isConfirmed];
+
   BookingPlayer copyWith({
+    String? id,
     String? name,
     String? phone,
     String? email,
     bool? isConfirmed,
   }) {
     return BookingPlayer(
+      id: id ?? this.id,
       name: name ?? this.name,
       phone: phone ?? this.phone,
       email: email ?? this.email,
       isConfirmed: isConfirmed ?? this.isConfirmed,
+    );
+  }
+
+  factory BookingPlayer.fromMap(Map<String, dynamic> map) {
+    return BookingPlayer(
+      id: map['id'] as String? ?? '',
+      name: map['name'] as String? ?? '',
+      phone: map['phone'] as String?,
+      email: map['email'] as String?,
+      isConfirmed: map['isConfirmed'] as bool? ?? true,
     );
   }
 }

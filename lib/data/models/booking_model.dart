@@ -2,7 +2,9 @@
 // lib/data/models/booking_model.dart - CORREGIDO
 // ============================================================================
 
+import 'package:cgp_reservas/domain/entities/booking.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:equatable/equatable.dart';
 import '../../domain/entities/booking.dart';
 
 class BookingModel {
@@ -88,25 +90,26 @@ class BookingModel {
   }
 
   Booking toEntity() {
-    // Calcular status basado en número de jugadores, no en el campo de Firebase
     BookingStatus? bookingStatus;
     final playersList = players.map((player) => player.toPlayer()).toList();
-    
+
     if (playersList.isEmpty) {
-      bookingStatus = null;  // Sin status si no hay jugadores
+      bookingStatus = null;
     } else if (playersList.length == 4) {
       bookingStatus = BookingStatus.complete;
     } else {
       bookingStatus = BookingStatus.incomplete;
     }
 
+    // ✅ CÓDIGO CORREGIDO
+    // Asegurarse de que el 'id' no sea nulo
     return Booking(
-      id: id,
+      id: id ?? '', // Si el id es nulo, usa una cadena vacía para evitar errores
       courtId: courtId,
       date: date,
       timeSlot: timeSlot,
       players: playersList,
-      status: bookingStatus,  // Status calculado dinámicamente
+      status: bookingStatus,
       createdAt: createdAt,
       updatedAt: updatedAt,
     );
@@ -117,30 +120,37 @@ class BookingModel {
 // BOOKING PLAYER MODEL - SIN CAMBIOS
 // ============================================================================
 
-class BookingPlayerModel {
+class BookingPlayerModel extends Equatable {
+  final String id;
   final String name;
   final String? phone;
   final String? email;
   final bool isConfirmed;
 
-  BookingPlayerModel({
+  const BookingPlayerModel({
+    required this.id,
     required this.name,
     this.phone,
     this.email,
     this.isConfirmed = true,
   });
 
+  @override
+  List<Object?> get props => [id, name, phone, email, isConfirmed];
+
   factory BookingPlayerModel.fromMap(Map<String, dynamic> map) {
     return BookingPlayerModel(
-      name: map['name'] ?? '',
-      phone: map['phone'],
-      email: map['email'],
-      isConfirmed: map['isConfirmed'] ?? map['status'] == 'confirmed' ?? true,
+      id: map['id'] as String? ?? '',
+      name: map['name'] as String? ?? '',
+      phone: map['phone'] as String?,
+      email: map['email'] as String?,
+      isConfirmed: map['isConfirmed'] as bool? ?? map['status'] == 'confirmed' ?? true,
     );
   }
 
   Map<String, dynamic> toMap() {
     return {
+      'id': id,
       'name': name,
       'phone': phone,
       'email': email,
@@ -150,6 +160,7 @@ class BookingPlayerModel {
 
   factory BookingPlayerModel.fromPlayer(BookingPlayer player) {
     return BookingPlayerModel(
+      id: player.id,
       name: player.name,
       phone: player.phone,
       email: player.email,
@@ -159,6 +170,7 @@ class BookingPlayerModel {
 
   BookingPlayer toPlayer() {
     return BookingPlayer(
+      id: id,
       name: name,
       phone: phone,
       email: email,

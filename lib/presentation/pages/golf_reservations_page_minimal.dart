@@ -1,4 +1,5 @@
-// lib/presentation/pages/tennis_reservations_page.dart - VERSIÓN CORREGIDA
+// lib/presentation/pages/Golf_reservations_page.dart - VERSIÓN CORREGIDA
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../providers/booking_provider.dart';
@@ -8,21 +9,21 @@ import '../widgets/booking/reservation_form_modal.dart';
 import '../widgets/booking/reservation_webview.dart';
 import '../widgets/booking/time_slot_block.dart';
 import '../widgets/common/date_navigation_header.dart';
-import '../../core/constants/tennis_constants.dart';
+import '../../core/constants/Golf_constants.dart';
 import '../../core/services/user_service.dart';
-import '../../core/theme/tennis_theme.dart';
-import '../../core/constants/tennis_constants.dart';
+import '../../core/theme/Golf_theme.dart';
+import '../../core/constants/Golf_constants.dart';
 import '../../domain/entities/booking.dart';
 import '../../../core/constants/app_constants.dart';
 
-class TennisReservationsPage extends StatefulWidget {
-  const TennisReservationsPage({Key? key}) : super(key: key);
+class GolfReservationsPageMinimal extends StatefulWidget {
+  const GolfReservationsPageMinimal({Key? key}) : super(key: key);
 
   @override
-  State<TennisReservationsPage> createState() => _TennisReservationsPageState();
+  State<GolfReservationsPageMinimal> createState() => _GolfReservationsPageMinimalState();
 }
 
-class _TennisReservationsPageState extends State<TennisReservationsPage> {
+class _GolfReservationsPageMinimalState extends State<GolfReservationsPageMinimal> {
   late PageController _pageController;
 
   @override
@@ -33,13 +34,18 @@ class _TennisReservationsPageState extends State<TennisReservationsPage> {
     );
     
     // 🔧 DEBUG: Ver estado inicial del provider y forzar Tenis
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      final provider = context.read<BookingProvider>();
-      print('🎾 TENNIS INIT: provider.selectedCourtId = ${provider.selectedCourtId}');
+    WidgetsBinding.instance.addPostFrameCallback((_) async {
+      // Verificar autenticación primero
+      final firebaseUser = FirebaseAuth.instance.currentUser;
+      if (firebaseUser == null) {
+        Navigator.of(context).pushNamedAndRemoveUntil('/', (route) => false);
+        return;
+      }
       
-      // Forzar selección inicial de Tenis
-      provider.selectCourt('tennis_court_1');
-      print('🎾 TENNIS INIT: Forzado a tennis_court_1');
+      final provider = context.read<BookingProvider>();
+      print('⛳ GOLF INIT: provider.selectedCourtId = ${provider.selectedCourtId}');
+      provider.selectCourt('golf_tee_1');
+      print('⛳ GOLF INIT: Forzado a golf_tee_1');
     });
   }
 
@@ -49,16 +55,16 @@ class _TennisReservationsPageState extends State<TennisReservationsPage> {
     super.dispose();
   }
 
-  String _mapCourtIdToTennisName(String? courtId) {
+  String _mapCourtIdToGolfName(String? courtId) {
     print('🔍 DEBUG MAPPING: courtId recibido = $courtId');
     switch (courtId) {
-      case 'tennis_court_1': return 'Cancha 1';    // 🔧 NUEVO ID
-      case 'tennis_court_2': return 'Cancha 2';    // 🔧 NUEVO ID
-      case 'tennis_court_3': return 'Cancha 3';    // 🔧 NUEVO ID
-      case 'tennis_court_4': return 'Cancha 4';    // 🔧 NUEVO ID
+      case 'Golf_court_1': return 'Hoyo 1';    // 🔧 NUEVO ID
+      case 'Golf_court_2': return 'Hoyo 10';    // 🔧 NUEVO ID
+      case 'Golf_court_3': return 'Hoyo 1';    // 🔧 NUEVO ID
+      case 'Golf_court_4': return 'Hoyo 10';    // 🔧 NUEVO ID
       default: 
         print('⚠️ DEFAULT CASE: courtId no reconocido = $courtId');
-        return 'Cancha 1';
+        return 'Hoyo 1';
     }
   }
 
@@ -72,7 +78,7 @@ class _TennisReservationsPageState extends State<TennisReservationsPage> {
             children: [
               // Header con navegación de fechas
               DateNavigationHeader(
-                title: 'Tenis',
+                title: 'Golf',
                 selectedDate: bookingProvider.selectedDate,
                 currentIndex: bookingProvider.currentDateIndex,
                 totalDays: bookingProvider.totalAvailableDays,
@@ -110,30 +116,30 @@ class _TennisReservationsPageState extends State<TennisReservationsPage> {
   Widget _buildDateContent(BuildContext context, BookingProvider provider) {
     return Column(
       children: [
-        // Tabs de canchas mejorados
+        // Tabs de hoyos mejorados
         EnhancedCourtTabs(
-          courtNames: TennisConstants.COURT_NAMES,
-          selectedCourt: _mapCourtIdToTennisName(provider.selectedCourtId),
+          courtNames: GolfConstants.COURT_NAMES,
+          selectedCourt: _mapCourtIdToGolfName(provider.selectedCourtId),
           onCourtSelected: (courtName) {
-            print('🎾 Seleccionando cancha: $courtName');
+            print('🎾 Seleccionando hoyo: $courtName');
             
             // Mapear nombre a ID de TENIS
             String courtId;
             switch (courtName) {
-              case 'Cancha 1':
-                courtId = 'tennis_court_1';
+              case 'Hoyo 1':
+                courtId = 'Golf_court_1';
                 break;
-              case 'Cancha 2':
-                courtId = 'tennis_court_2';
+              case 'Hoyo 10':
+                courtId = 'Golf_court_2';
                 break;
-              case 'Cancha 3':
-                courtId = 'tennis_court_3';
+              case 'Hoyo 1':
+                courtId = 'Golf_court_3';
                 break;
-              case 'Cancha 4':
-                courtId = 'tennis_court_4';
+              case 'Hoyo 10':
+                courtId = 'Golf_court_4';
                 break;
               default:
-                courtId = 'tennis_court_1';
+                courtId = 'Golf_court_1';
             }
             
             // 🔧 AGREGAR ESTAS LÍNEAS DE DEBUG
@@ -672,7 +678,7 @@ class _TennisReservationsPageState extends State<TennisReservationsPage> {
     await Future.delayed(Duration(milliseconds: 100));
     print('🔧 DEBUG: Después de 100ms: provider.selectedCourtId = ${provider.selectedCourtId}');
     
-    final courtName = _mapCourtIdToTennisName(provider.selectedCourtId);
+    final courtName = _mapCourtIdToGolfName(provider.selectedCourtId);
     
     await showDialog(
       context: context,
@@ -729,7 +735,7 @@ class _TennisReservationsPageState extends State<TennisReservationsPage> {
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text('Cancha: ${AppConstants.getCourtName(booking.courtId)}'),  // ← CAMBIADO
+              Text('hoyo: ${AppConstants.getCourtName(booking.courtId)}'),  // ← CAMBIADO
               Text('Fecha: ${_formatDate(context.read<BookingProvider>().selectedDate)}'),
               Text('Estado: ${_getStatusText(booking.status)}'),
               const SizedBox(height: 8),

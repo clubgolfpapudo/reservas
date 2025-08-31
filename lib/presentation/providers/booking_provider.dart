@@ -8,7 +8,9 @@
 /// ✅ Validación flexible por deporte
 
 import 'dart:async';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
 
 // Entities
 import '../../domain/entities/court.dart';
@@ -30,12 +32,15 @@ class BookingProvider extends ChangeNotifier {
   // ESTADO PRIVADO
   // ============================================================================
   
+  List<BookingPlayer> _users = [];
   List<Court> _courts = [];
   List<Booking> _bookings = [];
   String _selectedCourtId = 'padel_court_1';
   DateTime _selectedDate = DateTime.now();
   bool _isLoading = false;
   String? _error;
+  final FirebaseFirestore _firestore = FirebaseFirestore.instance;
+  List<BookingPlayer>? users;
   
   List<DateTime> _availableDates = [];
   int _currentDateIndex = 0;
@@ -92,16 +97,17 @@ class BookingProvider extends ChangeNotifier {
       print('   📋 ALL: ${booking.courtId} | ${booking.date} | ${booking.timeSlot} | ${booking.players.length} jugadores');
     }
     
-    final filteredBookings = _bookings.where((booking) => 
-      booking.courtId == _selectedCourtId && 
-      booking.date == selectedDateStr
-    ).toList();
-    
-    print('   Bookings filtradas: ${filteredBookings.length}');
-    
-    for (var booking in filteredBookings) {
-      print('   ✅ FILTERED: ${booking.timeSlot} - ${booking.players.length} jugadores - ${booking.status}');
-    }
+    final filteredBookings = _bookings.where((booking) {
+      if (_selectedCourtId?.startsWith('golf_') == true) {
+        // Para golf: incluir ambos hoyos
+        return (booking.courtId == 'golf_tee_1' || booking.courtId == 'golf_tee_10') &&
+              booking.date == selectedDateStr;
+      } else {
+        // Para tennis/paddle: filtrar solo por cancha seleccionada
+        return booking.courtId == _selectedCourtId &&
+              booking.date == selectedDateStr;
+      }
+    }).toList();
     
     return filteredBookings;
   }
@@ -404,6 +410,19 @@ class BookingProvider extends ChangeNotifier {
     }
   }
 
+  Future<void> addPlayerToBooking(String bookingId, String playerId, String playerName) async {
+    try {
+      await _firestore
+        .collection('bookings')
+        .doc(bookingId)
+        .update({
+          'players': FieldValue.arrayUnion([{'id': playerId, 'name': playerName}]),
+        });
+    } catch (e) {
+      print('Error al agregar jugador: $e');
+    }
+  }
+
   // Propiedades privadas para usuario actual
   String? _currentUserEmail;
   String? _currentUserName;
@@ -416,23 +435,29 @@ class BookingProvider extends ChangeNotifier {
   void _generateAvailableDates() {
     _availableDates.clear();
     
-    final startDate = ScheduleService.getDefaultDisplayDate();
+    final now = DateTime.now();
     
-    print('🔥 ScheduleService determinó fecha de inicio: $startDate');
-    final debugInfo = ScheduleService.getScheduleDebugInfo();
-    print('🔥 Info debug horarios: $debugInfo');
+    // Para golf: 48 horas exactas, para otros deportes: 4 días
+    final bool isGolf = _selectedCourtId?.startsWith('golf_') ?? false;
     
-    for (int i = 0; i < 4; i++) {
-      final date = DateTime(startDate.year, startDate.month, startDate.day + i);
-      _availableDates.add(date);
+    if (isGolf) {
+      // Golf: 48 horas exactas desde ahora
+      final DateTime endTime = now.add(Duration(hours: 48));
+      DateTime current = DateTime(now.year, now.month, now.day);
+      
+      while (current.isBefore(endTime.add(Duration(days: 1)))) {
+        _availableDates.add(current);
+        current = current.add(Duration(days: 1));
+      }
+    } else {
+      // Tennis/Paddle: lógica original (4 días)
+      for (int i = 0; i < 4; i++) {
+        _availableDates.add(now.add(Duration(days: i)));
+      }
     }
     
-    // Establecer fecha inicial como la determinada por ScheduleService
-    _selectedDate = _availableDates[0];
     _currentDateIndex = 0;
-    
-    print('✅ Fechas disponibles generadas: ${_availableDates.length}');
-    print('✅ Fecha seleccionada inicial: $_selectedDate');
+    _selectedDate = _availableDates.first;
   }
   
   String _formatDate(DateTime date) {
@@ -548,35 +573,32 @@ class BookingProvider extends ChangeNotifier {
   
   Future<void> _loadBookings() async {
     try {
-      print('📋 Cargando reservas desde Firestore...');
-      
-      // Cancelar suscripción anterior si existe
+      print('Cargando reservas desde Firestore...');
       _bookingsSubscription?.cancel();
       
       _bookingsSubscription = FirestoreService.getBookingsByDate(_selectedDate).listen(
         (bookings) {
-          print('✅ Reservas cargadas desde Firebase: ${bookings.length}');
-          
-          _bookings = bookings;
-          
-          // Debug: mostrar reservas cargadas CON DETALLES COMPLETOS
-          for (var booking in _bookings) {
-            print('   📋 LOADED: courtId="${booking.courtId}" | date="${booking.date}" | timeSlot="${booking.timeSlot}" | players=${booking.players.length} | status="${booking.status}"');
-            for (var player in booking.players.take(2)) {
-              print('      - ${player.name} (${player.email})');
-            }
+          if (_selectedCourtId?.startsWith('golf_') == true) {
+            // Para golf: usar TODAS las reservas sin filtrar por courtId
+            _bookings = bookings;
+          } else {
+            // Para tennis/paddle: usar todas las reservas
+            _bookings = bookings;
           }
           
+          print('Reservas cargadas: ${_bookings.length}');
           notifyListeners();
         },
         onError: (error) {
-          print('❌ Error en stream de reservas: $error');
-          _setError('Error cargando reservas: $error');
-        },
+          print('Error al cargar reservas: $error');
+          _bookings = [];
+          notifyListeners();
+        }
       );
     } catch (e) {
-      print('❌ Error configurando stream de reservas: $e');
-      _setError('Error cargando reservas: $e');
+      print('Error en _loadBookings: $e');
+      _bookings = [];
+      notifyListeners();
     }
   }
   
@@ -585,9 +607,15 @@ class BookingProvider extends ChangeNotifier {
   // ============================================================================
   
   void selectCourt(String courtId) {
+    print('🔧 LLAMANDO: selectCourt recibió = $courtId');
+    print('🔧 ESTADO ANTES: _selectedCourtId = $_selectedCourtId');
+    
     if (_selectedCourtId != courtId) {
       _selectedCourtId = courtId;
+      print('🔧 ESTADO DESPUÉS: _selectedCourtId = $_selectedCourtId');
       notifyListeners();
+    } else {
+      print('🔧 NO CAMBIÓ: courtId ya era el mismo');
     }
   }
   
@@ -739,19 +767,21 @@ class BookingProvider extends ChangeNotifier {
       print('   Estado asignado: $bookingStatus');
       print('   Fue proporcionado externamente: ${initialStatus != null}');
       
-      // 3. Crear reserva en Firebase
+      // Crear reserva en Firebase
       final booking = Booking(
+        id: DateTime.now().millisecondsSinceEpoch.toString(), // Genera un ID temporal
         courtId: courtId,
         date: date,
         timeSlot: timeSlot,
         players: players,
-        status: bookingStatus, // ✅ USAR ESTADO DINÁMICO
+        status: bookingStatus, // USAR EL ESTADO DINÁMICO
         createdAt: DateTime.now(),
+        updatedAt: null,
       );
-      
+
       print('🔍 Guardando en Firebase...');
       final bookingId = await FirestoreService.createBooking(booking);
-      
+
       if (bookingId.isEmpty) {
         throw Exception('Error al crear reserva en Firebase');
       }
@@ -764,7 +794,7 @@ class BookingProvider extends ChangeNotifier {
       _isSendingEmails = true;
       notifyListeners();
       
-      final emailsSent = await EmailService.sendBookingConfirmation(savedBooking);
+      final emailsSent = await EmailService.sendBookingConfirmation(booking);
       
       _isSendingEmails = false;
       _setLoading(false);
@@ -847,6 +877,55 @@ class BookingProvider extends ChangeNotifier {
     } catch (e) {
       print('❌ Error obteniendo reserva: $e');
       return null;
+    }
+  }
+
+  /// Carga la lista de usuarios desde Firebase y la asigna a _users.
+  /// Llama a notifyListeners() para actualizar la UI cuando los datos están listos.
+  Future<void> fetchUsers() async {
+    try {
+      _setLoading(true);
+      final firebaseUsers = await FirebaseUserService.getAllUsers();
+      
+      // ✅ AÑADE ESTA LÍNEA AQUÍ PARA VER QUÉ DEVUELVE FIREBASE
+      print('📦 Datos de usuarios de Firebase: $firebaseUsers');
+
+      _users = firebaseUsers.map((userMap) {
+        return BookingPlayer(
+          id: (userMap['uid'] as String?) ?? 'null-uid',
+          name: (userMap['name'] as String?) ?? 'No Name',
+          email: userMap['email'] as String?,
+          phone: userMap['phone'] as String?,
+        );
+      }).toList();
+      
+      notifyListeners();
+      _setLoading(false);
+    } catch (e) {
+      _setError('Error al cargar la lista de usuarios: $e');
+    }
+  }
+
+  /// Carga las reservas para la fecha seleccionada.
+  /// Utiliza el servicio de Firestore para obtener las reservas.
+  Future<void> fetchBookingsForSelectedDate() async {
+    try {
+      _setLoading(true);
+      _bookings = await FirestoreService.getBookingsByDate(_selectedDate).first;
+      _setLoading(false);
+    } catch (e) {
+      _setError('Error al cargar las reservas: $e');
+    }
+  }
+
+  /// Carga las canchas disponibles desde el servicio de Firestore.
+  Future<void> fetchCourts() async {
+    try {
+      _setLoading(true);
+      _courts = await FirestoreService.getCourts().first;
+      _setLoading(false);
+    } catch (e) {
+      _setError('Error al cargar las canchas: $e');
     }
   }
 
