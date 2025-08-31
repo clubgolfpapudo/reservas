@@ -1,5 +1,6 @@
 // lib/core/constants/golf_constants.dart
 // Golf-specific constants for Club de Golf Papudo
+
 class GolfConstants {
   // Sport identification
   static const String SPORT_NAME = 'Golf';
@@ -27,6 +28,12 @@ class GolfConstants {
   static const String END_TIME_WINTER = "16:00";
   static const String END_TIME_SUMMER = "17:00";
   static const int SLOT_DURATION_MINUTES = 12;
+
+  // Get the last available time slot for the day
+  static String getLastTimeSlot({bool isSummer = false}) {
+    final slots = getTimeSlots(isSummer: isSummer);
+    return slots.last;
+  }
 
   // Player configuration
   static const int maxPlayersPerBooking = 4;

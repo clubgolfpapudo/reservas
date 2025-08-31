@@ -3,14 +3,16 @@ import 'package:cgp_reservas/core/services/firebase_user_service.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import '../providers/auth_provider.dart' as AppAuthProvider;
 import '../providers/booking_provider.dart';
 import '../widgets/booking/animated_compact_stats.dart';
 import '../widgets/booking/reservation_form_modal.dart';
 import '../widgets/booking/reservation_webview.dart';
 import '../widgets/common/date_navigation_header.dart';
-// import '../../core/constants/golf_constants.dart';
+import '../../core/constants/golf_constants.dart';
 import '../../core/services/user_service.dart';
-// import '../../core/theme/golf_theme.dart';
+import '../../core/theme/golf_theme.dart';
+import '../../data/services/email_service.dart';
 import '../../domain/entities/booking.dart';
 import '../../../core/constants/app_constants.dart';
 
@@ -33,9 +35,14 @@ class _GolfReservationsPageState extends State<GolfReservationsPage> {
     
     WidgetsBinding.instance.addPostFrameCallback((_) {
       final provider = context.read<BookingProvider>();
-      provider.fetchUsers(); // Para cargar usuarios si es necesario
+      
+      final smartDate = _getSmartInitialDate();
+      if (smartDate.day != DateTime.now().day) {
+        provider.selectDate(smartDate);
+      }
+      
+      provider.fetchUsers();
       provider.selectCourt('golf_tee_1');
-      print('Golf INIT: Inicializado correctamente');
     });
   }
 
@@ -146,18 +153,7 @@ class _GolfReservationsPageState extends State<GolfReservationsPage> {
   }
 
   Widget _buildGolfTimeSlotsGrid(BuildContext context, BookingProvider provider) {
-    final availableTimeSlots = [
-      '07:00', '07:12', '07:24', '07:36', '07:48',
-      '08:00', '08:12', '08:24', '08:36', '08:48',
-      '09:00', '09:12', '09:24', '09:36', '09:48',
-      '10:00', '10:12', '10:24', '10:36', '10:48',
-      '11:00', '11:12', '11:24', '11:36', '11:48',
-      '12:00', '12:12', '12:24', '12:36', '12:48',
-      '13:00', '13:12', '13:24', '13:36', '13:48',
-      '14:00', '14:12', '14:24', '14:36', '14:48',
-      '15:00', '15:12', '15:24', '15:36', '15:48',
-      '16:00', '16:12', '16:24', '16:36', '16:48',
-    ];
+    final availableTimeSlots = GolfConstants.DEFAULT_TIME_SLOTS;
 
     if (availableTimeSlots.isEmpty) {
       return _buildNoSlotsAvailable(context, provider);
@@ -382,27 +378,30 @@ class _GolfReservationsPageState extends State<GolfReservationsPage> {
                   
                   // Estado/Acción
                   if (playerCount == 4)
-                    Column(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Text(
-                          '$playerCount/4',
-                          style: TextStyle(
-                            fontSize: 10,
-                            fontWeight: FontWeight.bold,
-                            color: _getGolfTextColor(playerCount, false),
+                    GestureDetector(
+                      onTap: () => _showCompleteSlotInfo(context, booking!),
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Text(
+                            '$playerCount/4',
+                            style: TextStyle(
+                              fontSize: 10,
+                              fontWeight: FontWeight.bold,
+                              color: _getGolfTextColor(playerCount, false),
+                            ),
+                            textAlign: TextAlign.center,
                           ),
-                          textAlign: TextAlign.center,
-                        ),
-                        Text(
-                          'Reservada',
-                          style: TextStyle(
-                            fontSize: 9,
-                            color: _getGolfTextColor(playerCount, false),
+                          Text(
+                            'Reservada',
+                            style: TextStyle(
+                              fontSize: 9,
+                              color: _getGolfTextColor(playerCount, false),
+                            ),
+                            textAlign: TextAlign.center,
                           ),
-                          textAlign: TextAlign.center,
-                        ),
-                      ],
+                        ],
+                      ),
                     )
                   else
                     Column(
@@ -431,23 +430,21 @@ class _GolfReservationsPageState extends State<GolfReservationsPage> {
                         // Reemplaza el GestureDetector que está en el bloque 'else'
                         GestureDetector(
                           onTap: () {
-                            print('DEBUG - onTap ejecutado para slot');
-                            print('DEBUG - playerCount: $playerCount');
-                            print('DEBUG - booking: ${booking?.id}');
-                              
                             if (playerCount == 0) {
-                              print('DEBUG - Ejecutando _handleReserveSlot');
+                              // Slot vacío - crear nueva reserva
                               _handleReserveSlot(context, hoyoId, timeSlot);
-                            } else {
-                              print('DEBUG - Ejecutando _handleSlotTap');
+                            } else if (playerCount < 4) {
+                              // Slot incompleto - usar el modal mejorado para unirse
                               _handleSlotTap(context, booking!);
+                            } else {
+                              // Slot completo - mostrar información detallada
+                              _showCompleteSlotInfo(context, booking!);
                             }
                           },
                           child: Container(
                             padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
                             decoration: BoxDecoration(
-                              // color: GolfColors.primaryGreen,
-                              color: const Color(0xFF4CAF50),
+                              color: GolfColors.primaryGreen,
                               borderRadius: BorderRadius.circular(4),
                             ),
                             child: const Text(
@@ -483,11 +480,9 @@ class _GolfReservationsPageState extends State<GolfReservationsPage> {
       case 1:
       case 2:
       case 3:
-        // return GolfColors.primaryGreenLight; // Verde claro para incompletas
-        return const Color(0xFFE8F5E8); // Verde claro para incompletas
+        return GolfColors.primaryGreenLight; // Verde claro para incompletas
       case 4:
-        // return GolfColors.primaryGreen; // Verde oscuro para reservadas
-        return const Color(0xFF4CAF50); // Verde oscuro para reservadas
+        return GolfColors.primaryGreen; // Verde oscuro para reservadas
       default:
         return Colors.white;
     }
@@ -504,11 +499,9 @@ class _GolfReservationsPageState extends State<GolfReservationsPage> {
       case 1:
       case 2:
       case 3:
-        // return GolfColors.primaryGreen.withOpacity(0.5);
-        return const Color(0xFF2E7D32);
+        return GolfColors.primaryGreen.withOpacity(0.5);
       case 4:
-        // return GolfColors.primaryGreenDark;
-        return const Color(0xFF2E7D32);
+        return GolfColors.primaryGreenDark;
       default:
         return Colors.grey[300]!;
     }
@@ -525,8 +518,7 @@ class _GolfReservationsPageState extends State<GolfReservationsPage> {
       case 1:
       case 2:
       case 3:
-        // return GolfColors.primaryGreenDark;
-        return const Color(0xFF2E7D32);
+        return GolfColors.primaryGreenDark;
       case 4:
         return Colors.white;
       default:
@@ -596,8 +588,7 @@ class _GolfReservationsPageState extends State<GolfReservationsPage> {
                     width: 40,
                     height: 40,
                     decoration: BoxDecoration(
-                      // color: isSelected ? GolfColors.primaryGreen : Colors.grey[100],
-                      color: isSelected ? const Color(0xFF4CAF50) : Colors.grey[100],
+                      color: isSelected ? GolfColors.primaryGreen : Colors.grey[100],
                       borderRadius: BorderRadius.circular(20),
                     ),
                     child: Center(
@@ -613,8 +604,7 @@ class _GolfReservationsPageState extends State<GolfReservationsPage> {
                   title: Text(_formatDate(date)),
                   subtitle: Text(_getDayName(date)),
                   trailing: isSelected
-                      // ? const Icon(Icons.check, color: GolfColors.primaryGreen)
-                      ? const Icon(Icons.check, color: const Color(0xFF4CAF50))
+                      ? const Icon(Icons.check, color: GolfColors.primaryGreen)
                       : null,
                   onTap: () {
                     _pageController.animateToPage(
@@ -667,8 +657,7 @@ class _GolfReservationsPageState extends State<GolfReservationsPage> {
                 child: Container(
                   padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
                   decoration: BoxDecoration(
-                    // color: GolfColors.primaryGreen,
-                    color: const Color(0xFF4CAF50),
+                    color: GolfColors.primaryGreen,
                     borderRadius: BorderRadius.circular(8),
                   ),
                   child: const Row(
@@ -723,8 +712,7 @@ class _GolfReservationsPageState extends State<GolfReservationsPage> {
     ScaffoldMessenger.of(context).showSnackBar(
       const SnackBar(
         content: Text('Función de agregar reserva próximamente'),
-        // backgroundColor: GolfColors.primaryGreen,
-        backgroundColor: const Color(0xFF4CAF50),
+        backgroundColor: GolfColors.primaryGreen,
       ),
     );
   }
@@ -790,49 +778,252 @@ class _GolfReservationsPageState extends State<GolfReservationsPage> {
     return '${date.year}-${date.month.toString().padLeft(2, '0')}-${date.day.toString().padLeft(2, '0')}';
   }
 
-  Future<void> _handleSlotTap(BuildContext context, Booking booking) async {
-    // Generar la lista de jugadores para mostrar en el modal
-    final playersList = booking.players.map((player) => player.name).join('\n');
+// Método para terminar despliegue de pantalla para 'hoy'
+DateTime _getSmartInitialDate() {
+  final now = DateTime.now();
+  final lastSlot = GolfConstants.DEFAULT_TIME_SLOTS.last;
+  final parts = lastSlot.split(':');
+  final lastHour = int.parse(parts[0]);
+  final lastMinutes = int.parse(parts[1]);
     
-    // Mostrar modal simple de confirmación primero
-    final confirmed = await showDialog<bool>(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: Text('Unirse - ${booking.timeSlot}'),
-        content: SingleChildScrollView(
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text('Jugadores: ${booking.players.length}/4'),
-              const SizedBox(height: 10),
-              Text('Jugadores ya inscritos:\n$playersList'),
-            ],
-          ),
-        ),
-        actions: [
-          TextButton(onPressed: () => Navigator.pop(context, false), child: Text('Cancelar')),
-          TextButton(onPressed: () => Navigator.pop(context, true), child: Text('Confirmar')),
+  final lastSlotToday = DateTime(now.year, now.month, now.day, lastHour, lastMinutes);
+    
+  return now.isAfter(lastSlotToday) ? now.add(Duration(days: 1)) : now;
+}
+
+// Método mejorado para slots incompletos
+Future<void> _handleSlotTap(BuildContext context, Booking booking) async {
+  // Crear lista de jugadores actuales con viñetas
+  final currentPlayers = booking.players.map((player) => '• ${player.name}').join('\n');
+  final remainingSlots = 4 - booking.players.length - 1;
+  
+  final confirmed = await showDialog<bool>(
+    context: context,
+    builder: (context) => AlertDialog(
+      title: Row(
+        children: [
+          Icon(Icons.group_add, color: Color(0xFF4CAF50)),
+          SizedBox(width: 8),
+          Text('Unirse a Reserva'),
         ],
       ),
-    );
-    
-    // Si confirma, usar el modal de reservas (igual que slots vacíos)
-    if (confirmed == true) {
-      final provider = context.read<BookingProvider>();
-      final hoyoName = booking.courtId == 'golf_tee_1' ? 'Hoyo 1' : 'Hoyo 10';
-      
-      await showDialog(
-        context: context,
-        barrierDismissible: false,
-        builder: (context) => ReservationFormModal(
-          courtId: booking.courtId,
-          courtName: hoyoName,
-          date: booking.date,
-          timeSlot: booking.timeSlot,
-          sport: 'GOLF',
+      content: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // Información del slot
+          Container(
+            padding: EdgeInsets.all(12),
+            decoration: BoxDecoration(
+              color: Color(0xFFE8F5E8),
+              borderRadius: BorderRadius.circular(8),
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  '${booking.courtId == 'golf_tee_1' ? 'Hoyo 1' : 'Hoyo 10'} - ${booking.timeSlot}',
+                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                ),
+                SizedBox(height: 4),
+                Text(
+                  'Espacios: ${booking.players.length}/4 ocupados',
+                  style: TextStyle(fontSize: 14, color: Color(0xFF2E7D32)),
+                ),
+              ],
+            ),
+          ),
+          SizedBox(height: 16),
+          
+          // Jugadores actuales
+          Text(
+            'Jugadores confirmados:',
+            style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600),
+          ),
+          SizedBox(height: 8),
+          Container(
+            width: double.infinity,
+            padding: EdgeInsets.all(12),
+            decoration: BoxDecoration(
+              border: Border.all(color: Colors.grey[300]!),
+              borderRadius: BorderRadius.circular(8),
+            ),
+            child: Text(
+              currentPlayers,
+              style: TextStyle(fontSize: 14),
+            ),
+          ),
+          SizedBox(height: 16),
+          
+          // Información de espacios disponibles
+          Container(
+            padding: EdgeInsets.all(8),
+            decoration: BoxDecoration(
+              color: Colors.blue[50],
+              borderRadius: BorderRadius.circular(6),
+            ),
+            child: Row(
+              children: [
+                Icon(Icons.info_outline, size: 16, color: Colors.blue[600]),
+                SizedBox(width: 8),
+                Expanded(
+                  child: Text(
+                    'Quedarán $remainingSlots espacio${remainingSlots > 1 ? 's' : ''} disponible${remainingSlots > 1 ? 's' : ''} después de unirte',
+                    style: TextStyle(fontSize: 12, color: Colors.blue[800]),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+      actions: [
+        TextButton(
+          onPressed: () => Navigator.pop(context, false),
+          child: Text('Cancelar', style: TextStyle(color: Colors.grey[600])),
         ),
+        ElevatedButton(
+          onPressed: () => Navigator.pop(context, true),
+          style: ElevatedButton.styleFrom(
+            backgroundColor: Color(0xFF4CAF50),
+            foregroundColor: Colors.white,
+          ),
+          child: Text('Confirmar Reserva'),
+        ),
+      ],
+    ),
+  );
+  
+  if (confirmed == true) {
+    final provider = context.read<BookingProvider>();
+    final authProvider = context.read<AppAuthProvider.AuthProvider>();
+    final userEmail = authProvider.currentUserEmail;
+    final userName = authProvider.currentUserName;
+    
+    if (userEmail != null && userName != null && authProvider.isUserValidated) {
+      // Verificar duplicados
+      final isAlreadyInBooking = booking.players.any((player) => player.id == userEmail);
+      if (isAlreadyInBooking) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Ya eres parte de esta reserva')),
+        );
+        return;
+      }
+      
+      // Agregar jugador
+      await provider.addPlayerToBooking(booking.id!, userEmail, userName);
+      
+      // AGREGAR: Envío de correo de confirmación
+      try {
+        // Obtener la reserva actualizada para el correo
+        final updatedBooking = provider.bookings.firstWhere((b) => b.id == booking.id);
+        await EmailService.sendBookingConfirmation(updatedBooking);
+      } catch (emailError) {
+        print('Error enviando correo: $emailError');
+        // No mostrar error al usuario, el correo es secundario
+      }
+      
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('$userName se unió a la reserva con éxito')),
       );
     }
   }
+}
+
+// Nuevo método para mostrar información de slots completos
+void _showCompleteSlotInfo(BuildContext context, Booking booking) {
+  final playersList = booking.players.map((player) => '• ${player.name}').join('\n');
+  
+  showDialog(
+    context: context,
+    builder: (context) => AlertDialog(
+      title: Row(
+        children: [
+          Icon(Icons.group, color: Color(0xFF2E7D32)),
+          SizedBox(width: 8),
+          Text('Reserva Completa'),
+        ],
+      ),
+      content: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // Información del slot
+          Container(
+            padding: EdgeInsets.all(12),
+            decoration: BoxDecoration(
+              color: Color(0xFF2E7D32).withOpacity(0.1),
+              borderRadius: BorderRadius.circular(8),
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  '${booking.courtId == 'golf_tee_1' ? 'Hoyo 1' : 'Hoyo 10'} - ${booking.timeSlot}',
+                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                ),
+                SizedBox(height: 4),
+                Text(
+                  'Reserva completa (4/4 jugadores)',
+                  style: TextStyle(fontSize: 14, color: Color(0xFF2E7D32)),
+                ),
+              ],
+            ),
+          ),
+          SizedBox(height: 16),
+          
+          // Lista de jugadores
+          Text(
+            'Jugadores confirmados:',
+            style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600),
+          ),
+          SizedBox(height: 8),
+          Container(
+            width: double.infinity,
+            padding: EdgeInsets.all(12),
+            decoration: BoxDecoration(
+              border: Border.all(color: Colors.grey[300]!),
+              borderRadius: BorderRadius.circular(8),
+              color: Colors.grey[50],
+            ),
+            child: Text(
+              playersList,
+              style: TextStyle(fontSize: 14),
+            ),
+          ),
+          SizedBox(height: 16),
+          
+          // Estado de la reserva
+          Container(
+            padding: EdgeInsets.all(8),
+            decoration: BoxDecoration(
+              color: Colors.green[50],
+              borderRadius: BorderRadius.circular(6),
+            ),
+            child: Row(
+              children: [
+                Icon(Icons.check_circle, size: 16, color: Colors.green[600]),
+                SizedBox(width: 8),
+                Text(
+                  'Esta reserva está confirmada y completa',
+                  style: TextStyle(fontSize: 12, color: Colors.green[800]),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+      actions: [
+        ElevatedButton(
+          onPressed: () => Navigator.pop(context),
+          style: ElevatedButton.styleFrom(
+            backgroundColor: Color(0xFF2E7D32),
+            foregroundColor: Colors.white,
+          ),
+          child: Text('Cerrar'),
+        ),
+      ],
+    ),
+  );
+}
 }
