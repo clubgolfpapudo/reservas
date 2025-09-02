@@ -132,7 +132,52 @@ class EmailService {
       return false;
     }
   }
-  
+
+  /// Envía notificaciones a los jugadores cuando un admin agrega a un jugador
+  static Future<bool> sendPlayerAddedNotification({
+    required Booking updatedBooking,
+  }) async {
+    try {
+      print('📧 ENVIANDO NOTIFICACIÓN DE JUGADOR AGREGADO POR ADMIN');
+      
+      // Preparar los datos para el endpoint de la función de la nube
+      // El 'type' será 'player_added' para que la Cloud Function lo maneje
+      final requestData = {
+        'type': 'player_added',
+        'booking': {
+          'courtId': updatedBooking.courtId,
+          'date': updatedBooking.date,
+          'timeSlot': updatedBooking.timeSlot,
+          'players': updatedBooking.players.map((player) => {
+            'name': player.name,
+            'email': player.email ?? 'sin-email@cgp.cl',
+            'isConfirmed': player.isConfirmed,
+          }).toList(),
+          'courtInfo': {
+            'name': AppConstants.getCourtName(updatedBooking.courtId),
+            'color': AppConstants.getCourtColor(AppConstants.getCourtName(updatedBooking.courtId)),
+          }
+        }
+      };
+
+      print('📧 Player Added request: ${jsonEncode(requestData)}');
+      
+      // Realizar la llamada HTTP a la función de la nube
+      final response = await http.post(
+        Uri.parse(FUNCTIONS_URL),
+        headers: HEADERS,
+        body: jsonEncode(requestData),
+      ).timeout(TIMEOUT);
+      
+      print('📧 Player Added response: ${response.statusCode} ${response.body}');
+      
+      return response.statusCode == 200;
+    } catch (e) {
+      print('❌ Error enviando notificaciones de modificación por admin: $e');
+      return false;
+    }
+  }
+
   /// Test del endpoint (para debugging)
   static Future<bool> testEndpoint() async {
     try {

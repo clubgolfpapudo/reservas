@@ -5,6 +5,7 @@ class AdminConstants {
   // 🔐 Lista de administradores
   static const List<String> adminEmails = [
     'felipe@garciab.cl',
+    'anibalreinosomendez@gmail.com'
     'administracion@clubgolfpapudo.cl',
     'gerente@clubgolfpapudo.cl',
     // Futuros administradores se agregan aquí
@@ -18,6 +19,14 @@ class AdminConstants {
   // 🔑 Sistema de permisos granular
   static const Map<String, List<String>> adminPermissions = {
     'felipe@garciab.cl': [
+      'full_access',
+      'user_management',
+      'reports',
+      'settings',
+      'reservations_management',
+      'court_management',
+    ],
+    'anibalreinosomendez@gmail.com': [
       'full_access',
       'user_management',
       'reports',
@@ -40,20 +49,20 @@ class AdminConstants {
   // 📊 Funciones administrativas disponibles
   static const List<AdminFunction> adminFunctions = [
     AdminFunction(
-      id: 'user_management',
-      title: 'Gestión de Usuarios',
-      icon: Icons.people,
-      description: 'Administrar usuarios del sistema',
-      route: '/admin/users',
-      permission: 'user_management',
-    ),
-    AdminFunction(
       id: 'reservations_management',
       title: 'Gestión de Reservas',
       icon: Icons.calendar_today,
       description: 'Ver y administrar todas las reservas',
       route: '/admin/reservations',
       permission: 'reservations_management',
+    ),
+    AdminFunction(
+      id: 'user_management',
+      title: 'Gestión de Usuarios',
+      icon: Icons.people,
+      description: 'Administrar usuarios del sistema',
+      route: '/admin/users',
+      permission: 'user_management',
     ),
     AdminFunction(
       id: 'court_management',

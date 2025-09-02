@@ -78,6 +78,37 @@ class FirestoreService {
    }
  }
 
+ /// Actualiza una reserva existente en Firestore
+ static Future<void> updateBooking(Booking booking) async {
+  try {
+    if (booking.id == null) {
+      throw Exception('El ID de la reserva es nulo. No se puede actualizar.');
+    }
+    
+    // Obtiene el mapa de datos de la reserva y elimina el ID
+    final dataToUpdate = booking.toFirestore();
+    dataToUpdate.remove('id'); 
+    
+    await _firestore.collection('bookings').doc(booking.id).update(dataToUpdate);
+    
+    print('✅ Reserva actualizada: ${booking.id}');
+  } catch (e) {
+    throw Exception('Error actualizando reserva: $e');
+  }
+ }
+
+ /// Actualiza solo la lista de jugadores de una reserva en Firestore
+ static Future<void> updateBookingPlayers(String bookingId, List<BookingPlayer> players) async {
+  try {
+    await _firestore.collection('bookings').doc(bookingId).update({
+      'players': players.map((p) => p.toFirestore()).toList(),
+    });
+    print('✅ Jugadores de la reserva $bookingId actualizados.');
+  } catch (e) {
+    throw Exception('Error al actualizar la lista de jugadores: $e');
+  }
+ }
+
  /// Eliminar una reserva por ID
  static Future<void> deleteBooking(String bookingId) async {
    try {

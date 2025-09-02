@@ -15,6 +15,7 @@ import 'package:intl/intl.dart';
 // Entities
 import '../../domain/entities/court.dart';
 import '../../domain/entities/booking.dart';
+import '../../domain/entities/user.dart';
 
 // Services
 import '../../core/services/firebase_user_service.dart';
@@ -55,6 +56,54 @@ class BookingProvider extends ChangeNotifier {
   // GETTERS PÚBLICOS
   // ============================================================================
   
+  // AGREGAR estos métodos después de las propiedades privadas
+  DateTime _getSmartInitialDate() {
+    final now = DateTime.now();
+    final currentHour = now.hour;
+    final currentMinute = now.minute;
+    
+    // Después de 4:01 PM - mostrar desde mañana
+    if (currentHour > 16 || (currentHour == 16 && currentMinute >= 1)) {
+      return now.add(Duration(days: 1));
+    }
+    
+    // Antes de 8:01 AM - mostrar desde hoy
+    if (currentHour < 8 || (currentHour == 8 && currentMinute == 0)) {
+      return now;
+    }
+    
+    // Entre 8:01 AM y 4:00 PM - mostrar desde hoy
+    return now;
+  }
+
+  int _getAvailableDaysCount() {
+    final now = DateTime.now();
+    final currentHour = now.hour;
+    final currentMinute = now.minute;
+    
+    // Entre 8:01 AM y 4:00 PM - 3 días disponibles
+    if ((currentHour == 8 && currentMinute >= 1) || 
+        (currentHour > 8 && currentHour < 16) || 
+        (currentHour == 16 && currentMinute == 0)) {
+      return 3;
+    }
+    
+    // Resto del tiempo - 2 días disponibles
+    return 2;
+  }
+
+  // Método público para inicializar fechas inteligentes de golf
+  void initializeGolfDates() {
+    final smartDate = _getSmartInitialDate();
+    final daysCount = _getAvailableDaysCount();
+    
+    _selectedDate = smartDate;
+    _availableDates = List.generate(daysCount, (index) => 
+        smartDate.add(Duration(days: index)));
+    
+    notifyListeners();
+  }
+
   List<Court> get courts => _courts;
   List<Booking> get bookings => _bookings;
   String get selectedCourtId => _selectedCourtId;
@@ -744,11 +793,11 @@ class BookingProvider extends ChangeNotifier {
     required String date,
     required String timeSlot,
     required List<BookingPlayer> players,
-    BookingStatus? initialStatus, // ✅ NUEVO PARÁMETRO OPCIONAL
+    BookingStatus? initialStatus, // NUEVO PARÁMETRO OPCIONAL
   }) async {
     try {
       _setLoading(true);
-      print('🔍 Creando reserva con emails automáticos...');
+      print('📍 Creando reserva con emails automáticos...');
       
       // 1. Validación completa
       final playerNames = players.map((p) => p.name).toList();
@@ -758,7 +807,7 @@ class BookingProvider extends ChangeNotifier {
         throw Exception(validation.reason!);
       }
       
-      // ✅ 2. NUEVO: Determinar estado inicial
+      // 2. NUEVO: Determinar estado inicial
       final bookingStatus = initialStatus ?? determineInitialBookingStatus(courtId, players.length);
       
       print('🎯 ESTADO DETERMINADO PARA RESERVA:');
@@ -779,7 +828,7 @@ class BookingProvider extends ChangeNotifier {
         updatedAt: null,
       );
 
-      print('🔍 Guardando en Firebase...');
+      print('📍 Guardando en Firebase...');
       final bookingId = await FirestoreService.createBooking(booking);
 
       if (bookingId.isEmpty) {
@@ -862,6 +911,124 @@ class BookingProvider extends ChangeNotifier {
     }
   }
 
+  /// ✅ NUEVO: Edita una reserva existente
+  /// El administrador puede agregar o remover jugadores
+  Future<void> editBooking({
+    required Booking updatedBooking,
+  }) async {
+    try {
+      _setLoading(true);
+
+      // 1. Obtener la reserva original desde la base de datos
+      final originalBooking = await FirestoreService.getBookingById(updatedBooking.id ?? '');
+      if (originalBooking == null) {
+        _setError('La reserva a editar no fue encontrada.');
+        return;
+      }
+
+      // 2. Actualizar la reserva en Firestore
+      await FirestoreService.updateBooking(updatedBooking);
+
+      // 3. Comparar las listas de jugadores para enviar notificaciones
+      final originalPlayers = originalBooking.players.map((p) => p.email).toSet();
+      final updatedPlayers = updatedBooking.players.map((p) => p.email).toSet();
+      
+      // Jugadores agregados (en la nueva lista pero no en la original)
+      final playersAdded = updatedPlayers.difference(originalPlayers);
+      
+      // Jugadores removidos (en la original pero no en la nueva)
+      final playersRemoved = originalPlayers.difference(updatedPlayers);
+
+      // Enviar notificaciones
+      if (playersAdded.isNotEmpty) {
+        await EmailService.sendPlayerAddedNotification(
+          updatedBooking: updatedBooking,
+        );
+      }
+      
+      if (playersRemoved.isNotEmpty) {
+        final removedPlayerEmail = playersRemoved.first;
+        final removedPlayer = originalBooking.players.firstWhere((p) => p.email == removedPlayerEmail);
+        
+        await EmailService.sendCancellationNotification(
+          booking: updatedBooking,
+          cancelingPlayer: removedPlayer,
+        );
+      }
+      
+      _setLoading(false);
+      
+    } catch (e) {
+      _setError('Error al editar reserva: $e');
+    }
+  }
+
+  /// ✅ CORRECCIÓN CRÍTICA: Editar solo la lista de jugadores de una reserva
+  Future<void> editBookingPlayers({
+    required String bookingId,
+    required List<BookingPlayer> updatedPlayers,
+  }) async {
+    print('🔥 DEBUG BookingProvider: editBookingPlayers iniciado');
+    print('🔥 DEBUG BookingProvider: bookingId = $bookingId');
+    print('🔥 DEBUG BookingProvider: updatedPlayers = ${updatedPlayers.map((p) => p.name).toList()}');
+    
+    try {
+      _setLoading(true);
+      
+      // Llamada atómica al servicio específico
+      await FirestoreService.updateBookingPlayers(bookingId, updatedPlayers);
+      print('🔥 DEBUG BookingProvider: FirestoreService.updateBookingPlayers completado');
+      
+      // Actualizar el estado local para reflejar los cambios inmediatamente
+      final bookingIndex = _bookings.indexWhere((b) => b.id == bookingId);
+      print('🔥 DEBUG BookingProvider: bookingIndex encontrado = $bookingIndex');
+      
+      if (bookingIndex != -1) {
+        _bookings[bookingIndex] = _bookings[bookingIndex].copyWith(players: updatedPlayers);
+        print('🔥 DEBUG BookingProvider: Estado local actualizado');
+      }
+      
+      _setLoading(false);
+      notifyListeners();
+      
+      print('🔥 DEBUG BookingProvider: editBookingPlayers completado exitosamente');
+      
+    } catch (e) {
+      print('🔥 DEBUG BookingProvider: ERROR = $e');
+      _setError('Error al editar los jugadores de la reserva: $e');
+    }
+  }
+
+  /// ✅ NUEVO: Elimina una reserva completa
+  Future<void> deleteBooking({required String bookingId}) async {
+    try {
+      _setLoading(true);
+      
+      // 1. Obtener la reserva para poder notificar a todos los jugadores
+      final bookingToDelete = await FirestoreService.getBookingById(bookingId);
+      if (bookingToDelete == null) {
+        _setError('La reserva a eliminar no fue encontrada.');
+        return;
+      }
+      
+      // 2. Eliminar la reserva de Firestore
+      await FirestoreService.deleteBooking(bookingId);
+      
+      // 3. Enviar notificación de eliminación a todos los jugadores
+      for (final player in bookingToDelete.players) {
+        await EmailService.sendCancellationNotification(
+          booking: bookingToDelete.copyWith(players: bookingToDelete.players.where((p) => p.id != player.id).toList()),
+          cancelingPlayer: player,
+        );
+      }
+      
+      _setLoading(false);
+      
+    } catch (e) {
+      _setError('Error al eliminar reserva: $e');
+    }
+  }
+
   // Helper: Obtener reserva por ID
   Future<Booking?> _getBookingById(String bookingId) async {
     try {
@@ -899,6 +1066,11 @@ class BookingProvider extends ChangeNotifier {
         );
       }).toList();
       
+      users = _users;
+
+      print('DEBUG Provider: _users asignados: ${_users.length}');
+      print('DEBUG Provider: users getter: ${users?.length ?? "null"}');
+    
       notifyListeners();
       _setLoading(false);
     } catch (e) {
@@ -906,14 +1078,23 @@ class BookingProvider extends ChangeNotifier {
     }
   }
 
-  /// Carga las reservas para la fecha seleccionada.
   /// Utiliza el servicio de Firestore para obtener las reservas.
-  Future<void> fetchBookingsForSelectedDate() async {
+  Future<void> fetchBookingsForSelectedDate(DateTime date) async {
     try {
       _setLoading(true);
-      _bookings = await FirestoreService.getBookingsByDate(_selectedDate).first;
+      
+      // Obtener reservas del stream
+      final bookingsStream = FirestoreService.getBookingsByDate(date);
+      _bookings = await bookingsStream.first;
+      
+      // Debug para ver cuántas reservas se cargaron
+      print('DEBUG: Reservas cargadas para ${date}: ${_bookings.length}');
+      
+      // IMPORTANTE: Notificar a la UI que hay nuevos datos
+      notifyListeners();
       _setLoading(false);
     } catch (e) {
+      print('DEBUG: Error cargando reservas: $e');
       _setError('Error al cargar las reservas: $e');
     }
   }

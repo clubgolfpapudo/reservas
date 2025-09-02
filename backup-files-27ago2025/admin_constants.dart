@@ -40,20 +40,20 @@ class AdminConstants {
   // 📊 Funciones administrativas disponibles
   static const List<AdminFunction> adminFunctions = [
     AdminFunction(
-      id: 'user_management',
-      title: 'Gestión de Usuarios',
-      icon: Icons.people,
-      description: 'Administrar usuarios del sistema',
-      route: '/admin/users',
-      permission: 'user_management',
-    ),
-    AdminFunction(
       id: 'reservations_management',
       title: 'Gestión de Reservas',
       icon: Icons.calendar_today,
       description: 'Ver y administrar todas las reservas',
       route: '/admin/reservations',
       permission: 'reservations_management',
+    ),
+    AdminFunction(
+      id: 'user_management',
+      title: 'Gestión de Usuarios',
+      icon: Icons.people,
+      description: 'Administrar usuarios del sistema',
+      route: '/admin/users',
+      permission: 'user_management',
     ),
     AdminFunction(
       id: 'court_management',

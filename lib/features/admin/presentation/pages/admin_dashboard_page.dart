@@ -1,4 +1,5 @@
 // lib/features/admin/presentation/pages/admin_dashboard_page.dart
+import 'package:cgp_reservas/presentation/pages/admin_reservations_page.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../providers/admin_provider.dart';
@@ -98,13 +99,13 @@ class _AdminDashboardPageState extends State<AdminDashboardPage>
                               child: Column(
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
-                                  // Métricas principales
-                                  _buildMetricsSection(adminProvider),
+                                  // Funciones administrativas
+                                  _buildAdminFunctions(adminProvider),
                                   
                                   const SizedBox(height: AdminConstants.adminSpacing * 2),
                                   
-                                  // Funciones administrativas
-                                  _buildAdminFunctions(adminProvider),
+                                  // Métricas principales
+                                  _buildMetricsSection(adminProvider),
                                   
                                   const SizedBox(height: AdminConstants.adminSpacing * 2),
                                   
@@ -891,20 +892,31 @@ class _AdminDashboardPageState extends State<AdminDashboardPage>
   // ===== MÉTODOS DE NAVEGACIÓN Y ACCIONES =====
 
   void _navigateToFunction(AdminFunction function) {
-    // Por ahora mostrar modal "próximamente"
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: Text(function.title),
-        content: Text('${function.description}\n\nPróximamente disponible.'),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text('Cerrar'),
+    switch (function.route) {
+      case '/admin/reservations': // ✅ Usamos la ruta existente
+        Navigator.of(context).push(
+          MaterialPageRoute(
+            builder: (context) => AdminReservationsPage(),
           ),
-        ],
-      ),
-    );
+        );
+        break;
+      default:
+        // Código para funciones no implementadas o con rutas no coincidentes
+        showDialog(
+          context: context,
+          builder: (context) => AlertDialog(
+            title: Text(function.title),
+            content: Text('${function.description}\n\nPróximamente disponible.'),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.pop(context),
+                child: const Text('Cerrar'),
+              ),
+            ],
+          ),
+        );
+        break;
+    }
   }
 
   void _showNotificationsModal(AdminProvider adminProvider) {

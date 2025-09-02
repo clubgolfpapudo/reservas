@@ -1161,6 +1161,18 @@ function getTennisCourtName(courtId) {
   return tennisCourts[courtStr] || courtId;
 }
 
+// MAPEO DE CANCHAS GOLF
+function getGolfHoyoName(courtId) {
+  switch (courtId) {
+    case 'golf_tee_1':
+      return 'Hoyo 1';
+    case 'golf_tee_10':
+      return 'Hoyo 10';
+    default:
+      return 'Campo de Golf';
+  }
+}
+
 // 🎯 DETECTAR DEPORTE DESDE COURT ID
 function getSportFromCourtId(courtId) {
   const courtStr = String(courtId).trim().toLowerCase();
@@ -1193,6 +1205,17 @@ function getCourtName(courtId) {
     console.error('❌ Error en getCourtName:', error);
     return 'Cancha Desconocida';
   }
+}
+
+// Función auxiliar para calcular hora de finalización de golf (duración 12 minutos)
+function getGolfEndTime(startTime) {
+  if (!startTime) return '';
+  
+  const [hours, minutes] = startTime.split(':').map(Number);
+  const startDate = new Date(2024, 0, 1, hours, minutes);
+  const endDate = new Date(startDate.getTime() + 12 * 60000); // 12 minutos después
+  
+  return `${String(endDate.getHours()).padStart(2, '0')}:${String(endDate.getMinutes()).padStart(2, '0')}`;
 }
 
 // ============================================================================
@@ -1474,6 +1497,158 @@ function generatePadelEmailTemplate(booking, organizerName, isVisitorBooking = f
                     <tr>
                       <td style="padding: 20px;">
                         <h3 style="color: #065f46; margin: 0 0 16px 0; font-size: 18px;">
+                          👥 Jugadores (${booking.players.length}/4):
+                        </h3>
+                        <div>
+                          ${playersHtml}
+                        </div>
+                      </td>
+                    </tr>
+                  </table>
+                </td>
+              </tr>
+
+              <!-- BOTÓN CANCELAR -->
+              <tr>
+                <td style="padding: 0 40px 20px 40px; text-align: center;">
+                  <a href="https://us-central1-cgpreservas.cloudfunctions.net/cancelBooking?id=${booking.id || `${booking.courtId || booking.courtId}-${booking.date}-${(booking.timeSlot || booking.time || '').replace(/:/g, '')}`}&email=${encodeURIComponent(email)}" style="background: #dc2626; color: white; padding: 16px 32px; text-decoration: none; border-radius: 8px; font-weight: bold; font-size: 16px; display: inline-block;">
+                    ❌ Cancelar mi Participación
+                  </a>
+                </td>
+              </tr>
+
+              <!-- FOOTER -->
+              <tr>
+                <td style="background: #f8fafc; padding: 30px 40px; text-align: center; color: #64748b; font-size: 14px; border-top: 1px solid #e2e8f0; border-radius: 0 0 12px 12px;">
+                  <p style="margin: 0; line-height: 1.6;">
+                    <strong>Club de Golf Papudo</strong> • Desde 1932<br>
+                    📧 paddlepapudo@gmail.com<br>
+                    📍 Miraflores s/n - Papudo, Valparaíso<br>
+                    🌐 clubgolfpapudo.cl
+                  </p>
+                </td>
+              </tr>
+
+            </table>
+          </td>
+        </tr>
+      </table>
+    </body>
+    </html>
+  `;
+}
+
+function generateGolfEmailTemplate(booking, organizerName, isVisitorBooking = false, email) {
+  const formattedDate = formatDate(booking.date);
+  const hoyoName = getGolfHoyoName(booking.courtId);
+  const endTime = getGolfEndTime(booking.time);
+
+  // Mensaje especial para reservas con usuarios VISITA
+  const visitorMessage = isVisitorBooking ? `
+    <div style="background-color: #fff8e1; border: 1px solid #ffcc02; border-radius: 8px; padding: 16px; margin: 20px 0;">
+      <div style="display: flex; align-items: center; margin-bottom: 8px;">
+        <div style="background-color: #ff9800; color: white; border-radius: 50%; width: 24px; height: 24px; display: inline-flex; align-items: center; justify-content: center; margin-right: 8px; font-size: 14px; font-weight: bold;">!</div>
+        <strong style="color: #f57f17;">Información para el organizador</strong>
+      </div>
+      <p style="margin: 0; color: #f57f17; line-height: 1.4;">
+        Esta reserva incluye jugadores invitados (VISITA). Recuerda coordinar el pago correspondiente con la Administración del Club ANTES de la hora reservada.
+      </p>
+    </div>
+  ` : '';
+
+  // Generar lista de jugadores (golf permite 1-4 jugadores)
+  const playersHtml = booking.players.map((player, index) => {
+    const isOrganizer = index === 0;
+    return `
+      <div style="padding: 8px 0; color: #2E7D32; font-size: 16px;">
+        <span style="margin-right: 8px;">${isOrganizer ? '⛳' : '•'}</span>
+        <strong>${player.name || player.displayName || 'Jugador'}</strong>
+        ${isOrganizer ? ' (Organizador)' : ''}
+      </div>
+    `;
+  }).join("");
+
+  return `
+    <!DOCTYPE html>
+    <html>
+    <head>
+      <meta charset="UTF-8">
+      <meta name="viewport" content="width=device-width, initial-scale=1.0">
+      <title>Reserva de Golf Confirmada - Club de Golf Papudo</title>
+    </head>
+    <body style="margin: 0; padding: 0; background-color: #f5f5f5; font-family: Arial, sans-serif;">
+      <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%">
+        <tr>
+          <td style="padding: 20px 0;">
+            <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="600" style="margin: 0 auto; background-color: #ffffff; border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.1);">
+
+              <!-- HEADER VERDE GOLF CON LOGO -->
+              <tr>
+                <td style="background: linear-gradient(135deg, #4CAF50 0%, #2E7D32 100%); padding: 40px 20px; text-align: center; border-radius: 12px 12px 0 0;">
+                  
+                  <!-- TABLA PARA LOGO + TEXTO (COMPATIBLE CON EMAILS) -->
+                  <table role="presentation" cellspacing="0" cellpadding="0" border="0" style="margin: 0 auto;">
+                    <tr>
+                      <td style="vertical-align: middle; padding-right: 15px;">
+                        <img src="https://raw.githubusercontent.com/paddlepapudo/cgp_reservas/main/assets/images/club_logo.png" 
+                             alt="Club de Golf Papudo" 
+                             style="width: 50px; height: 50px; border-radius: 50%; border: 2px solid white; display: block;">
+                      </td>
+                      <td style="vertical-align: middle; text-align: left;">
+                        <h1 style="color: white; font-size: 32px; font-weight: bold; margin: 0;">
+                          Club de Golf Papudo
+                        </h1>
+                        <p style="color: #e8f5e8; margin: 5px 0 0 0; font-size: 18px;">
+                          Reserva de Golf Confirmada
+                        </p>
+                      </td>
+                    </tr>
+                  </table>
+                  
+                </td>
+              </tr>
+
+              <!-- CONTENIDO -->
+              <tr>
+                <td style="padding: 40px;">
+                  <h2 style="color: #2d3748; font-size: 24px; margin: 0 0 20px 0;">
+                    ¡Hola ${organizerName.toUpperCase()}!
+                  </h2>
+                  <p style="color: #4a5568; font-size: 16px; line-height: 1.6; margin: 0 0 30px 0;">
+                    Tu reserva de golf ha sido confirmada exitosamente. Te esperamos.
+                  </p>
+
+                  ${visitorMessage}
+                </td>
+              </tr>
+
+              <!-- DETALLES RESERVA -->
+              <tr>
+                <td style="padding: 0 40px 40px 40px;">
+                  <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%" style="border-left: 4px solid #4CAF50; background-color: #f1f8e9; border-radius: 8px;">
+                    <tr>
+                      <td style="padding: 24px;">
+                        <h3 style="color: #2E7D32; margin: 0 0 16px 0; font-size: 18px;">
+                          ⛳ Detalles de la Reserva:
+                        </h3>
+                        <div style="color: #2E7D32; font-size: 16px; line-height: 1.8;">
+                          <div><strong>📅 Fecha:</strong> ${formattedDate}</div>
+                          <div><strong>⏰ Hora:</strong> ${booking.time} - ${endTime}</div>
+                          <div><strong>⛳ Hoyo:</strong> ${hoyoName}</div>
+                        </div>
+                      </td>
+                    </tr>
+                  </table>
+                </td>
+              </tr>
+
+              <!-- JUGADORES -->
+              <tr>
+                <td style="padding: 0 40px 20px 40px;">
+                  <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%" style="border-left: 4px solid #66BB6A; background-color: #f1f8e9; border-radius: 8px;">
+                    <tr>
+                      <td style="padding: 20px;">
+                        <h3 style="color: #1B5E20; margin: 0 0 16px 0; font-size: 18px;">
                           👥 Jugadores (${booking.players.length}/4):
                         </h3>
                         <div>

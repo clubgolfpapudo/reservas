@@ -59,6 +59,17 @@ class Booking extends Equatable {
     );
   }
 
+  Map<String, dynamic> toFirestore() {
+    return {
+      'id': id,
+      'date': date,
+      'timeSlot': timeSlot,
+      'courtId': courtId,
+      'players': players.map((p) => p.toFirestore()).toList(),
+      'status': status,
+    };
+  }
+
   bool get isComplete => players.length == 4;
   bool get isIncomplete => players.isNotEmpty && players.length < 4;
   bool get isEmpty => players.isEmpty;
@@ -110,6 +121,14 @@ class BookingPlayer extends Equatable {
       email: map['email'] as String?,
       isConfirmed: map['isConfirmed'] as bool? ?? true,
     );
+  }
+
+  Map<String, dynamic> toFirestore() {
+    return {
+      'id': id,
+      'name': name,
+      'email': email,
+    };
   }
 }
 

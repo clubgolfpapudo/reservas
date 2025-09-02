@@ -36,10 +36,8 @@ class _GolfReservationsPageState extends State<GolfReservationsPage> {
     WidgetsBinding.instance.addPostFrameCallback((_) {
       final provider = context.read<BookingProvider>();
       
-      final smartDate = _getSmartInitialDate();
-      if (smartDate.day != DateTime.now().day) {
-        provider.selectDate(smartDate);
-      }
+      // CAMBIAR: En lugar del método anterior
+      provider.initializeGolfDates(); // Usar la nueva lógica de ventana deslizante
       
       provider.fetchUsers();
       provider.selectCourt('golf_tee_1');
@@ -286,8 +284,8 @@ class _GolfReservationsPageState extends State<GolfReservationsPage> {
     // Filtrar horarios suspendidos para Hoyo 10
     List<String> availableSlots = timeSlots;
     if (isHoyo10) {
-      // availableSlots = timeSlots.where((slot) => !GolfConstants.isHoyo10Suspended(slot)).toList();
-      availableSlots = timeSlots; // Sin filtro por ahora
+      availableSlots = timeSlots.where((slot) => !GolfConstants.isHoyo10Suspended(slot)).toList();
+      // availableSlots = timeSlots; // Sin filtro por ahora
     }
 
     // NUEVO: Filtrar horarios pasados si es hoy

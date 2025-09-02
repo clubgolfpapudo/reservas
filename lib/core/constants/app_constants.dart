@@ -46,7 +46,7 @@ abstract class AppConstants {
   // ═══════════════════════════════════════════════════════════════════════════
   // CONFIGURACIÓN DE RESERVAS (MANTENER ORIGINAL)
   // ═══════════════════════════════════════════════════════════════════════════
-  static const int maxDaysInAdvance = 4;
+  static const int maxDaysInAdvance = 3;
   static const int maxBookingsPerUserPerDay = 3;
   static const int requiredPlayersPerBooking = 4;
   static const int bookingDurationMinutes = 90;
@@ -65,7 +65,6 @@ abstract class AppConstants {
     '15:00',
     '16:30',
     '18:00',
-    '19:30',
   ];
   
   // Horarios extendidos (verano) - incluye 21:00
@@ -303,8 +302,8 @@ abstract class AppConstants {
     'tennis_court_4': 'Cancha 4',
     
     // GOLF (preparado para futura expansión)
-    'golf_course_1': 'Hoyo 1-9',
-    'golf_course_2': 'Hoyo 10-18',
+    'golf_tee_1': 'Hoyo 1-9',
+    'golf_tee_10': 'Hoyo 10-18',
     'golf_course_3': 'Campo Práctica',
   };
 
@@ -322,8 +321,8 @@ abstract class AppConstants {
     'Cancha 4': 'tennis_court_4',
     
     // GOLF
-    'Hoyo 1-9': 'golf_course_1',
-    'Hoyo 10-18': 'golf_course_2',
+    'Hoyo 1-9': 'golf_tee_1',
+    'Hoyo 10-18': 'golf_tee_10',
     'Campo Práctica': 'golf_course_3',
   };
 
@@ -341,8 +340,8 @@ abstract class AppConstants {
     'tennis_court_4': tennisCourt4Color,
     
     // GOLF
-    'golf_course_1': golfCourse1Color,
-    'golf_course_2': golfCourse2Color,
+    'golf_tee_1': golfCourse1Color,
+    'golf_tee_10': golfCourse2Color,
     'golf_course_3': golfCourse3Color,
   };
 
@@ -361,8 +360,8 @@ abstract class AppConstants {
   ];
 
   static const List<String> golfCourses = [
-    'golf_course_1',
-    'golf_course_2',
+    'golf_tee_1',
+    'golf_tee_10',
     'golf_course_3',
   ];
 
@@ -441,7 +440,29 @@ abstract class AppConstants {
   
   /// Obtiene el nombre de la cancha por ID
   static String getCourtName(String courtId) {
-    return courtIdToName[courtId] ?? 'Desconocida';
+    switch (courtId) {
+      case 'padel_court_1':
+        return 'Cancha Pádel 1';
+      case 'padel_court_2':
+        return 'Cancha Pádel 2';
+      case 'padel_court_3':
+        return 'Cancha Pádel 3';
+      case 'tennis_court_1':
+        return 'Cancha Tenis 1';
+      case 'tennis_court_2':
+        return 'Cancha Tenis 2';
+      case 'tennis_court_3':
+        return 'Cancha Tenis 3';
+      case 'tennis_court_4':
+        return 'Cancha Tenis 4';
+      // 👇 NUEVO: Mapeo de canchas de golf
+      case 'golf_tee_1':
+        return 'Hoyo 1';
+      case 'golf_tee_10':
+        return 'Hoyo 10';
+      default:
+        return 'Cancha Desconocida';
+    }
   }
 
   /// Obtiene el ID de la cancha por nombre
@@ -487,6 +508,18 @@ abstract class AppConstants {
       default:
         return corporateNavyBlue; // Default corporativo
     }
+  }
+
+  //  Método agregado a la clase AppConstants
+  static String getCourtSport(String courtId) {
+    if (courtId.startsWith('padel')) {
+      return 'padel';
+    } else if (courtId.startsWith('tennis')) {
+      return 'tennis';
+    } else if (courtId.startsWith('golf')) {
+      return 'golf';
+    }
+    return 'unknown';
   }
 
   /// Obtiene el color de una cancha por courtId
