@@ -128,7 +128,7 @@ class _SimpleSportHubState extends State<SimpleSportHub> {
                   const SizedBox(width: 12),
                   const Expanded(
                     child: Text(
-                      'Club de Golf Papudo',
+                      'C G P',
                       style: TextStyle(
                         color: Colors.white,
                         fontSize: 20,

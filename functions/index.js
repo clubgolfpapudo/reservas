@@ -455,7 +455,7 @@ exports.sendBookingEmailHTTP = onRequest({
         const emailHtml = generateBookingEmailHtml(normalizedBooking, playerName, showVisitorMessage, playerEmail);
         
         const sport = getSportFromCourtId(normalizedBooking.courtId);
-        const sportName = sport === 'TENIS' ? 'Tenis' : 'Pádel';
+        const sportName = sport === 'TENIS' ? 'Tenis' : sport === 'GOLF' ? 'Golf' : 'Pádel';
         
         const mailOptions = {
           from: {
@@ -1179,32 +1179,13 @@ function getSportFromCourtId(courtId) {
   
   if (courtStr.startsWith('tennis_') || courtStr.includes('tennis')) {
     return 'TENIS';
+  } else if (courtStr.startsWith('golf_') || courtStr.includes('golf') || courtStr.includes('tee')) {
+    return 'GOLF';
   } else if (courtStr.startsWith('padel_') || courtStr.includes('padel') || 
              courtStr.startsWith('court') || courtStr.match(/^court[_]?\d+$/)) {
     return 'PADEL';
   }
   return 'PADEL'; // Default fallback
-}
-
-// 🎯 FUNCIÓN GETCOURTNAME ACTUALIZADA
-function getCourtName(courtId) {
-  try {
-    if (!courtId) {
-      return 'Cancha Desconocida';
-    }
-
-    const sport = getSportFromCourtId(courtId);
-    
-    if (sport === 'TENIS') {
-      return getTennisCourtName(courtId);
-    } else {
-      return getPadelCourtName(courtId);
-    }
-
-  } catch (error) {
-    console.error('❌ Error en getCourtName:', error);
-    return 'Cancha Desconocida';
-  }
 }
 
 // Función auxiliar para calcular hora de finalización de golf (duración 12 minutos)
@@ -1698,6 +1679,8 @@ function generateBookingEmailHtml(booking, organizerName, isVisitorBooking = fal
   
   if (sport === 'TENIS') {
     return generateTennisEmailTemplate(booking, organizerName, isVisitorBooking, email);
+  } else if (sport === 'GOLF') {
+    return generateGolfEmailTemplate(booking, organizerName, isVisitorBooking, email);
   } else {
     return generatePadelEmailTemplate(booking, organizerName, isVisitorBooking, email);
   }
@@ -1721,7 +1704,10 @@ async function sendCancellationNotification(remainingPlayer, reservationInfo) {
 
     const formattedDate = formatDate(date);
     const endTime = getEndTime(timeSlot);
-    const courtName = getCourtName(courtId);
+    const courtName = courtId === 'golf_tee_1' ? 'Hoyo 1' : 
+                  courtId === 'golf_tee_10' ? 'Hoyo 10' :
+                  courtId.startsWith('tennis_') ? 'Cancha de Tenis' : 
+                  'Cancha de Pádel';
 
     const emailHtml = `
       <!DOCTYPE html>
@@ -1875,7 +1861,9 @@ function generateCancellationConfirmationHtml(bookingId, playerEmail) {
       'tennis_court_1': 'Cancha 1',
       'tennis_court_2': 'Cancha 2',
       'tennis_court_3': 'Cancha 3',
-      'tennis_court_4': 'Cancha 4'
+      'tennis_court_4': 'Cancha 4',
+      'golf_tee_1': 'Hoyo 1',
+      'golf_tee_10': 'Hoyo 10'
     };
     return courtMap[courtId] || courtId;
   }

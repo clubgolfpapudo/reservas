@@ -791,7 +791,6 @@ DateTime _getSmartInitialDate() {
 
 // Método mejorado para slots incompletos
 Future<void> _handleSlotTap(BuildContext context, Booking booking) async {
-  // Crear lista de jugadores actuales con viñetas
   final currentPlayers = booking.players.map((player) => '• ${player.name}').join('\n');
   final remainingSlots = 4 - booking.players.length - 1;
   
@@ -900,7 +899,9 @@ Future<void> _handleSlotTap(BuildContext context, Booking booking) async {
     
     if (userEmail != null && userName != null && authProvider.isUserValidated) {
       // Verificar duplicados
-      final isAlreadyInBooking = booking.players.any((player) => player.id == userEmail);
+      // Verificar duplicados
+      final isAlreadyInBooking = booking.players.any((player) => player.email == userEmail);
+
       if (isAlreadyInBooking) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text('Ya eres parte de esta reserva')),

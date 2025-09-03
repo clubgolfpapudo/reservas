@@ -1,5 +1,8 @@
 // lib/core/constants/golf_constants.dart
 // Golf-specific constants for Club de Golf Papudo
+// REFACTORIZADO: Los horarios ahora se obtienen de AppConstants
+
+import '../constants/app_constants.dart';
 
 class GolfConstants {
   // Sport identification
@@ -23,18 +26,6 @@ class GolfConstants {
     'golf_tee_10': 0xFF66BB6A, // Verde claro
   };
 
-  // Scheduling - Golf specific (every 12 minutes)
-  static const String START_TIME = "08:00";
-  static const String END_TIME_WINTER = "16:00";
-  static const String END_TIME_SUMMER = "17:00";
-  static const int SLOT_DURATION_MINUTES = 12;
-
-  // Get the last available time slot for the day
-  static String getLastTimeSlot({bool isSummer = false}) {
-    final slots = getTimeSlots(isSummer: isSummer);
-    return slots.last;
-  }
-
   // Player configuration
   static const int maxPlayersPerBooking = 4;
   static const int MIN_PLAYERS_PER_BOOKING = 1;
@@ -42,50 +33,92 @@ class GolfConstants {
   // Booking horizon (48 hours vs 72 for tennis/paddle)
   static const int BOOKING_HORIZON_HOURS = 48;
 
-  // Hoyo 10 suspension times
-  static const String SUSPENSION_START = "10:12";
-  static const String SUSPENSION_END = "12:48";
+  // ═══════════════════════════════════════════════════════════════════════════
+  // ⏰ HORARIOS: DELEGADOS A AppConstants (REFACTORIZADO)
+  // ═══════════════════════════════════════════════════════════════════════════
 
-  // Generate time slots based on season
-  static List<String> getTimeSlots({bool isSummer = false}) {
-    final endTime = isSummer ? END_TIME_SUMMER : END_TIME_WINTER;
-    final List<String> slots = [];
-
-    DateTime current = DateTime.parse('2024-01-01 $START_TIME:00');
-    final end = DateTime.parse('2024-01-01 $endTime:00');
-
-    // CAMBIO: usar isAtSameMomentAs o isBefore para incluir el último horario
-    while (current.isBefore(end) || current.isAtSameMomentAs(end)) {
-      final timeString = '${current.hour.toString().padLeft(2, '0')}:${current.minute.toString().padLeft(2, '0')}';
-      slots.add(timeString);
-      current = current.add(Duration(minutes: SLOT_DURATION_MINUTES));
+  /// Obtiene horarios de golf usando AppConstants centralizado
+  static List<String> getTimeSlots({bool? isSummer}) {
+    DateTime? date;
+    if (isSummer != null) {
+      // Si se especifica la temporada, crear una fecha que corresponda
+      final now = DateTime.now();
+      date = isSummer 
+        ? DateTime(now.year, 12, 15) // Diciembre (verano)
+        : DateTime(now.year, 6, 15);  // Junio (invierno)
     }
-
-    return slots;
+    return AppConstants.getTimeSlotsForSport('golf', date);
   }
 
-  // Season detection (simplified)
+  /// Obtiene el último horario disponible del día
+  static String getLastTimeSlot({bool? isSummer}) {
+    DateTime? date;
+    if (isSummer != null) {
+      final now = DateTime.now();
+      date = isSummer 
+        ? DateTime(now.year, 12, 15)
+        : DateTime(now.year, 6, 15);
+    }
+    return AppConstants.getLastTimeSlotForSport('golf', date);
+  }
+
+  /// Obtiene el primer horario disponible del día
+  static String getFirstTimeSlot({bool? isSummer}) {
+    DateTime? date;
+    if (isSummer != null) {
+      final now = DateTime.now();
+      date = isSummer 
+        ? DateTime(now.year, 12, 15)
+        : DateTime(now.year, 6, 15);
+    }
+    return AppConstants.getFirstTimeSlotForSport('golf', date);
+  }
+
+  /// Verifica si un horario está disponible
+  static bool isTimeSlotAvailable(String timeSlot, {bool? isSummer}) {
+    DateTime? date;
+    if (isSummer != null) {
+      final now = DateTime.now();
+      date = isSummer 
+        ? DateTime(now.year, 12, 15)
+        : DateTime(now.year, 6, 15);
+    }
+    return AppConstants.isTimeSlotAvailableForSport('golf', timeSlot, date);
+  }
+
+  // Season detection (mantener para compatibilidad)
   static bool get isSummer {
     final now = DateTime.now();
     final month = now.month;
-    return month >= 10 || month <= 3; // October to March (Southern hemisphere summer)
+    return month >= 10 || month <= 3;
   }
 
-  // Check if Hoyo 10 is suspended at given time
+  // Horarios por defecto usando temporada actual
+  static List<String> get DEFAULT_TIME_SLOTS => getTimeSlots();
+
+  // ═══════════════════════════════════════════════════════════════════════════
+  // 🏌️ LÓGICA ESPECÍFICA DE GOLF (MANTENIDA)
+  // ═══════════════════════════════════════════════════════════════════════════
+
+  /// Verifica si Hoyo 10 está suspendido (delegado a AppConstants)
   static bool isHoyo10Suspended(String timeSlot) {
-    final time = DateTime.parse('2024-01-01 $timeSlot:00');
-    final suspensionStart = DateTime.parse('2024-01-01 $SUSPENSION_START:00');
-    final suspensionEnd = DateTime.parse('2024-01-01 $SUSPENSION_END:00');
-    
-    return time.isAtSameMomentAs(suspensionStart) || 
-           time.isAtSameMomentAs(suspensionEnd) ||
-           (time.isAfter(suspensionStart) && time.isBefore(suspensionEnd));
+    return AppConstants.isHoyo10Suspended(timeSlot);
   }
 
-  // Default time slots for current season
-  static List<String> get DEFAULT_TIME_SLOTS => getTimeSlots(isSummer: isSummer);
+  // Constantes específicas de golf que no aplican a otros deportes
+  static const String SUSPENSION_START = "10:12";
+  static const String SUSPENSION_END = "12:48";
 
   // Firebase collection names (golf-specific)
   static const String BOOKINGS_COLLECTION = 'golf_bookings';
   static const String COURTS_COLLECTION = 'golf_tees';
+
+  // ═══════════════════════════════════════════════════════════════════════════
+  // 🔧 MÉTODOS DE CONVENIENCIA (COMPATIBILIDAD)
+  // ═══════════════════════════════════════════════════════════════════════════
+
+  /// Método de conveniencia para obtener configuración de Golf desde AppConstants
+  static int get maxPlayers => AppConstants.golfMaxPlayersPerBooking;
+  static int get minPlayers => AppConstants.golfMinPlayersPerBooking;
+  static int get bookingHorizonHours => AppConstants.golfBookingHorizonHours;
 }

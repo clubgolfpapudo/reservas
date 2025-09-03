@@ -929,3 +929,119 @@ La lógica de guardado en el modal de edición (`_saveChanges`) llama a una func
 - **🏌️ Sistema Golf:** Funcional, pero con errores de edición críticos ⚠️
 - **⚡ Performance:** Optimizada y mantenida ✅
 - **🧹 Código Limpio:** Fragmentación eliminada ✅
+
+
+
+e Proyecto
+Fecha de Actualización: 2 de Septiembre, 2025
+
+1. Resumen Ejecutivo
+Este informe detalla el estado actual del Sistema de Reservas Multi-Deporte, los hitos alcanzados y las prioridades inmediatas.
+
+Hito Clave Alcanzado: Módulo de Golf Funcional y Errores Críticos Resueltos.
+
+La plataforma ya es operativa para 🏌️ Golf, 🔵 Pádel y 🎾 Tenis, con lógicas de reserva completamente independientes por deporte.
+
+Estado General del Sistema:
+
+URL en Producción: https://paddlepapudo.github.io/cgp_reservas/
+
+Base de Usuarios: Más de 497 socios activos y sincronizados.
+
+Calidad del Código: Se ha implementado con éxito una arquitectura limpia y una nomenclatura consistente, eliminando la fragmentación previa.
+
+Próximo Gran Objetivo: Avanzar hacia una fase de testing integral y optimizaciones de performance.
+
+2. Plan de Acción Inmediato
+A continuación se detallan las tareas priorizadas para la siguiente fase de desarrollo.
+
+[Crítico] Implementar Validación en el Backend ⚠️
+
+Descripción: Es la tarea de máxima prioridad. Se debe implementar la lógica en el servidor para impedir la creación de reservas con jugadores duplicados.
+
+Justificación: Esta validación es fundamental para garantizar la integridad y seguridad de los datos, cerrando la vulnerabilidad actual del sistema.
+
+[Alto] Realizar Pruebas de Integración para el Flujo de Golf
+
+Descripción: Ejecutar un ciclo completo de pruebas de extremo a extremo en el módulo de Golf para asegurar que todo el ciclo de vida de una reserva funcione sin errores.
+
+[Alto] Solucionar Bug de Estadísticas
+
+Descripción: Las estadísticas mostradas en la pantalla de cada deporte no están sumando correctamente los datos. Se debe depurar y corregir el cálculo.
+
+[Alto] Corregir Overflow en Pantalla de Inicio
+
+Descripción: Existe un problema de overflow (desbordamiento visual) en el botón "Ingresar" de la pantalla de inicio, que afecta a ciertas resoluciones de pantalla.
+
+[Alto] Implementar Ventana de 72 Horas para Reservas
+
+Descripción: Aplicar la regla de negocio que limita la creación de reservas de pádel y tenis a una ventana máxima de 72 horas de antelación.
+
+[Medio] Refactorizar el Widget AppBar
+
+Descripción: Modificar el widget AppBar para que el título se gestione de forma dinámica según la sección de la aplicación.
+
+[Medio] Implementar Plantilla de Correo para Golf
+
+Descripción: Desarrollar y conectar una plantilla de correo electrónico personalizada para las notificaciones relacionadas con las reservas de golf.
+
+[Medio] Mejorar Indicador en Menú Admin
+
+Descripción: La marca roja en el menú de Administración es confusa. Se debe rediseñar para que comunique claramente si existen notificaciones o alertas pendientes.
+
+3. Arquitectura y Stack Tecnológico
+Esta sección documenta la estructura técnica del proyecto, el stack utilizado y la organización de la base de datos.
+
+Tecnologías Principales:
+
+Framework: Flutter (versión 3.xx)
+
+Lenguaje: Dart
+
+Base de Datos y Backend: Firebase (Firestore, Authentication, Functions)
+
+Arquitectura de Software: Clean Architecture
+
+El proyecto sigue los principios de Clean Architecture para separar responsabilidades, mejorar la testeabilidad y facilitar el mantenimiento. La estructura se divide en tres capas principales:
+
+Capa de Datos (Data): Repositorios y fuentes de datos (API, Firebase).
+
+Capa de Dominio (Domain): Lógica de negocio pura y entidades.
+
+Capa de Presentación (Presentation): UI (Widgets) y manejo de estado (Providers).
+
+Estructura de Carpetas del Proyecto Flutter:
+
+lib/
+├── data/
+│   ├── datasources/   # Fuentes de datos (remoto/local)
+│   ├── models/        # Modelos de datos específicos de la capa
+│   └── repositories/  # Implementaciones de los repositorios
+├── domain/
+│   ├── entities/      # Entidades de negocio
+│   ├── repositories/  # Contratos de los repositorios
+│   └── usecases/      # Casos de uso
+├── presentation/
+│   ├── providers/     # Manejo de estado (ChangeNotifier, etc.)
+│   ├── screens/       # Pantallas principales de la app
+│   └── widgets/       # Widgets reutilizables
+└── main.dart          # Punto de entrada de la aplicación
+
+Estructura de Colecciones en Firestore:
+
+users/{userId}: Almacena información detallada de cada socio.
+
+bookings/{bookingId}: Contiene los detalles de cada reserva, incluyendo deporte, fecha, hora y jugadores.
+
+sports_config/{sportName}: Guarda la configuración específica de cada deporte (horarios, reglas, etc.).
+
+4. Registro de Desarrollo y Decisiones (Semana del 25 al 31 de Agosto)
+Análisis de Funciones para Bug de Reservas Duplicadas:
+
+Backend: Se concluyó que la función a modificar para evitar jugadores duplicados no era getUsers, sino la responsable de agregar jugadores a una reserva (ej. addPlayerToBooking).
+
+Frontend: Se identificó que la llamada a dicha función se origina en la clase BookingProvider, estableciendo el punto de partida para la corrección.
+
+Corrección Menor Abordada: Título Fijo en Encabezado:
+
+Se discutió el problema del string estático en el encabezado. Se confirmó que la solución es modificar la propiedad title del widget AppBar.

@@ -145,14 +145,14 @@ class DateNavigationHeader extends StatelessWidget {
                   fontWeight: FontWeight.bold,
                 ),
               ),
-              Text(
-                AppConstants.clubName,
-                style: TextStyle(
-                  color: Colors.white.withOpacity(0.9),
-                  fontSize: 12,
-                  fontWeight: FontWeight.w500,
-                ),
-              ),
+              // Text(
+              //   AppConstants.clubName,
+              //   style: TextStyle(
+              //     color: Colors.white.withOpacity(0.9),
+              //     fontSize: 12,
+              //     fontWeight: FontWeight.w500,
+              //   ),
+              // ),
             ],
           ),
         ),

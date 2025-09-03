@@ -486,11 +486,10 @@ class BookingProvider extends ChangeNotifier {
     
     final now = DateTime.now();
     
-    // Para golf: 48 horas exactas, para otros deportes: 4 días
+    // Para golf: 48 horas exactas desde ahora
     final bool isGolf = _selectedCourtId?.startsWith('golf_') ?? false;
     
     if (isGolf) {
-      // Golf: 48 horas exactas desde ahora
       final DateTime endTime = now.add(Duration(hours: 48));
       DateTime current = DateTime(now.year, now.month, now.day);
       
@@ -713,8 +712,8 @@ class BookingProvider extends ChangeNotifier {
   List<String> getAvailableTimeSlotsForDate(DateTime date) {
     final now = DateTime.now();
     final isToday = date.year == now.year && 
-                   date.month == now.month && 
-                   date.day == now.day;
+                  date.month == now.month && 
+                  date.day == now.day;
     
     final daysDifference = date.difference(DateTime(now.year, now.month, now.day)).inDays;
     final isLastDay = daysDifference == 3;
@@ -723,7 +722,10 @@ class BookingProvider extends ChangeNotifier {
     final currentMinute = now.minute;
     final currentTimeInMinutes = currentHour * 60 + currentMinute;
     
-    final allTimeSlots = AppConstants.getAllTimeSlots(date);
+    // Usar los nuevos métodos centralizados
+    final sport = _selectedCourtId?.startsWith('tennis_') == true ? 'tennis' : 
+                _selectedCourtId?.startsWith('golf_') == true ? 'golf' : 'padel';
+    final allTimeSlots = AppConstants.getTimeSlotsForSport(sport, date);
     
     final filteredSlots = allTimeSlots.where((timeSlot) {
       final parts = timeSlot.split(':');

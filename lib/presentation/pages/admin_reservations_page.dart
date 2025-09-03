@@ -29,14 +29,10 @@ class _AdminReservationsPageState extends State<AdminReservationsPage> {
   @override
   void initState() {
     super.initState();
-    print('DEBUG Admin: initState ejecutado');
-    
-    // Determinar fecha inicial inteligente
-    _selectedDate = _getSmartInitialDate();
+    _selectedDate = _getSmartInitialDate(); // Usar fecha inteligente
     print('DEBUG Admin: Fecha inicial inteligente: $_selectedDate');
     
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      print('DEBUG Admin: addPostFrameCallback ejecutado');
       _fetchReservations(_selectedDate);
     });
   }
@@ -46,23 +42,30 @@ class _AdminReservationsPageState extends State<AdminReservationsPage> {
     final currentHour = now.hour;
     final currentMinute = now.minute;
     final currentTimeInMinutes = currentHour * 60 + currentMinute;
-  
+    
     // Si es antes de las 8:00 AM, mostrar hoy
     if (currentTimeInMinutes < 8 * 60) {
-      return DateTime(now.year, now.month, now.day);
+        return DateTime(now.year, now.month, now.day);
     }
-  
-    // Si es después de las 8:00 PM, mostrar mañana
-    if (currentTimeInMinutes > 20 * 60) {
-      return DateTime(now.year, now.month, now.day + 1);
+    
+    // Obtener último horario según los deportes disponibles
+    final lastGolfSlot = AppConstants.getLastTimeSlotForSport('golf');
+    final lastPadelSlot = AppConstants.getLastTimeSlotForSport('padel');
+    final lastTennisSlot = AppConstants.getLastTimeSlotForSport('tennis');
+    
+    // Usar el último horario más tardío como referencia
+    final latestEndTime = [lastGolfSlot, lastPadelSlot, lastTennisSlot]
+        .map((time) {
+            final parts = time.split(':');
+            return int.parse(parts[0]) * 60 + int.parse(parts[1]);
+        })
+        .reduce((a, b) => a > b ? a : b);
+    
+    // Si ya pasó la mayoría de horarios del día, mostrar mañana
+    if (currentTimeInMinutes > (latestEndTime - 120)) { // 2 horas antes del último horario
+        return DateTime(now.year, now.month, now.day + 1);
     }
-  
-    // Entre 8:00 AM y 8:00 PM: verificar si hay reservas futuras hoy
-    // Para simplificar, si es después de las 4:00 PM, mostrar mañana
-    if (currentTimeInMinutes > 16 * 60) {
-      return DateTime(now.year, now.month, now.day + 1);
-    }
-  
+    
     // Caso por defecto: mostrar hoy
     return DateTime(now.year, now.month, now.day);
   }

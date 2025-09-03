@@ -96,10 +96,14 @@ class _ReservationFormModalState extends State<ReservationFormModal> {
       _errorMessage == null;
 
   /// Métodos helper para parametrización por deporte
-  String get _sportDisplayName => widget.sport == 'TENIS' ? 'tenis' : 'pádel';
+  String get _sportDisplayName => widget.sport == 'TENIS' ? 'tenis' : 
+                                widget.sport == 'GOLF' ? 'golf' : 'pádel';
+
   Color get _sportColor => widget.sport == 'TENIS' 
       ? const Color(0xFFD2691E) // Tierra batida para tenis
-      : const Color(0xFF2E7AFF); // Azul para pádel
+      : widget.sport == 'GOLF'
+          ? const Color(0xFF4CAF50) // Verde para golf  
+          : const Color(0xFF2E7AFF); // Azul para pádel
 
   @override
   void initState() {
@@ -776,7 +780,9 @@ class _ReservationFormModalState extends State<ReservationFormModal> {
                     ? _selectedPlayers.length < 4
                         ? 'La grilla ahora debe aparecer en color amarillo indicando "Reservada".'
                         : 'La grilla ahora debe aparecer en color ladrillo indicando "Reservada".'
-                    : 'La grilla ahora debe aparecer en azul indicando "Reservada".',
+                    : widget.sport == 'GOLF'
+                        ? 'La grilla ahora debe aparecer en color verde indicando "Reservada".'
+                        : 'La grilla ahora debe aparecer en azul indicando "Reservada".',
                 style: TextStyle(
                   fontSize: 14,
                   color: Colors.grey[600],

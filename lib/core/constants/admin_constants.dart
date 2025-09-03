@@ -5,7 +5,7 @@ class AdminConstants {
   // 🔐 Lista de administradores
   static const List<String> adminEmails = [
     'felipe@garciab.cl',
-    'anibalreinosomendez@gmail.com'
+    'anibalreinosomendez@gmail.com',
     'administracion@clubgolfpapudo.cl',
     'gerente@clubgolfpapudo.cl',
     // Futuros administradores se agregan aquí
