@@ -52,13 +52,13 @@ class _TennisReservationsPageState extends State<TennisReservationsPage> {
   String _mapCourtIdToTennisName(String? courtId) {
     print('🔍 DEBUG MAPPING: courtId recibido = $courtId');
     switch (courtId) {
-      case 'tennis_court_1': return 'Cancha 1';    // 🔧 NUEVO ID
-      case 'tennis_court_2': return 'Cancha 2';    // 🔧 NUEVO ID
-      case 'tennis_court_3': return 'Cancha 3';    // 🔧 NUEVO ID
-      case 'tennis_court_4': return 'Cancha 4';    // 🔧 NUEVO ID
+      case 'tennis_court_1': return 'C.1';    // 🔧 NUEVO ID
+      case 'tennis_court_2': return 'C.2';    // 🔧 NUEVO ID
+      case 'tennis_court_3': return 'C.3';    // 🔧 NUEVO ID
+      case 'tennis_court_4': return 'C.4';    // 🔧 NUEVO ID
       default: 
         print('⚠️ DEFAULT CASE: courtId no reconocido = $courtId');
-        return 'Cancha 1';
+        return 'C.1';
     }
   }
 
@@ -120,16 +120,16 @@ class _TennisReservationsPageState extends State<TennisReservationsPage> {
             // Mapear nombre a ID de TENIS
             String courtId;
             switch (courtName) {
-              case 'Cancha 1':
+              case 'C.1':
                 courtId = 'tennis_court_1';
                 break;
-              case 'Cancha 2':
+              case 'C.2':
                 courtId = 'tennis_court_2';
                 break;
-              case 'Cancha 3':
+              case 'C.3':
                 courtId = 'tennis_court_3';
                 break;
-              case 'Cancha 4':
+              case 'C.4':
                 courtId = 'tennis_court_4';
                 break;
               default:

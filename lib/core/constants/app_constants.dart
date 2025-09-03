@@ -350,15 +350,26 @@ abstract class AppConstants {
   /// Obtiene el nombre de la cancha por ID
   static String getCourtName(String courtId) {
     switch (courtId) {
-      case 'padel_court_1': return 'Cancha Pádel 1';
-      case 'padel_court_2': return 'Cancha Pádel 2';
-      case 'padel_court_3': return 'Cancha Pádel 3';
-      case 'tennis_court_1': return 'Cancha Tenis 1';
-      case 'tennis_court_2': return 'Cancha Tenis 2';
-      case 'tennis_court_3': return 'Cancha Tenis 3';
-      case 'tennis_court_4': return 'Cancha Tenis 4';
+      // PÁDEL - Nombres reales de las canchas
+      case 'PITE': return 'PITE';
+      case 'LILEN': return 'LILEN';
+      case 'PLAIYA': return 'PLAIYA';
+      
+      // PÁDEL - IDs genéricos (por compatibilidad)
+      case 'padel_court_1': return 'PITE';
+      case 'padel_court_2': return 'LILEN';
+      case 'padel_court_3': return 'PLAIYA';
+      
+      // TENIS
+      case 'tennis_court_1': return 'C.1';  // Actualizado para usar C.1
+      case 'tennis_court_2': return 'C.2';  // Actualizado para usar C.2
+      case 'tennis_court_3': return 'C.3';  // Actualizado para usar C.3
+      case 'tennis_court_4': return 'C.4';  // Actualizado para usar C.4
+      
+      // GOLF
       case 'golf_tee_1': return 'Hoyo 1';
       case 'golf_tee_10': return 'Hoyo 10';
+      
       default: return 'Cancha Desconocida';
     }
   }

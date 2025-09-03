@@ -6,10 +6,10 @@ class TennisConstants {
 
   // Court configuration
   static const List<String> COURT_NAMES = [
-    'Cancha 1',
-    'Cancha 2', 
-    'Cancha 3',
-    'Cancha 4'
+    'C.1',
+    'C.2', 
+    'C.3',
+    'C.4'
   ];
 
   static const List<String> COURT_IDS = [

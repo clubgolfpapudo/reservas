@@ -118,16 +118,22 @@ class _EnhancedCourtTabsState extends State<EnhancedCourtTabs>
   Color _getCourtPrimaryColor(String courtName) {
     switch (courtName) {
       case 'PITE':
-      case 'Cancha 1':
-        return const Color(0xFF00BCD4); // 🔵 Cyan
+        return const Color(0xFF00BCD4); // 🔵 Cyan (Pádel)
       case 'LILEN':
-      case 'Cancha 2':
-        return const Color(0xFF00C851); // 🟢 Verde Esmeralda
+        return const Color(0xFF00C851); // 🟢 Verde Esmeralda (Pádel)
       case 'PLAIYA':
-      case 'Cancha 3':
-        return const Color(0xFF8E44AD); // 🟣 Púrpura Vibrante
-      case 'Cancha 4':
-        return const Color(0xFFE91E63); // 🌸 Rosa/Fucsia vibrante
+        return const Color(0xFF8E44AD); // 🟣 Púrpura Vibrante (Pádel)
+      
+      // 🎾 TENIS - NUEVOS COLORES
+      case 'C.1':
+        return const Color(0xFF2196F3); // 🔵 Azul
+      case 'C.2':
+        return const Color(0xFF4CAF50); // 🟢 Verde
+      case 'C.3':
+        return const Color(0xFF00BCD4); // 🔵 Turquesa
+      case 'C.4':
+        return const Color(0xFF9C27B0); // 🟣 Púrpura
+      
       default:
         return const Color(0xFF2196F3); // Azul por defecto
     }
@@ -136,16 +142,22 @@ class _EnhancedCourtTabsState extends State<EnhancedCourtTabs>
   Color _getCourtDarkColor(String courtName) {
     switch (courtName) {
       case 'PITE':
-      case 'Cancha 1':
-        return const Color(0xFF0097A7); // 🔵 Cyan oscuro
+        return const Color(0xFF0097A7); // 🔵 Cyan oscuro (Pádel)
       case 'LILEN':
-      case 'Cancha 2':
-        return const Color(0xFF007E33); // Verde más oscuro
+        return const Color(0xFF007E33); // Verde más oscuro (Pádel)
       case 'PLAIYA':
-      case 'Cancha 3':
-        return const Color(0xFF6C3483); // Púrpura más oscuro
-      case 'Cancha 4':
-        return const Color(0xFF8D6E63); // Caf� Tenis
+        return const Color(0xFF6C3483); // Púrpura más oscuro (Pádel)
+      
+      // 🎾 TENIS - VERSIONES OSCURAS
+      case 'C.1':
+        return const Color(0xFF1976D2); // Azul oscuro
+      case 'C.2':
+        return const Color(0xFF388E3C); // Verde oscuro
+      case 'C.3':
+        return const Color(0xFF0097A7); // Turquesa oscuro
+      case 'C.4':
+        return const Color(0xFF7B1FA2); // Púrpura oscuro
+      
       default:
         return const Color(0xFF1976D2); // Azul oscuro por defecto
     }
@@ -154,16 +166,22 @@ class _EnhancedCourtTabsState extends State<EnhancedCourtTabs>
   Color _getCourtLightColor(String courtName) {
     switch (courtName) {
       case 'PITE':
-      case 'Cancha 1':
-        return const Color(0xFFB2EBF2);  // 🔵 Cyan muy claro
+        return const Color(0xFFB2EBF2);  // 🔵 Cyan muy claro (Pádel)
       case 'LILEN':
-      case 'Cancha 2':
-        return const Color(0xFFE8F5E8);
+        return const Color(0xFFE8F5E8);  // Verde claro (Pádel)
       case 'PLAIYA':
-      case 'Cancha 3':
-        return const Color(0xFFF3E5F5);
-      case 'Cancha 4':
-        return const Color(0xFFEFEBE9);
+        return const Color(0xFFF3E5F5);  // Púrpura claro (Pádel)
+      
+      // 🎾 TENIS - VERSIONES CLARAS
+      case 'C.1':
+        return const Color(0xFFE3F2FD); // Azul claro
+      case 'C.2':
+        return const Color(0xFFE8F5E8); // Verde claro
+      case 'C.3':
+        return const Color(0xFFE0F7FA); // Turquesa claro
+      case 'C.4':
+        return const Color(0xFFFCE4EC); // Púrpura claro
+      
       default:
         return const Color(0xFFE3F2FD);
     }
