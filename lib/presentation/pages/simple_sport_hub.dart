@@ -200,7 +200,7 @@ class _SimpleSportHubState extends State<SimpleSportHub> {
                   welcomeMessage = 'Hola, ${authProvider.currentUserName ?? "Usuario"}';
                 }
               } else {
-                welcomeMessage = 'Selecciona tu deporte favorito';
+                welcomeMessage = 'Selecciona tu deporte';
               }
               
               return Text(

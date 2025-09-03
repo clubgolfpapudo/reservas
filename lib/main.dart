@@ -1,10 +1,12 @@
 // lib/main.dart - CON RUTAS DE NAVEGACIÓN COMPLETAS
+import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:intl/date_symbol_data_local.dart';
 import 'package:provider/provider.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 // Core
 import 'core/constants/app_constants.dart';
@@ -158,6 +160,13 @@ class _SimpleLoginPageState extends State<SimpleLoginPage> {
   final _emailController = TextEditingController();
   bool _isLoading = false;
 
+  Future<void> _launchRegistrationForm() async {
+    final Uri url = Uri.parse('https://docs.google.com/forms/d/e/1FAIpQLSfTWfH6tgPk9orGb8CUmAqHdtBFCRq-nlJLyJA2XVDr7OmCew/viewform?usp=sf_link');
+    if (!await launchUrl(url)) {
+      print('No se pudo abrir el enlace de registro');
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -174,11 +183,12 @@ class _SimpleLoginPageState extends State<SimpleLoginPage> {
             padding: const EdgeInsets.all(24),
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
+              mainAxisSize: MainAxisSize.max,
               children: [
                 // Logo oficial
                 Container(
-                  width: 100,
-                  height: 100,
+                  width: 80,
+                  height: 80,
                   decoration: BoxDecoration(
                     color: Colors.white,
                     shape: BoxShape.circle,
@@ -193,8 +203,8 @@ class _SimpleLoginPageState extends State<SimpleLoginPage> {
                   child: ClipOval(
                     child: Image.asset(
                       'assets/images/club_logo.png',
-                      width: 100,
-                      height: 100,
+                      width: 80,
+                      height: 80,
                       fit: BoxFit.cover,
                       errorBuilder: (context, error, stackTrace) {
                         // Fallback con colores reales del logo
@@ -275,7 +285,7 @@ class _SimpleLoginPageState extends State<SimpleLoginPage> {
                   textAlign: TextAlign.center,
                 ),
                 
-                const SizedBox(height: 8),
+                const SizedBox(height: 4),
                 
                 Text(
                   'Reservas y Servicios',
@@ -285,7 +295,7 @@ class _SimpleLoginPageState extends State<SimpleLoginPage> {
                   ),
                 ),
                 
-                const SizedBox(height: 48),
+                const SizedBox(height: 24),
                 
                 // Formulario
                 Container(
@@ -304,7 +314,7 @@ class _SimpleLoginPageState extends State<SimpleLoginPage> {
                   child: Column(
                     children: [
                       const Text(
-                        'Ingrese su email para continuar',
+                        'Ingresa tu email',
                         style: TextStyle(
                           fontSize: 16,
                           fontWeight: FontWeight.w600,
@@ -313,7 +323,7 @@ class _SimpleLoginPageState extends State<SimpleLoginPage> {
                         textAlign: TextAlign.center,
                       ),
                       
-                      const SizedBox(height: 24),
+                      const SizedBox(height: 16),
                       
                       // Campo email
                       TextField(
@@ -329,7 +339,7 @@ class _SimpleLoginPageState extends State<SimpleLoginPage> {
                         ),
                       ),
                       
-                      const SizedBox(height: 24),
+                      const SizedBox(height: 16),
                       
                       // Botón login
                       SizedBox(
@@ -353,6 +363,31 @@ class _SimpleLoginPageState extends State<SimpleLoginPage> {
                                     color: Colors.white,
                                   ),
                                 ),
+                        ),
+                      ),
+
+                      const SizedBox(height: 16),
+                        
+                      RichText(
+                        textAlign: TextAlign.center,
+                        text: TextSpan(
+                          text: 'Si tu correo no está registrado, regístralo ',
+                          style: const TextStyle(
+                            color: Color(0xFF666666),
+                            fontSize: 14,
+                          ),
+                          children: [
+                            TextSpan(
+                              text: 'aquí',
+                              style: const TextStyle(
+                                color: Color(0xFF1B365D),
+                                fontSize: 14,
+                                fontWeight: FontWeight.w600,
+                                decoration: TextDecoration.underline,
+                              ),
+                              recognizer: TapGestureRecognizer()..onTap = _launchRegistrationForm,
+                            ),
+                          ],
                         ),
                       ),
                     ],
@@ -443,7 +478,7 @@ class SplashScreen extends StatelessWidget {
                   fontWeight: FontWeight.bold,
                 ),
               ),
-              const SizedBox(height: 32),
+              const SizedBox(height: 16),
               const CircularProgressIndicator(
                 color: Color(0xFFFFD700),
               ),

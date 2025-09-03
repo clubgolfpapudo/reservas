@@ -1,6 +1,8 @@
 // lib/presentation/pages/auth/login_page.dart
+import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:url_launcher/url_launcher.dart';
 import '../../providers/auth_provider.dart';
 import '../../widgets/common/loading_overlay.dart';
 import '../../../core/theme/corporate_theme.dart';
@@ -48,6 +50,13 @@ class _LoginPageState extends State<LoginPage> with TickerProviderStateMixin {
     _animationController.forward();
   }
 
+  Future<void> _launchRegistrationForm() async {
+    final Uri url = Uri.parse('https://docs.google.com/forms/d/e/1FAIpQLSfTWfH6tgPk9orGb8CUmAqHdtBFCRq-nlJLyJA2XVDr7OmCew/viewform?usp=sf_link');
+    if (!await launchUrl(url)) {
+      print('No se pudo abrir el enlace de registro');
+    }
+  }
+
   @override
   void dispose() {
     _emailController.dispose();
@@ -86,7 +95,8 @@ class _LoginPageState extends State<LoginPage> with TickerProviderStateMixin {
                     child: SlideTransition(
                       position: _slideAnimation,
                       child: Column(
-                        mainAxisAlignment: MainAxisAlignment.center,
+                        mainAxisAlignment: MainAxisAlignment.start,
+                        mainAxisSize: MainAxisSize.min, // ← Agregar esta línea
                         children: [
                           const SizedBox(height: 60),
                           
@@ -169,16 +179,16 @@ class _LoginPageState extends State<LoginPage> with TickerProviderStateMixin {
     return Column(
       children: [
         // Título principal
-        Text(
-          AppConstants.clubName.toUpperCase(),
-          style: const TextStyle(
-            fontSize: 28,
-            fontWeight: FontWeight.bold,
-            color: CorporateTheme.primaryNavyBlue,
-            letterSpacing: 1.2,
-          ),
-          textAlign: TextAlign.center,
-        ),
+        // Text(
+          // AppConstants.clubName.toUpperCase(),
+          // style: const TextStyle(
+          //   fontSize: 28,
+          //   fontWeight: FontWeight.bold,
+          //   color: CorporateTheme.primaryNavyBlue,
+          //   letterSpacing: 1.2,
+          // ),
+          // textAlign: TextAlign.center,
+        // ),
         
         const SizedBox(height: 8),
         
@@ -251,7 +261,7 @@ class _LoginPageState extends State<LoginPage> with TickerProviderStateMixin {
             
             // Título del formulario
             const Text(
-              'Ingrese su email para continuar',
+              'Ingresa tu email',
               style: TextStyle(
                 fontSize: 16,
                 fontWeight: FontWeight.w600,
@@ -286,10 +296,10 @@ class _LoginPageState extends State<LoginPage> with TickerProviderStateMixin {
               ),
               validator: (value) {
                 if (value == null || value.isEmpty) {
-                  return 'Por favor ingrese su email';
+                  return 'Por favor ingresa tu email';
                 }
                 if (!RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$').hasMatch(value)) {
-                  return 'Por favor ingrese un email válido';
+                  return 'Por favor ingresa un email válido';
                 }
                 return null;
               },
@@ -331,7 +341,7 @@ class _LoginPageState extends State<LoginPage> with TickerProviderStateMixin {
                               ),
                             )
                           : const Row(
-                              mainAxisAlignment: MainAxisAlignment.center,
+                              mainAxisAlignment: MainAxisAlignment.start,
                               children: [
                                 Icon(
                                   Icons.verified_user,
@@ -351,6 +361,18 @@ class _LoginPageState extends State<LoginPage> with TickerProviderStateMixin {
                     ),
                   );
                 },
+              ),
+            ),
+            
+            const SizedBox(height: 16),
+
+            // Texto con link de registro (versión simplificada para test)
+            const Text(
+              'Si tu correo no está registrado, regístralo aquí',
+              textAlign: TextAlign.center,
+              style: TextStyle(
+                color: Color(0xFF666666),
+                fontSize: 14,
               ),
             ),
           ],
@@ -428,7 +450,7 @@ class _LoginPageState extends State<LoginPage> with TickerProviderStateMixin {
               SizedBox(height: 12),
               
               Text(
-                'Ingrese con el email registrado en el club para acceder a las reservas.',
+                'Ingrese con el email registrado en el Club para acceder a las reservas.',
                 style: TextStyle(
                   fontSize: 12,
                   color: CorporateTheme.textSecondary,
