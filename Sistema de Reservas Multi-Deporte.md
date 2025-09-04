@@ -2,9 +2,9 @@
 
 ## Información General del Proyecto
 
-**Fecha de actualización:** 3 de Septiembre, 2025  
+**Fecha de actualización:** 4 de Septiembre, 2025  
 **URL de Producción:** https://paddlepapudo.github.io/cgp_reservas/  
-**Estado actual:** Sistema multi-deporte funcional con arquitectura limpia implementada  
+**Estado actual:** Sistema multi-deporte funcional con ventana 72 horas y emails de admin implementados  
 **Usuarios activos:** 497+ socios sincronizados automáticamente  
 
 ### Stack Tecnológico
@@ -25,12 +25,18 @@
 ```
 lib/
 ├── core/
+│   ├── constants/
+│   │   ├── app_constants.dart
+│   │   └── tennis_constants.dart
+│   └── utils/                    
+│       └── booking_time_utils.dart  
 ├── data/
 │   ├── models/
 │   ├── repositories/
 │   └── services/
 │       ├── firestore_service.dart
-│       └── firebase_user_service.dart
+│       ├── firebase_user_service.dart
+│       └── email_service.dart
 ├── domain/
 │   ├── entities/
 │   │   └── booking.dart
@@ -41,14 +47,16 @@ lib/
     │   ├── admin_reservations_page.dart
     │   ├── golf_reservations_page.dart
     │   ├── paddle_reservations_page.dart
-    │   └── tennis_reservations_page.dart
+    │   ├── tennis_reservations_page.dart
+    │   └── main.dart (SimpleLoginPage)
     ├── providers/
     │   ├── booking_provider.dart
     │   ├── auth_provider.dart
     │   └── admin_provider.dart
     └── widgets/
         ├── booking/
-        └── admin/
+        ├── admin/
+        └── enhanced_court_tab.dart
 ```
 
 ### Componentes Principales
@@ -63,16 +71,27 @@ lib/
   - `getBookingsByDate(DateTime date)`: Recuperación de reservas por fecha
   - `deleteBooking(String bookingId)`: Eliminación de reservas
 
+**`lib/data/services/email_service.dart`**
+- Servicio centralizado para envío de emails
+- Métodos implementados:
+  - `sendBookingConfirmation(Booking booking)`: Confirmaciones de reserva
+  - `sendCancellationNotification()`: Notificaciones de cancelación
+  - `sendPlayerAddedNotification()`: Notificaciones cuando admin agrega jugador
+  - `sendPlayerRemovedNotification()`: Notificaciones cuando admin remueve jugador
+
 #### 2. Capa de Dominio (Domain Layer)
 
 **`lib/domain/entities/booking.dart`**
 - Modelo de datos principal para reservas
 - Campos principales:
   - `courtId`: Identificador de cancha/tee (ej: 'golf_tee_1', 'tennis_cancha_1')
-  - `sport`: Tipo de deporte ('GOLF', 'TENIS', 'PADDLE')
-  - `date`: Fecha de la reserva
-  - `timeSlot`: Horario reservado
+  - `date`: Fecha de la reserva (String)
+  - `timeSlot`: Horario reservado (String)
   - `players`: Lista de jugadores (BookingPlayer)
+
+**`lib/domain/entities/booking_player.dart`**
+- Modelo para jugadores individuales
+- Campos: `id`, `name`, `phone`, `email`, `isConfirmed`
 
 #### 3. Capa de Presentación (Presentation Layer)
 
@@ -82,6 +101,7 @@ lib/
 - `AdminProvider`: Controla funcionalidades administrativas
 
 **Páginas por Deporte:**
+- `main.dart`: Página de login principal (SimpleLoginPage)
 - `golf_reservations_page.dart`: Sistema de reservas para golf
 - `tennis_reservations_page.dart`: Sistema de reservas para tenis  
 - `paddle_reservations_page.dart`: Sistema de reservas para pádel
@@ -94,6 +114,8 @@ lib/
 - **Canchas:** Hoyo 1 (golf_tee_1) y Hoyo 10 (golf_tee_10)
 - **Capacidad:** 1-4 jugadores por reserva
 - **Colores UI:** Verde golf (#4CAF50, #7CB342)
+- **Horarios:** 8:00 AM - 16:00/17:00 PM (invierno/verano), intervalos de 12 minutos
+- **Ventana de reservas:** 48 horas desde hora actual
 - **Plantilla Email:** generateGolfEmailTemplate() con diseño verde corporativo
 - **Estado:** Funcional, sistema de emails implementado
 
@@ -106,15 +128,23 @@ lib/
   - C.2: Verde (#4CAF50)
   - C.3: Turquesa (#00BCD4)
   - C.4: Púrpura (#9C27B0)
-- **Estado:** Completamente funcional con UI mejorada
+- **Horarios:** Slots predefinidos intervalos 90 min
+  - Invierno: 9:00, 10:30, 12:00, 13:30, 15:00, 16:30
+  - Verano: + 18:00, 19:30
+- **Ventana de reservas:** 72 horas desde hora actual
+- **Estado:** Funcional con UI mejorada y ventana 72h implementada
 
 ### Pádel System
 - **Canchas:** 3 canchas (PITE, LILEN, PLAIYA)
-- **Capacidad:** Sistema estándar pádel
+- **Capacidad:** Sistema estándar pádel (4 jugadores)
 - **Colores UI:** Azul profesional (#2E7AFF, #1E5AFF) 
 - **Auto-selección:** PITE por defecto
 - **Modal de confirmación:** Muestra nombres reales de canchas (implementado Sept 2025)
-- **Estado:** Completamente funcional
+- **Horarios:** Slots predefinidos intervalos 90 min
+  - Invierno: 9:00, 10:30, 12:00, 13:30, 15:00, 16:30
+  - Verano: + 18:00, 19:30
+- **Ventana de reservas:** 72 horas desde hora actual
+- **Estado:** Completamente funcional con ventana 72h implementada
 
 ---
 
@@ -128,30 +158,17 @@ lib/
 
 #### 1. Sistema de Emails
 ```javascript
-// Detección de deporte basada en courtId
-function getSportFromCourtId(courtId) {
-  const courtStr = String(courtId).trim().toLowerCase();
-  
-  if (courtStr.startsWith('tennis_') || courtStr.includes('tennis')) {
-    return 'TENIS';
-  } else if (courtStr.startsWith('golf_') || courtStr.includes('golf') || courtStr.includes('tee')) {
-    return 'GOLF';
-  } else {
-    return 'PADEL'; // Default para pádel
-  }
-}
+// Detección de tipo de email basada en parámetros
+const requestType = req.body.type; // 'player_added', 'player_removed', o undefined
+const { isAdminAction = false, adminActionType = null } = req.body;
 
-// Generación de HTML por deporte
-function generateBookingEmailHtml(booking, organizerName, isVisitorBooking, email) {
-  const sport = getSportFromCourtId(booking.courtId);
-  
-  if (sport === 'TENIS') {
-    return generateTennisEmailTemplate(booking, organizerName, isVisitorBooking, email);
-  } else if (sport === 'GOLF') {
-    return generateGolfEmailTemplate(booking, organizerName, isVisitorBooking, email);
-  } else {
-    return generatePadelEmailTemplate(booking, organizerName, isVisitorBooking, email);
-  }
+// Generación condicional de contenido
+if (requestType === 'player_added') {
+  emailHtml = generateBookingEmailHtml(...).replace(...); // Reemplazos para "agregado"
+} else if (requestType === 'player_removed') {
+  emailHtml = generateBookingEmailHtml(...).replace(...); // Reemplazos para "removido"
+} else {
+  emailHtml = generateBookingEmailHtml(...); // Email normal
 }
 ```
 
@@ -170,7 +187,7 @@ function generateBookingEmailHtml(booking, organizerName, isVisitorBooking, emai
 - Funcionalidad de cancelación
 
 #### 3. Cloud Functions Activas
-- `sendBookingEmailHTTP`: Envío de confirmaciones
+- `sendBookingEmailHTTP`: Envío de confirmaciones y notificaciones admin
 - `cancelBooking`: Gestión de cancelaciones
 - `sendCancellationNotification`: Notificaciones a jugadores restantes
 
@@ -189,8 +206,7 @@ cgpreservas/
 │   └── memberNumber: string
 ├── bookings/{bookingId}
 │   ├── courtId: string
-│   ├── sport: string
-│   ├── date: timestamp
+│   ├── date: string
 │   ├── timeSlot: string
 │   ├── players: array
 │   └── organizerEmail: string
@@ -207,10 +223,10 @@ cgpreservas/
 - `golf_tee_10`: Hoyo 10
 
 **Tenis:**
-- `tennis_cancha_1` a `tennis_cancha_4`
+- `tennis_cancha_1` a `tennis_cancha_4` (mostrados como C.1 a C.4)
 
 **Pádel:**
-- `pite`, `lilen`, `plaiya`
+- `pite`, `lilen`, `plaiya` (nombres reales de las canchas)
 
 ---
 
@@ -223,7 +239,7 @@ cgpreservas/
 Color get _golfColor => const Color(0xFF4CAF50); // Verde golf
 String get _golfDisplayName => 'golf';
 
-// Tenis - Colores diferenciados por cancha
+// Tenis - Colores diferenciados por cancha  
 Color get _tenisColor => const Color(0xFFD2691E); // Tierra batida
 String get _tenisDisplayName => 'tenis';
 
@@ -232,26 +248,17 @@ Color get _padelColor => const Color(0xFF2E7AFF); // Azul profesional
 String get _padelDisplayName => 'pádel';
 ```
 
-### Implementación en Componentes
+### Implementación de Colores por Cancha de Tenis
 
 ```dart
-String get _sportDisplayName {
-  if (widget.sport == 'TENIS') {
-    return 'tenis';
-  } else if (widget.sport == 'GOLF') {
-    return 'golf';
-  } else {
-    return 'pádel';
-  }
-}
-
-Color get _sportColor {
-  if (widget.sport == 'TENIS') {
-    return const Color(0xFFD2691E);
-  } else if (widget.sport == 'GOLF') {
-    return const Color(0xFF4CAF50);
-  } else {
-    return const Color(0xFF2E7AFF);
+// En enhanced_court_tab.dart
+Color _getCourtPrimaryColor(String courtName) {
+  switch (courtName) {
+    case 'C.1': return const Color(0xFF2196F3); // Azul
+    case 'C.2': return const Color(0xFF4CAF50); // Verde
+    case 'C.3': return const Color(0xFF00BCD4); // Turquesa
+    case 'C.4': return const Color(0xFF9C27B0); // Púrpura
+    default: return const Color(0xFF2196F3);
   }
 }
 ```
@@ -281,10 +288,13 @@ Color get _sportColor {
 - **Requerimiento:** Mostrar capacidad X/Y y permitir unirse a slots existentes
 - **Estado:** ✅ RESUELTO
 
-### Nomenclatura Canchas de Tenis (Septiembre 2025)
+### Nomenclatura y UI Canchas de Tenis (Septiembre 2025)
 - **Problema:** Nombres truncados ("Canc...") en interfaz
 - **Solución:** Implementación de nombres "C.1", "C.2", "C.3", "C.4"
-- **Archivos modificados:** `tennis_constants.dart`, `enhanced_court_tab.dart`
+- **Archivos modificados:** 
+  - `tennis_constants.dart`: COURT_NAMES actualizadas
+  - `enhanced_court_tab.dart`: Colores diferenciados por cancha
+  - `tennis_reservations_page.dart`: Switch statements actualizados
 - **Resultado:** Colores diferenciados por cancha y nombres legibles
 - **Estado:** ✅ RESUELTO
 
@@ -295,35 +305,116 @@ Color get _sportColor {
 - **Archivos modificados:** `app_constants.dart`
 - **Estado:** ✅ RESUELTO
 
+### Overflow Página de Inicio (Septiembre 2025)
+- **Problema:** Error "Bottom overflowed by X pixels" en main.dart
+- **Causa:** `mainAxisAlignment.center` con contenido excesivo para pantalla
+- **Solución:** Cambio a `mainAxisAlignment.start` y `mainAxisSize.max`, reducción de espaciados
+- **Archivos modificados:** `main.dart`
+- **Estado:** ✅ RESUELTO
+
+### Link de Registro de Usuario (Septiembre 2025)
+- **Problema:** Falta enlace para registro de nuevos usuarios
+- **Solución:** Implementación de texto "Si tu correo no está registrado, regístralo aquí" con link funcional
+- **Ubicación:** Debajo del botón "Ingresar" en página de login
+- **Archivos modificados:** `main.dart` (imports flutter/gestures, url_launcher, función _launchRegistrationForm(), RichText)
+- **URL destino:** https://docs.google.com/forms/d/e/1FAIpQLSfTWfH6tgPk9orGb8CUmAqHdtBFCRq-nlJLyJA2XVDr7OmCew/viewform?usp=sf_link
+- **Estado:** ✅ RESUELTO
+
+### Limpieza de Código Legacy (Septiembre 2025)
+- **Problema:** Archivo `login_page.dart` sin referencias en el proyecto
+- **Solución:** Eliminación del archivo no utilizado
+- **Justificación:** Sin imports ni navegación hacia esa página en todo el codebase
+- **Impacto:** Reducción de tamaño del proyecto y eliminación de confusión
+- **Estado:** ✅ RESUELTO
+
+### Ventana de Reservas 72 Horas (Septiembre 2025)
+- **Problema:** Tenis y Pádel no implementaban ventana de 72 horas desde hora actual
+- **Solución:** Implementación de `BookingTimeUtils` con slots predefinidos + filtrado cliente-side
+- **Archivos modificados:** 
+  - **NUEVO:** `lib/core/utils/booking_time_utils.dart`
+  - **MODIFICADO:** `lib/presentation/providers/booking_provider.dart` (métodos agregados + `_generateAvailableDates()` actualizado)
+  - **MODIFICADO:** `lib/presentation/pages/tennis_reservations_page.dart` (forzar regeneración fechas)
+  - **MODIFICADO:** `lib/presentation/pages/paddle_reservations_page.dart` (forzar regeneración fechas)
+- **Lógica implementada:** 
+  - Golf mantiene 48 horas (sin cambios)
+  - Tennis/Pádel: 72 horas con slots predefinidos según temporada
+  - Invierno: 6 slots (9:00 a 16:30)
+  - Verano: 8 slots (+ 18:00, 19:30)
+- **Estado:** ✅ RESUELTO Y FUNCIONAL
+
+### Envío de Emails para Modificaciones de Admin (Septiembre 2025)
+- **Problema:** Cuando Admin agrega o remueve jugadores de slots incompletos, no se enviaban emails de notificación
+- **Solución implementada:**
+  - Integración con `EmailService.sendPlayerAddedNotification()` y nuevo método `sendPlayerRemovedNotification()`
+  - Modificaciones en Firebase Functions (`functions/index.js`) para manejar nuevos tipos de email
+  - Lógica de detección de cambios en `editBookingPlayers()` de `BookingProvider`
+  - Plantillas de email diferenciadas para acciones de admin usando reemplazo de texto
+- **Archivos modificados:**
+  - **AGREGADO:** `lib/data/services/email_service.dart` - método `sendPlayerRemovedNotification()`
+  - **MODIFICADO:** `lib/presentation/providers/booking_provider.dart` - método `_handleAdminPlayerChangesNotification()`
+  - **MODIFICADO:** `functions/index.js` - manejo de `requestType` ('player_added'/'player_removed')
+- **Funcionalidad:**
+  - Admin agrega jugador → Email "Agregado a Reserva de [Deporte]" 
+  - Admin remueve jugador → Email "Removido de Reserva de [Deporte]"
+  - Usa estructura de `EmailService` existente (evita problemas CORS)
+  - Subject y contenido específicos por tipo de acción
+  - **NOTA TÉCNICA:** Implementación actual usa reemplazo de texto sobre plantillas existentes (solución temporal funcional). Requiere desarrollo de plantillas HTML específicas para admin en futuras iteraciones.
+- **Estado:** ✅ RESUELTO Y FUNCIONAL (implementación temporal)
+
 ---
 
 ## Issues Pendientes
 
+### **PRIORIDAD ALTA**
+
+#### Mejoras Interfaz Administrador (Septiembre 2025)
+- **Problema:** Panel de administración (`admin_reservations_page.dart`) con problemas de UX
+- **Issues identificados:**
+  - Texto sobrepuesto en elementos de UI
+  - Overflow de contenido en pantallas pequeñas
+  - Filtro de reservas en pantalla no funciona correctamente
+  - Layout responsive deficiente
+- **Archivos afectados:** 
+  - `lib/presentation/pages/admin_reservations_page.dart`
+  - Posible refactor de componentes de admin
+- **Prioridad:** Alta (afecta operaciones diarias del club)
+
 ### **PRIORIDAD MEDIA**
 
-#### Validación Backend Faltante
-- **Descripción:** Sin validación para jugadores duplicados
-- **Impacto:** Vulnerabilidad de integridad de datos
-- **Solución propuesta:** Agregar validación en cloud functions
-- **Prioridad:** Media (reclasificado de Alta)
+#### Optimización de Performance - Logs Masivos (Septiembre 2025)
+- **Problema:** Golf genera 1300+ líneas de log al cambiar fechas, causando performance lenta
+- **Causa:** Debug prints en `_generateAvailableDates()` creando flood de logs
+- **Impacto:** Performance degradada en navegación de fechas golf
+- **Solución propuesta:** Remover debug prints de producción
+- **Archivos afectados:** `booking_provider.dart`, páginas de tennis/pádel
+- **Prioridad:** Media (sistema funciona, pero con performance subóptima)
 
-#### Problemas UI Menores
-- **Descripción:** Overflow botón "Ingresar", estadísticas incorrectas, AppBar dinámico
-- **Impacto:** Experiencia de usuario
+#### Verificar Funcionalidad Link de Registro en Producción
+- **Descripción:** Formulario de Google Forms requiere autenticación cuando antes funcionaba sin login
+- **URL:** https://docs.google.com/forms/d/e/1FAIpQLSfTWfH6tgPk9orGb8CUmAqHdtBFCRq-nlJLyJA2XVDr7OmCew/viewform?usp=sf_link
+- **Causa probable:** Cambio reciente en configuración o políticas de Google Forms
+- **Estado:** Pendiente verificación en producción (funciona en localhost)
+- **Solución temporal:** Si persiste, cambiar mensaje a contacto directo por email
+- **Ubicación:** Implementado en `main.dart` clase `_SimpleLoginPageState`
 - **Prioridad:** Media
 
-### **NUEVOS TEMAS PENDIENTES**
+#### Validación Backend Faltante
+- **Descripción:** Sin validación para jugadores duplicados en reservas
+- **Impacto:** Vulnerabilidad de integridad de datos
+- **Solución propuesta:** Agregar validación en cloud functions
+- **Prioridad:** Media
 
-#### Agregar Link a Formulario de Registro
-- **Ubicación:** Página de login
-- **Descripción:** Implementar enlace al formulario de registro de nuevos usuarios
-- **Prioridad:** Por definir
+#### Mejora de Plantillas Email Admin
+- **Descripción:** Crear plantillas HTML específicas para acciones de admin en lugar de usar reemplazo de texto
+- **Beneficios:** Mejor diseño, consistencia visual, mantenibilidad
+- **Archivos afectados:** `functions/index.js`
+- **Estado:** Funcional con solución temporal
+- **Prioridad:** Media
 
-#### Ajustar Horario de Reserva de 72 Horas
-- **Descripción:** Modificar ventana de reserva de 72 horas para Pádel y Tenis
-- **Impacto:** Lógica de negocio
-- **Deportes afectados:** Pádel y Tenis
-- **Prioridad:** Por definir
+#### Problemas UI Menores
+- **Descripción:** Estadísticas incorrectas, AppBar dinámico por sección
+- **Impacto:** Experiencia de usuario
+- **Prioridad:** Media
 
 ---
 
@@ -344,30 +435,69 @@ Color get _sportColor {
 
 ## Próximos Desarrollos Prioritarios
 
-### Inmediato (Alto Impacto)
-1. **Implementar ajuste horario reserva 72 horas**
-   - Modificar lógica de negocio para Pádel y Tenis
-   - Actualizar validaciones de fecha/hora
+### Inmediato (Alta Prioridad)
+1. **Mejorar interfaz de administrador**
+   - Resolver problemas de layout y overflow
+   - Implementar filtros funcionales de reservas
+   - Optimizar para pantallas pequeñas
 
-2. **Agregar funcionalidad registro nuevos usuarios**
-   - Implementar link en página de login
-   - Configurar flujo de onboarding
+### Mediano Plazo (Media Prioridad)
+2. **Limpieza de performance**
+   - Remover debug prints de producción
+   - Optimizar navegación de fechas en golf
 
-### Optimizaciones Mediano Plazo
-3. **Resolver validación backend jugadores duplicados**
-   - Agregar validación en cloud functions
-   - Prevenir vulnerabilidad de integridad
+3. **Mejora de plantillas email admin**
+   - Desarrollar plantillas HTML específicas
+   - Eliminar dependencia de reemplazo de texto
 
-4. **Resolver problemas UI menores**
-   - Overflow botón "Ingresar"
-   - Estadísticas incorrectas
-   - AppBar dinámico por sección
+4. **Validaciones backend**
+   - Jugadores duplicados
+   - Integridad de datos
 
 ### Testing y Calidad
 5. **Testing integral sistema completo**
    - Validar flujo completo reservas todos los deportes
    - Confirmar emails funcionando correctamente
-   - Testing de regresión para cambios recientes
+   - Testing de regresión para cambios implementados
+   - Validar funcionalidades admin en diferentes dispositivos
+
+---
+
+## Warnings y Consideraciones Importantes
+
+### 🚨 Advertencias Técnicas
+
+1. **Plantillas Email Admin**
+   - Implementación actual es temporal usando reemplazo de texto
+   - Funcional pero requiere desarrollo de plantillas específicas
+   - Monitorear que los reemplazos sigan funcionando tras updates
+
+2. **Formulario de Google Forms**
+   - Puede requerir autenticación en producción
+   - Monitorear funcionamiento tras deployment
+   - Tener plan B de contacto directo preparado
+
+3. **Performance Logs Golf**
+   - Debug prints causan degradación de performance
+   - Priorizar limpieza para mejorar experiencia usuario
+   - No afecta funcionalidad pero sí UX
+
+### 📋 Notas para el Cliente
+
+1. **Funcionalidades Nuevas Implementadas**
+   - Sistema de ventana 72 horas para Tennis/Pádel funcionando completamente
+   - Emails automáticos cuando admin modifica jugadores (temporal pero funcional)
+   - Canchas de tenis con nombres claros y colores únicos
+   - Modal de pádel muestra nombres reales de canchas
+
+2. **Sistema de Emails Completo**
+   - Funcionando para los 3 deportes
+   - Cobertura total: crear, cancelar, modificar por admin
+   - Cada deporte tiene su plantilla personalizada
+
+3. **Interfaz Admin Pendiente**
+   - Funcional pero con problemas de UX
+   - Requiere atención prioritaria para operaciones diarias
 
 ---
 
@@ -404,17 +534,22 @@ Color get _sportColor {
 **Frontend:**  
 - `lib/presentation/providers/booking_provider.dart`: Estado reservas
 - `lib/data/services/firestore_service.dart`: Operaciones base datos
+- `lib/data/services/email_service.dart`: Envío de emails centralizado
 - `lib/presentation/pages/{sport}_reservations_page.dart`: UI por deporte
 
 **Constantes y Configuración:**
 - `lib/core/constants/app_constants.dart`: Mapeo nombres canchas
 - `lib/core/constants/tennis_constants.dart`: Configuración tenis
+- `lib/core/utils/booking_time_utils.dart`: Lógica ventana 72 horas
 - `lib/presentation/widgets/enhanced_court_tab.dart`: Colores diferenciados
 
-### Cambios Recientes Implementados (Septiembre 2025):
+**Página Principal:**
+- `lib/presentation/pages/main.dart`: Login y navegación principal (SimpleLoginPage)
 
-1. **Sistema de nombres tenis:** C.1, C.2, C.3, C.4 con colores diferenciados
-2. **Modal pádel:** Corrección para mostrar nombres reales (PITE, LILEN, PLAIYA)
-3. **Mapeo de canchas:** Actualización completa en `AppConstants.getCourtName()`
+### Estado Actual del Sistema (Septiembre 2025):
 
-El proyecto mantiene una arquitectura sólida y escalable, con separación clara de responsabilidades que facilita el mantenimiento y la adición de nuevas funcionalidades. Los desarrollos recientes han mejorado significativamente la experiencia de usuario y la consistencia visual del sistema.
+**✅ FUNCIONAL:** Sistema multi-deporte completo con ventana de tiempo diferenciada (48h golf, 72h tennis/pádel), emails automáticos para todas las acciones (crear, cancelar, modificar admin), y UI optimizada por deporte.
+
+**⚠️ PENDIENTE:** Optimización interfaz admin, limpieza debug logs, mejora plantillas email admin.
+
+El proyecto mantiene una arquitectura sólida y escalable, con separación clara de responsabilidades y funcionalidad completa para operación diaria del club.

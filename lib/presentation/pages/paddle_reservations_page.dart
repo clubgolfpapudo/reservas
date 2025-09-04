@@ -27,10 +27,14 @@ class _ReservationsPageState extends State<PaddleReservationsPage> {
   void initState() {
     super.initState();
 
-    // 🔧 FIX INMEDIATO: Cambiar ANTES de PageController
     final provider = context.read<BookingProvider>();
     provider.selectCourt('padel_court_1');
 
+    // 🆕 REGENERAR FECHAS ANTES del PageController
+    provider.forceRegenerateAvailableDates();
+    print('🏓 PADDLE INIT: Fechas regeneradas para paddle');
+
+    // PageController DESPUÉS de regenerar fechas
     _pageController = PageController(
       initialPage: provider.currentDateIndex,
     );

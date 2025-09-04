@@ -40,6 +40,9 @@ class _TennisReservationsPageState extends State<TennisReservationsPage> {
       // Forzar selección inicial de Tenis
       provider.selectCourt('tennis_court_1');
       print('🎾 TENNIS INIT: Forzado a tennis_court_1');
+
+      provider.forceRegenerateAvailableDates();
+      print('🎾 TENNIS INIT: Fechas regeneradas para tenis');
     });
   }
 

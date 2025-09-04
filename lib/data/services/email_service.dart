@@ -178,6 +178,46 @@ class EmailService {
     }
   }
 
+  /// Envía notificaciones a los jugadores cuando un admin remueve a un jugador
+  static Future<bool> sendPlayerRemovedNotification({
+    required Booking updatedBooking,
+    required BookingPlayer removedPlayer,
+  }) async {
+    try {
+      print('📧 ENVIANDO NOTIFICACIÓN DE JUGADOR REMOVIDO POR ADMIN');
+      
+      final requestData = {
+        'type': 'player_removed',
+        'booking': {
+          'courtId': updatedBooking.courtId,
+          'date': updatedBooking.date,
+          'timeSlot': updatedBooking.timeSlot,
+          'players': [{
+            'name': removedPlayer.name,
+            'email': removedPlayer.email ?? 'sin-email@cgp.cl',
+            'isConfirmed': removedPlayer.isConfirmed,
+          }],
+          'courtInfo': {
+            'name': AppConstants.getCourtName(updatedBooking.courtId),
+            'color': AppConstants.getCourtColor(AppConstants.getCourtName(updatedBooking.courtId)),
+          }
+        }
+      };
+
+      final response = await http.post(
+        Uri.parse(FUNCTIONS_URL),
+        headers: HEADERS,
+        body: jsonEncode(requestData),
+      ).timeout(TIMEOUT);
+      
+      print('📧 Player Removed response: ${response.statusCode} ${response.body}');
+      return response.statusCode == 200;
+    } catch (e) {
+      print('❌ Error enviando notificación de jugador removido: $e');
+      return false;
+    }
+  }
+
   /// Test del endpoint (para debugging)
   static Future<bool> testEndpoint() async {
     try {

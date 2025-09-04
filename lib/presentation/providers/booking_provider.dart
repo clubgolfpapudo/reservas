@@ -8,8 +8,10 @@
 /// ✅ Validación flexible por deporte
 
 import 'dart:async';
+import 'dart:convert';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
+import 'package:http/http.dart' as http;
 import 'package:intl/intl.dart';
 
 // Entities
@@ -26,6 +28,9 @@ import '../../data/services/firestore_service.dart';
 
 // Constants
 import '../../core/constants/app_constants.dart';
+
+// Utils
+import '../../../core/utils/booking_time_utils.dart';
 
 /// Provider principal para gestión de estado de reservas
 class BookingProvider extends ChangeNotifier {
@@ -206,6 +211,12 @@ class BookingProvider extends ChangeNotifier {
     return BookingStatus.complete;
   }
 
+  String _getSportFromCourtId(String courtId) {
+    if (courtId.startsWith('golf_')) return 'GOLF';
+    if (courtId.startsWith('tennis_')) return 'TENIS';
+    return 'PADEL';
+  }
+
   // ============================================================================
   // VALIDACIÓN DE CONFLICTOS - CON VALIDACIÓN POR DEPORTE
   // ============================================================================
@@ -321,14 +332,6 @@ class BookingProvider extends ChangeNotifier {
     print('✅ VALIDACIÓN: Sin conflictos detectados - reserva permitida');
     print('🔍 VALIDACIÓN COMPLETA - FIN\n');
     return ValidationResult(isValid: true, reason: null);
-  }
-
-  /// ✅ NUEVO: Extrae el deporte del ID de cancha
-  String _getSportFromCourtId(String courtId) {
-    if (courtId.startsWith('padel_')) return 'PADEL';
-    if (courtId.startsWith('tennis_')) return 'TENIS';
-    if (courtId.startsWith('golf_')) return 'GOLF';
-    return 'UNKNOWN';
   }
 
   /// Verifica si un jugador es especial (tipo VISITA)
@@ -486,7 +489,7 @@ class BookingProvider extends ChangeNotifier {
     
     final now = DateTime.now();
     
-    // Para golf: 48 horas exactas desde ahora
+    // Para golf: mantener lógica actual (48 horas exactas)
     final bool isGolf = _selectedCourtId?.startsWith('golf_') ?? false;
     
     if (isGolf) {
@@ -498,16 +501,74 @@ class BookingProvider extends ChangeNotifier {
         current = current.add(Duration(days: 1));
       }
     } else {
-      // Tennis/Paddle: lógica original (4 días)
-      for (int i = 0; i < 4; i++) {
-        _availableDates.add(now.add(Duration(days: i)));
+      // Tennis/Paddle: solo fechas futuras
+      DateTime current = DateTime(now.year, now.month, now.day + 1); // Mañana
+      
+      // DEBUG: Imprimir para verificar
+      print('DEBUG: Hora actual: $now');
+      print('DEBUG: Primer día disponible: $current');
+      
+      for (int i = 0; i < 3; i++) {
+        _availableDates.add(current);
+        print('DEBUG: Agregando fecha: $current');
+        current = current.add(Duration(days: 1));
       }
     }
     
     _currentDateIndex = 0;
-    _selectedDate = _availableDates.first;
+    _selectedDate = _availableDates.isNotEmpty ? _availableDates.first : now;
+    
+    // DEBUG: Ver resultado final
+    print('DEBUG: Fechas disponibles finales: $_availableDates');
+    print('DEBUG: Fecha seleccionada: $_selectedDate');
   }
   
+  void forceRegenerateAvailableDates() {
+    print('🔧 FORZANDO REGENERACIÓN DE FECHAS');
+    _generateAvailableDates();
+    notifyListeners();
+    print('🔧 REGENERACIÓN COMPLETADA');
+  }
+
+  List<String> getFilteredTimeSlots(DateTime date) {
+    final bool isGolf = _selectedCourtId?.startsWith('golf_') ?? false;
+    
+    if (isGolf) {
+      return _getGolfTimeSlots(); 
+    } else {
+      // Tennis/Padel usan slots predefinidos con filtro 72h
+      return BookingTimeUtils.getAvailableTimeSlots(date);
+    }
+  }
+
+  // 🆕 MÉTODO NUEVO #2 - SIMPLIFICADO (solo para Golf)
+  List<String> _getGolfTimeSlots() {
+    final bool isSummer = _isSummerSeason();
+    
+    // Valores de golf desde configuración
+    const startTime = '08:00';
+    final endTime = isSummer ? '17:00' : '16:00';
+    const intervalMinutes = 12;
+    
+    final slots = <String>[];
+    DateTime current = DateTime.parse('2024-01-01 $startTime:00');
+    final end = DateTime.parse('2024-01-01 $endTime:00');
+    
+    while (current.isBefore(end) || current.isAtSameMomentAs(end)) {
+      final timeString = '${current.hour.toString().padLeft(2, '0')}:${current.minute.toString().padLeft(2, '0')}';
+      slots.add(timeString);
+      current = current.add(Duration(minutes: intervalMinutes));
+    }
+    
+    return slots;
+  }
+
+  // 🆕 MÉTODO NUEVO #3 - MANTENER IGUAL  
+  bool _isSummerSeason() {
+    final currentDate = DateTime.now();
+    return currentDate.month >= 10 || currentDate.month <= 3;
+  }
+
   String _formatDate(DateTime date) {
     const months = [
       '', 'Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio',
@@ -977,11 +1038,16 @@ class BookingProvider extends ChangeNotifier {
     try {
       _setLoading(true);
       
-      // Llamada atómica al servicio específico
+      // 🆕 1. CAPTURAR jugadores originales ANTES del cambio
+      final originalBooking = _bookings.firstWhere((b) => b.id == bookingId);
+      final originalPlayers = List<BookingPlayer>.from(originalBooking.players);
+      print('🔥 DEBUG: Jugadores originales = ${originalPlayers.map((p) => p.name).toList()}');
+      
+      // Llamada atómica al servicio específico (CÓDIGO EXISTENTE)
       await FirestoreService.updateBookingPlayers(bookingId, updatedPlayers);
       print('🔥 DEBUG BookingProvider: FirestoreService.updateBookingPlayers completado');
       
-      // Actualizar el estado local para reflejar los cambios inmediatamente
+      // Actualizar el estado local (CÓDIGO EXISTENTE)
       final bookingIndex = _bookings.indexWhere((b) => b.id == bookingId);
       print('🔥 DEBUG BookingProvider: bookingIndex encontrado = $bookingIndex');
       
@@ -989,6 +1055,13 @@ class BookingProvider extends ChangeNotifier {
         _bookings[bookingIndex] = _bookings[bookingIndex].copyWith(players: updatedPlayers);
         print('🔥 DEBUG BookingProvider: Estado local actualizado');
       }
+      
+      // 🆕 2. DETECTAR cambios y enviar emails de notificación
+      await _handleAdminPlayerChangesNotification(
+        originalBooking,
+        originalPlayers,
+        updatedPlayers,
+      );
       
       _setLoading(false);
       notifyListeners();
@@ -998,6 +1071,46 @@ class BookingProvider extends ChangeNotifier {
     } catch (e) {
       print('🔥 DEBUG BookingProvider: ERROR = $e');
       _setError('Error al editar los jugadores de la reserva: $e');
+    }
+  }
+
+  // 🆕 3. MÉTODO NUEVO para detectar cambios y enviar emails
+  Future<void> _handleAdminPlayerChangesNotification(
+    Booking originalBooking,
+    List<BookingPlayer> originalPlayers,
+    List<BookingPlayer> updatedPlayers,
+  ) async {
+    print('🔥 DEBUG: Analizando cambios en jugadores...');
+    
+    // Detectar jugadores AGREGADOS (están en updated pero no en original)
+    final addedPlayers = updatedPlayers.where((updated) {
+      return !originalPlayers.any((original) => 
+        (original.email?.toLowerCase() ?? '') == (updated.email?.toLowerCase() ?? '')
+      );
+    }).toList();
+    
+    // Detectar jugadores REMOVIDOS (están en original pero no en updated)
+    final removedPlayers = originalPlayers.where((original) {
+      return !updatedPlayers.any((updated) => 
+        (original.email?.toLowerCase() ?? '') == (updated.email?.toLowerCase() ?? '')
+      );
+    }).toList();
+    
+    print('🔥 DEBUG: Jugadores agregados: ${addedPlayers.map((p) => p.name).toList()}');
+    print('🔥 DEBUG: Jugadores removidos: ${removedPlayers.map((p) => p.name).toList()}');
+    
+    // Usar EmailService para enviar notificaciones
+    for (final player in addedPlayers) {
+      await EmailService.sendPlayerAddedNotification(
+        updatedBooking: originalBooking.copyWith(players: updatedPlayers)
+      );
+    }
+    
+    for (final player in removedPlayers) {
+      await EmailService.sendPlayerRemovedNotification(
+        updatedBooking: originalBooking,
+        removedPlayer: player,
+      );
     }
   }
 
