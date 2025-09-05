@@ -382,10 +382,10 @@ class _GolfReservationsPageState extends State<GolfReservationsPage> {
                         mainAxisSize: MainAxisSize.min,
                         children: [
                           Text(
-                            '$playerCount/4',
+                            '${booking!.players.first.name} +${playerCount - 1}',
                             style: TextStyle(
-                              fontSize: 10,
-                              fontWeight: FontWeight.bold,
+                              fontSize: 9,
+                              fontWeight: FontWeight.w500,
                               color: _getGolfTextColor(playerCount, false),
                             ),
                             textAlign: TextAlign.center,
@@ -407,18 +407,10 @@ class _GolfReservationsPageState extends State<GolfReservationsPage> {
                       children: [
                         if (playerCount > 0) ...[
                           Text(
-                            '$playerCount/4',
-                            style: TextStyle(
-                              fontSize: 10,
-                              fontWeight: FontWeight.bold,
-                              color: _getGolfTextColor(playerCount, false),
-                            ),
-                            textAlign: TextAlign.center,
-                          ),
-                          Text(
-                            '${4 - playerCount} disponibles',
+                            '${booking!.players.first.name} +${playerCount - 1}',
                             style: TextStyle(
                               fontSize: 9,
+                              fontWeight: FontWeight.w500,
                               color: _getGolfTextColor(playerCount, false),
                             ),
                             textAlign: TextAlign.center,

@@ -86,6 +86,25 @@ class BookingTimeUtils {
       int.parse(timeParts[1])
     );
   }
+  
+  static DateTime parseTimeSlot(String timeSlot) {
+    // Limpiar el timeSlot de cualquier texto extra (AM/PM, espacios)
+    final cleanTime = timeSlot.replaceAll(RegExp(r'[^\d:]'), '');
+    final parts = cleanTime.split(':');
+    final hour = int.parse(parts[0]);
+    final minute = int.parse(parts[1]);
+    
+    final now = DateTime.now();
+    return DateTime(now.year, now.month, now.day, hour, minute);
+  }
+
+  static bool isWithin4Hours(String timeSlot1, String timeSlot2) {
+    final time1 = parseTimeSlot(timeSlot1);
+    final time2 = parseTimeSlot(timeSlot2);
+    
+    final difference = time1.difference(time2).abs();
+    return difference.inHours < 4;
+  }
 }
 
 extension DateTimeExtension on DateTime {

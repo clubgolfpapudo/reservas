@@ -523,6 +523,85 @@ class BookingProvider extends ChangeNotifier {
     print('DEBUG: Fecha seleccionada: $_selectedDate');
   }
   
+  Future<bool> _hasConflictingReservation(
+    String userEmail, 
+    String date, 
+    String timeSlot, 
+    String sport
+  ) async {
+    try {
+      // Obtener todas las reservas para esa fecha
+      final querySnapshot = await _firestore
+          .collection('bookings')
+          .where('date', isEqualTo: date)
+          .get();
+      
+      final userBookings = <Booking>[];
+      
+      // Filtrar reservas del usuario
+      for (final doc in querySnapshot.docs) {
+        final data = doc.data();
+        final booking = Booking(
+          id: doc.id,
+          courtId: data['courtId'] ?? '',
+          date: data['date'] ?? '',
+          timeSlot: data['timeSlot'] ?? '',
+          players: (data['players'] as List<dynamic>?)
+              ?.map((playerData) => BookingPlayer.fromMap(playerData))
+              .toList() ?? [],
+          status: data['status'] != null ? BookingStatus.values.firstWhere(
+            (status) => status.toString() == 'BookingStatus.${data['status']}',
+            orElse: () => BookingStatus.complete,
+          ) : null,
+          createdAt: data['createdAt']?.toDate(),
+          updatedAt: data['updatedAt']?.toDate(),
+        );
+        
+        // Verificar si el usuario está en la reserva
+        final isUserInBooking = booking.players.any((player) => 
+          (player.email?.toLowerCase() ?? '') == userEmail.toLowerCase()
+        );
+        
+        if (isUserInBooking) {
+          userBookings.add(booking);
+        }
+      }
+      
+      // Filtrar por deporte y verificar ventana de 4 horas
+      for (final booking in userBookings) {
+        final bookingSport = AppConstants.getCourtSport(booking.courtId);
+        if (bookingSport == sport && BookingTimeUtils.isWithin4Hours(timeSlot, booking.timeSlot)) {
+          return true; // Hay conflicto
+        }
+      }
+      
+      return false; // Sin conflicto
+    } catch (e) {
+      print('Error checking conflicting reservation: $e');
+      return false; // En caso de error, permitir la reserva
+    }
+  }
+
+  void _showConflictDialog(String sport, BuildContext context, {String? conflictingPlayerName}) {
+    final playerInfo = conflictingPlayerName != null ? ' ($conflictingPlayerName)' : '';
+    
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Reserva no permitida'),
+        content: Text(
+          'El jugador$playerInfo ya tiene una reserva de $sport con menos de 4 horas de diferencia. '
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(),
+            child: const Text('Entendido'),
+          ),
+        ],
+      ),
+    );
+  }
+
   void forceRegenerateAvailableDates() {
     print('🔧 FORZANDO REGENERACIÓN DE FECHAS');
     _generateAvailableDates();
@@ -821,8 +900,22 @@ class BookingProvider extends ChangeNotifier {
   // ============================================================================
   
   /// Crea una reserva básica con validación completa
-  Future<void> createBooking(Booking booking) async {
+  Future<void> createBooking(Booking booking, BuildContext context) async {
     try {
+      // NUEVA VALIDACIÓN: Verificar ventana 4 horas
+      final sport = AppConstants.getCourtSport(booking.courtId);
+      final hasConflict = await _hasConflictingReservation(
+        booking.players.isNotEmpty ? booking.players.first.email ?? '' : '',
+        booking.date,
+        booking.timeSlot,
+        sport
+      );
+
+      if (hasConflict) {
+        _showConflictDialog(sport, context);
+        return;
+      }
+
       _setLoading(true);
       print('➕ Creando nueva reserva...');
       
@@ -857,8 +950,40 @@ class BookingProvider extends ChangeNotifier {
     required String timeSlot,
     required List<BookingPlayer> players,
     BookingStatus? initialStatus, // NUEVO PARÁMETRO OPCIONAL
+    required BuildContext context, // AGREGAR ESTE PARÁMETRO
   }) async {
     try {
+      // NUEVA VALIDACIÓN: Verificar ventana 4 horas para TODOS los jugadores
+      final sport = AppConstants.getCourtSport(courtId);
+
+      for (final player in players) {
+        print('  - ${player.name}: ${player.email}');
+        
+        // Excepción: Jugadores VISITA no tienen restricciones
+        if (player.name?.toUpperCase().contains('VISITA') == true) {
+          print('  ⚪ ${player.name} es VISITA - sin restricciones');
+          continue;
+        }
+        
+        final playerEmail = player.email ?? '';
+        if (playerEmail.isNotEmpty) {
+          final hasConflict = await _hasConflictingReservation(
+            playerEmail,
+            date,
+            timeSlot,
+            sport
+          );
+
+          if (hasConflict) {
+            _showConflictDialog(sport, context, conflictingPlayerName: player.name);
+            return false;
+          }
+        }
+      }
+      
+      print('🔍 TIMESLOT: $timeSlot');
+      print('🔍 SPORT: $sport');
+      
       _setLoading(true);
       print('📍 Creando reserva con emails automáticos...');
       

@@ -4,7 +4,7 @@
 
 **Fecha de actualización:** 4 de Septiembre, 2025  
 **URL de Producción:** https://paddlepapudo.github.io/cgp_reservas/  
-**Estado actual:** Sistema multi-deporte funcional con ventana 72 horas y emails de admin implementados  
+**Estado actual:** Sistema multi-deporte funcional con ventana 72 horas, emails de admin implementados y validación de 4 horas operativa  
 **Usuarios activos:** 497+ socios sincronizados automáticamente  
 
 ### Stack Tecnológico
@@ -70,6 +70,7 @@ lib/
   - `updateBookingPlayers(String bookingId, List<BookingPlayer> players)`: Actualización atómica de jugadores
   - `getBookingsByDate(DateTime date)`: Recuperación de reservas por fecha
   - `deleteBooking(String bookingId)`: Eliminación de reservas
+  - `getUserBookingsForDate(String userEmail, String date)`: Reservas específicas de usuario
 
 **`lib/data/services/email_service.dart`**
 - Servicio centralizado para envío de emails
@@ -116,6 +117,7 @@ lib/
 - **Colores UI:** Verde golf (#4CAF50, #7CB342)
 - **Horarios:** 8:00 AM - 16:00/17:00 PM (invierno/verano), intervalos de 12 minutos
 - **Ventana de reservas:** 48 horas desde hora actual
+- **UI Mejorada:** Muestra organizador + número de acompañantes similar a Pádel/Tenis
 - **Plantilla Email:** generateGolfEmailTemplate() con diseño verde corporativo
 - **Estado:** Funcional, sistema de emails implementado
 
@@ -190,6 +192,7 @@ if (requestType === 'player_added') {
 - `sendBookingEmailHTTP`: Envío de confirmaciones y notificaciones admin
 - `cancelBooking`: Gestión de cancelaciones
 - `sendCancellationNotification`: Notificaciones a jugadores restantes
+- `dailyUserSync`: Sincronización automática de usuarios desde Google Sheets
 
 ---
 
@@ -361,6 +364,36 @@ Color _getCourtPrimaryColor(String courtName) {
   - **NOTA TÉCNICA:** Implementación actual usa reemplazo de texto sobre plantillas existentes (solución temporal funcional). Requiere desarrollo de plantillas HTML específicas para admin en futuras iteraciones.
 - **Estado:** ✅ RESUELTO Y FUNCIONAL (implementación temporal)
 
+### Validación de Reservas Múltiples - Ventana 4 Horas (Septiembre 2025)
+- **Problema:** Jugadores podían reservar slots con menos de 4 horas de diferencia en el mismo deporte
+- **Ejemplo:** Juan Pérez reserva Golf 9:00 AM y luego Golf 11:00 AM mismo día
+- **Solución implementada:** 
+  - Validación de todos los jugadores en la reserva (no solo organizador)
+  - Ventana de 4 horas aplicada por deporte independientemente de la cancha
+  - Mensaje claro identificando jugador en conflicto
+  - Excepción especial para jugadores con "VISITA" en el nombre (sin restricciones)
+- **Archivos modificados:**
+  - `app_constants.dart`: Helper `getSportFromCourtId()` y `getCourtSport()`
+  - `booking_time_utils.dart`: Funciones `parseTimeSlot()` e `isWithin4Hours()`
+  - `firestore_service.dart`: Constructor manual de Booking desde Map
+  - `booking_provider.dart`: Validación completa en `createBookingWithEmails()`
+  - `reservation_form_modal.dart`: Parámetro context agregado
+- **Regla implementada:** Un jugador no puede tener más de una reserva dentro de 4 horas en el mismo deporte
+- **Usuarios exentos:** Jugadores con string "VISITA" en su nombre (GOLF1-4 VISITA, PADEL1-4 VISITA, TENIS1-4 VISITA)
+- **Estado:** ✅ RESUELTO Y FUNCIONAL
+
+### Mejora UI Golf - Mostrar Organizador (Septiembre 2025)
+- **Funcionalidad:** Agregar nombre del organizador en slots de Golf similar a Pádel/Tenis
+- **Beneficio:** Usuarios pueden ver quién organizó la reserva sin abrir modal
+- **Formato implementado:** "NOMBRE +X" donde X es número de acompañantes  
+- **Layout optimizado:** Eliminado contador "X/4" redundante y textos de estado innecesarios para layout más limpio
+- **Archivos modificados:** `golf_reservations_page.dart`
+- **Resultado final:**
+  - Slots incompletos: "HORA / ORGANIZADOR +X / Reservar"
+  - Slots completos: "HORA / ORGANIZADOR +X / Reservada" 
+  - Slots vacíos: "HORA / Reservar"
+- **Estado:** ✅ IMPLEMENTADO Y FUNCIONAL
+
 ---
 
 ## Issues Pendientes
@@ -416,6 +449,14 @@ Color _getCourtPrimaryColor(String courtName) {
 - **Impacto:** Experiencia de usuario
 - **Prioridad:** Media
 
+### **PRIORIDAD BAJA**
+
+#### Reporte Múltiples Conflictos - Validación 4 Horas
+- **Descripción:** Mostrar todos los jugadores con conflicto en lugar de solo el primero
+- **Ejemplo:** Si 2 jugadores tienen conflictos, mostrar ambos en el mensaje
+- **Estado:** Funcional pero solo reporta el primer conflicto
+- **Prioridad:** Baja (mejora de UX)
+
 ---
 
 ## Métricas de Performance
@@ -430,6 +471,12 @@ Color _getCourtPrimaryColor(String courtName) {
 - **Usuarios sincronizados:** 497+ socios activos
 - **Deportes operativos:** 3 (Golf, Tenis, Pádel)
 - **Canchas totales:** 9 (2 tees golf + 4 tenis + 3 pádel)
+
+### Reglas de Negocio Implementadas
+- **Ventana Golf:** 48 horas desde hora actual
+- **Ventana Tenis/Pádel:** 72 horas desde hora actual
+- **Restricción temporal:** 4 horas mínimo entre reservas del mismo deporte
+- **Usuarios exentos:** Jugadores "VISITA" sin restricciones de horario
 
 ---
 
@@ -482,20 +529,32 @@ Color _getCourtPrimaryColor(String courtName) {
    - Priorizar limpieza para mejorar experiencia usuario
    - No afecta funcionalidad pero sí UX
 
+4. **Validación 4 Horas**
+   - Implementada y funcional en los tres deportes
+   - Usuarios "VISITA" exentos de todas las restricciones
+   - Solo reporta primer jugador en conflicto (mejora pendiente)
+
 ### 📋 Notas para el Cliente
 
 1. **Funcionalidades Nuevas Implementadas**
    - Sistema de ventana 72 horas para Tennis/Pádel funcionando completamente
+   - Validación de 4 horas entre reservas del mismo deporte operativa
    - Emails automáticos cuando admin modifica jugadores (temporal pero funcional)
    - Canchas de tenis con nombres claros y colores únicos
    - Modal de pádel muestra nombres reales de canchas
+   - UI de Golf mejorada mostrando organizador como en otros deportes
 
 2. **Sistema de Emails Completo**
    - Funcionando para los 3 deportes
    - Cobertura total: crear, cancelar, modificar por admin
    - Cada deporte tiene su plantilla personalizada
 
-3. **Interfaz Admin Pendiente**
+3. **Reglas de Negocio Robustas**
+   - Restricción temporal de 4 horas evita reservas abusivas
+   - Flexibilidad total para usuarios "VISITA" del club
+   - Consistencia de experiencia entre los tres deportes
+
+4. **Interfaz Admin Pendiente**
    - Funcional pero con problemas de UX
    - Requiere atención prioritaria para operaciones diarias
 
@@ -524,6 +583,7 @@ Color _getCourtPrimaryColor(String courtName) {
    - Probar cada deporte por separado
    - Validar emails en entorno de pruebas
    - Confirmar funcionalidad admin antes de deploy
+   - Verificar reglas de 4 horas con usuarios reales y VISITA
 
 ### Archivos críticos para modificaciones:
 
@@ -538,9 +598,9 @@ Color _getCourtPrimaryColor(String courtName) {
 - `lib/presentation/pages/{sport}_reservations_page.dart`: UI por deporte
 
 **Constantes y Configuración:**
-- `lib/core/constants/app_constants.dart`: Mapeo nombres canchas
+- `lib/core/constants/app_constants.dart`: Mapeo nombres canchas y detección deportes
 - `lib/core/constants/tennis_constants.dart`: Configuración tenis
-- `lib/core/utils/booking_time_utils.dart`: Lógica ventana 72 horas
+- `lib/core/utils/booking_time_utils.dart`: Lógica ventana 72 horas y funciones de tiempo
 - `lib/presentation/widgets/enhanced_court_tab.dart`: Colores diferenciados
 
 **Página Principal:**
@@ -548,8 +608,8 @@ Color _getCourtPrimaryColor(String courtName) {
 
 ### Estado Actual del Sistema (Septiembre 2025):
 
-**✅ FUNCIONAL:** Sistema multi-deporte completo con ventana de tiempo diferenciada (48h golf, 72h tennis/pádel), emails automáticos para todas las acciones (crear, cancelar, modificar admin), y UI optimizada por deporte.
+**✅ FUNCIONAL:** Sistema multi-deporte completo con ventana de tiempo diferenciada (48h golf, 72h tennis/pádel), validación de 4 horas entre reservas del mismo deporte, emails automáticos para todas las acciones (crear, cancelar, modificar admin), excepción para usuarios VISITA, y UI optimizada por deporte.
 
 **⚠️ PENDIENTE:** Optimización interfaz admin, limpieza debug logs, mejora plantillas email admin.
 
-El proyecto mantiene una arquitectura sólida y escalable, con separación clara de responsabilidades y funcionalidad completa para operación diaria del club.
+El proyecto mantiene una arquitectura sólida y escalable, con separación clara de responsabilidades y funcionalidad completa para operación diaria del club. La implementación de la validación de 4 horas y las mejoras de UI representan avances significativos en la robustez y usabilidad del sistema.

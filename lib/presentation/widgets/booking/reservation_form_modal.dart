@@ -635,6 +635,7 @@ class _ReservationFormModalState extends State<ReservationFormModal> {
         date: widget.date,
         timeSlot: widget.timeSlot,
         players: bookingPlayers,
+        context: context,
       );
 
       if (success) {

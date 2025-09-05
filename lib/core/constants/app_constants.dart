@@ -374,6 +374,15 @@ abstract class AppConstants {
     }
   }
 
+  static String getSportFromCourtId(String courtId) {
+    if (courtId.startsWith('golf_')) return 'golf';
+    if (courtId.startsWith('tennis_')) return 'tennis';
+    if (courtId.contains('pite') || courtId.contains('lilen') || courtId.contains('plaiya')) {
+      return 'paddle';
+    }
+    return 'unknown';
+  }
+
   /// Obtiene el deporte basado en el courtId
   static String getCourtSport(String courtId) {
     if (courtId.startsWith('padel')) return 'padel';

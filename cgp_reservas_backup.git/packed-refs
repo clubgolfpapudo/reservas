@@ -1,0 +1,32 @@
+# pack-refs with: peeled fully-peeled sorted 
+423eecf3700a73ca19ebffd586f5675a54636b4d refs/heads/backup-27ago2025-toast-implementado
+ff5b4b7353e55b5456fd1adca76af2a6d946934a refs/heads/backup-header
+080f19d3b74f25a3f879adf09ca631649c228836 refs/heads/backup/docs-milestone-2025-07-17
+6a06443ac9a46dcac36729707e550b0e6c39565e refs/heads/backup/english-migration-complete-2025-07-20
+341a40bf07a7f7b95dc1f456fdf5b05f2319b7be refs/heads/backup/sept3-session
+a4deafe4be4634f67fbdd0bedb9cb68de0071efe refs/heads/develop/golf-testing-phase
+c30477cc7b938dbfb3230951bce66fc40f78c472 refs/heads/development
+40acd5b16ddc776a16cc0c83d56546bd7641c274 refs/heads/gh-pages
+c30477cc7b938dbfb3230951bce66fc40f78c472 refs/heads/main
+1cb75da9a3ec5b2da32e8060558b3f196b7a9201 refs/tags/backup-original-clean
+^36cd9a8d8fb78093e630cdf86bdbbe5968db2a61
+d4a6c9e9c10842e9686ff06a417beec2981aec13 refs/tags/backup-sept3-2025
+^341a40bf07a7f7b95dc1f456fdf5b05f2319b7be
+1b41ae240713b5636057c9190113d9ca3e80da2d refs/tags/v1.0.0-docs-complete
+^080f19d3b74f25a3f879adf09ca631649c228836
+72287977aa3067a141cda283c9e63641e0640e91 refs/tags/v1.0.0-pre-english-migration
+^79cd0209d120b3b11582f038c3c7d6e0b1a94056
+f1362258a8ad64506ccfca288df54b7fbffe388e refs/tags/v1.1.0-pre-migration
+^6a06443ac9a46dcac36729707e550b0e6c39565e
+46a450cb398202a8932316bd47926c12745216d9 refs/tags/v1.2.0-english-complete-multisport-ready
+^6a06443ac9a46dcac36729707e550b0e6c39565e
+cdeefee1a79447d2c6358454d5c927d811bd9ee9 refs/tags/v1.2.0-tennis-mvp
+^80d63ca567a89e0e97e541dab8af09237882c107
+c0755cef4352dea755e10aebd60faa3d37bce407 refs/tags/v1.3.0
+^423eecf3700a73ca19ebffd586f5675a54636b4d
+471c8aa65c1bfb691f600bf437fa2d8eb95edce6 refs/tags/v2.0.0-multisport
+^ffc5992dc2eba1e40b99c3b6494857acd1642fc8
+0aca4425e4ef760974ba0c70fd0d45eab0d2ee79 refs/tags/v2.1.0-golf-email-system
+^a4deafe4be4634f67fbdd0bedb9cb68de0071efe
+16b420404a3492e373a0a8d33cab21db811bdb56 refs/tags/v2025.07.21
+^2e2e917e3519ee1782a29c2ed05f94cc74c38df7
