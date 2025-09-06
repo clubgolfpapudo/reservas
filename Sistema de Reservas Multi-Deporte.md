@@ -2,9 +2,9 @@
 
 ## Información General del Proyecto
 
-**Fecha de actualización:** 4 de Septiembre, 2025  
+**Fecha de actualización:** 6 de Septiembre, 2025  
 **URL de Producción:** https://paddlepapudo.github.io/cgp_reservas/  
-**Estado actual:** Sistema multi-deporte funcional con ventana 72 horas, emails de admin implementados y validación de 4 horas operativa  
+**Estado actual:** Sistema multi-deporte funcional con ventana 72 horas implementada, emails de admin operativos, validación de 4 horas funcional, estadísticas mejoradas  
 **Usuarios activos:** 497+ socios sincronizados automáticamente  
 
 ### Stack Tecnológico
@@ -55,6 +55,7 @@ lib/
     │   └── admin_provider.dart
     └── widgets/
         ├── booking/
+        │   └── animated_compact_stats.dart (ACTIVO)
         ├── admin/
         └── enhanced_court_tab.dart
 ```
@@ -70,7 +71,7 @@ lib/
   - `updateBookingPlayers(String bookingId, List<BookingPlayer> players)`: Actualización atómica de jugadores
   - `getBookingsByDate(DateTime date)`: Recuperación de reservas por fecha
   - `deleteBooking(String bookingId)`: Eliminación de reservas
-  - `getUserBookingsForDate(String userEmail, String date)`: Reservas específicas de usuario
+  - `createBooking(Booking booking)`: Creación con actualización automática de lista local
 
 **`lib/data/services/email_service.dart`**
 - Servicio centralizado para envío de emails
@@ -89,6 +90,7 @@ lib/
   - `date`: Fecha de la reserva (String)
   - `timeSlot`: Horario reservado (String)
   - `players`: Lista de jugadores (BookingPlayer)
+- **Nuevo:** Getter `calculatedStatus` que determina dinámicamente si la reserva está completa o incompleta
 
 **`lib/domain/entities/booking_player.dart`**
 - Modelo para jugadores individuales
@@ -98,6 +100,9 @@ lib/
 
 **Provider Pattern para Estado:**
 - `BookingProvider`: Gestiona estado de reservas y llamadas a servicios
+  - **Nuevo:** Método `getStatsForVisibleTimeSlots()` con fix de formato de fecha
+  - **Nuevo:** Método `getBookingForTimeSlot()` corregido para filtrar por courtId
+  - **Nuevo:** Validación automática de ventana 4 horas entre reservas
 - `AuthProvider`: Maneja autenticación de usuarios
 - `AdminProvider`: Controla funcionalidades administrativas
 
@@ -118,8 +123,9 @@ lib/
 - **Horarios:** 8:00 AM - 16:00/17:00 PM (invierno/verano), intervalos de 12 minutos
 - **Ventana de reservas:** 48 horas desde hora actual
 - **UI Mejorada:** Muestra organizador + número de acompañantes similar a Pádel/Tenis
+- **Funcionalidad especial:** Permite unirse a slots incompletos (único deporte con esta característica)
 - **Plantilla Email:** generateGolfEmailTemplate() con diseño verde corporativo
-- **Estado:** Funcional, sistema de emails implementado
+- **Estado:** Funcional, sistema de emails implementado, estadísticas operativas
 
 ### Tenis System  
 - **Canchas:** 4 canchas (tennis_cancha_1 a tennis_cancha_4)
@@ -134,10 +140,12 @@ lib/
   - Invierno: 9:00, 10:30, 12:00, 13:30, 15:00, 16:30
   - Verano: + 18:00, 19:30
 - **Ventana de reservas:** 72 horas desde hora actual
+- **Restricción:** No permite unirse a slots incompletos (siempre aparece "Reservada")
 - **Estado:** Funcional con UI mejorada y ventana 72h implementada
 
 ### Pádel System
-- **Canchas:** 3 canchas (PITE, LILEN, PLAIYA)
+- **Canchas:** 3 canchas (padel_court_1, padel_court_2, padel_court_3)
+- **Nombres mostrados:** PITE, LILEN, PLAIYA (nombres reales implementados Sept 2025)
 - **Capacidad:** Sistema estándar pádel (4 jugadores)
 - **Colores UI:** Azul profesional (#2E7AFF, #1E5AFF) 
 - **Auto-selección:** PITE por defecto
@@ -146,7 +154,30 @@ lib/
   - Invierno: 9:00, 10:30, 12:00, 13:30, 15:00, 16:30
   - Verano: + 18:00, 19:30
 - **Ventana de reservas:** 72 horas desde hora actual
+- **Restricción:** No permite unirse a slots incompletos (siempre aparece "Reservada")
 - **Estado:** Completamente funcional con ventana 72h implementada
+
+---
+
+## Sistema de Estadísticas (NUEVO - Septiembre 2025)
+
+### Widget de Estadísticas Actualizado
+**`animated_compact_stats.dart`** - Widget único para los tres deportes
+- **Título:** "HORARIOS" centralizado
+- **Formato horizontal:** Completos | Incompletos | Libres
+- **Colores mejorados:** Naranja legible para "Incompletos"
+- **Fix crítico:** Formato de fecha corregido para detectar reservas reales
+
+### Lógica de Cálculo
+- **Método:** `getStatsForVisibleTimeSlots()` en BookingProvider
+- **Fix implementado:** Conversión de DateTime a string de fecha para comparación correcta
+- **Filtrado por cancha:** Considera todas las canchas del deporte específico
+- **Estados dinámicos:** Usa `calculatedStatus` en lugar de status de Firebase
+
+### Definición de Estados
+- **Completos:** Slots con reservas de capacidad máxima (4/4 jugadores)
+- **Incompletos:** Slots con reservas bajo capacidad máxima (1-3/4 jugadores)
+- **Libres:** Slots sin reservas
 
 ---
 
@@ -229,42 +260,7 @@ cgpreservas/
 - `tennis_cancha_1` a `tennis_cancha_4` (mostrados como C.1 a C.4)
 
 **Pádel:**
-- `pite`, `lilen`, `plaiya` (nombres reales de las canchas)
-
----
-
-## Sistema de Colores y Branding
-
-### Diferenciación Visual por Deporte
-
-```dart
-// Golf
-Color get _golfColor => const Color(0xFF4CAF50); // Verde golf
-String get _golfDisplayName => 'golf';
-
-// Tenis - Colores diferenciados por cancha  
-Color get _tenisColor => const Color(0xFFD2691E); // Tierra batida
-String get _tenisDisplayName => 'tenis';
-
-// Pádel
-Color get _padelColor => const Color(0xFF2E7AFF); // Azul profesional  
-String get _padelDisplayName => 'pádel';
-```
-
-### Implementación de Colores por Cancha de Tenis
-
-```dart
-// En enhanced_court_tab.dart
-Color _getCourtPrimaryColor(String courtName) {
-  switch (courtName) {
-    case 'C.1': return const Color(0xFF2196F3); // Azul
-    case 'C.2': return const Color(0xFF4CAF50); // Verde
-    case 'C.3': return const Color(0xFF00BCD4); // Turquesa
-    case 'C.4': return const Color(0xFF9C27B0); // Púrpura
-    default: return const Color(0xFF2196F3);
-  }
-}
-```
+- `padel_court_1` (PITE), `padel_court_2` (LILEN), `padel_court_3` (PLAIYA)
 
 ---
 
@@ -308,6 +304,12 @@ Color _getCourtPrimaryColor(String courtName) {
 - **Archivos modificados:** `app_constants.dart`
 - **Estado:** ✅ RESUELTO
 
+### Modal de Confirmación Golf (Septiembre 2025)
+- **Problema:** Modal mostraba "golf_tee_1" en lugar de "Hoyo 1"
+- **Solución:** Agregado de mapeo en `_getDisplayCourtName()` en `reservation_form_modal.dart`
+- **Casos agregados:** `golf_tee_1` → `Hoyo 1`, `golf_tee_10` → `Hoyo 10`
+- **Estado:** ✅ RESUELTO
+
 ### Overflow Página de Inicio (Septiembre 2025)
 - **Problema:** Error "Bottom overflowed by X pixels" en main.dart
 - **Causa:** `mainAxisAlignment.center` con contenido excesivo para pantalla
@@ -324,10 +326,12 @@ Color _getCourtPrimaryColor(String courtName) {
 - **Estado:** ✅ RESUELTO
 
 ### Limpieza de Código Legacy (Septiembre 2025)
-- **Problema:** Archivo `login_page.dart` sin referencias en el proyecto
-- **Solución:** Eliminación del archivo no utilizado
-- **Justificación:** Sin imports ni navegación hacia esa página en todo el codebase
-- **Impacto:** Reducción de tamaño del proyecto y eliminación de confusión
+- **Problema:** Archivos duplicados y sin uso
+- **Solución:** Eliminación de archivos no utilizados:
+  - `login_page.dart` (sin referencias)
+  - `compact_stats.dart` (reemplazado por animated_compact_stats.dart)
+  - `time_slot_block.dart` duplicado
+- **Resultado:** Reducción de tamaño del proyecto y eliminación de confusión
 - **Estado:** ✅ RESUELTO
 
 ### Ventana de Reservas 72 Horas (Septiembre 2025)
@@ -361,7 +365,6 @@ Color _getCourtPrimaryColor(String courtName) {
   - Admin remueve jugador → Email "Removido de Reserva de [Deporte]"
   - Usa estructura de `EmailService` existente (evita problemas CORS)
   - Subject y contenido específicos por tipo de acción
-  - **NOTA TÉCNICA:** Implementación actual usa reemplazo de texto sobre plantillas existentes (solución temporal funcional). Requiere desarrollo de plantillas HTML específicas para admin en futuras iteraciones.
 - **Estado:** ✅ RESUELTO Y FUNCIONAL (implementación temporal)
 
 ### Validación de Reservas Múltiples - Ventana 4 Horas (Septiembre 2025)
@@ -394,6 +397,31 @@ Color _getCourtPrimaryColor(String courtName) {
   - Slots vacíos: "HORA / Reservar"
 - **Estado:** ✅ IMPLEMENTADO Y FUNCIONAL
 
+### Sistema de Estadísticas de Horarios (Septiembre 2025)
+- **Problema:** Estadísticas mostraban 0 completos, 0 incompletos cuando había reservas reales
+- **Causa raíz:** Múltiples problemas de formato de fecha y filtrado
+- **Soluciones implementadas:**
+  - **Fix de formato de fecha:** `selectedDate.toString().split(' ')[0]` para comparación correcta
+  - **Filtrado por cancha específica:** Método `getBookingForTimeSlot()` actualizado para recibir `courtId`
+  - **Estado dinámico:** Implementación de `calculatedStatus` en modelo Booking
+  - **Actualización de lista local:** Reservas nuevas se agregan inmediatamente a `_bookings`
+  - **Widget único:** `animated_compact_stats.dart` centralizado para los tres deportes
+- **Archivos modificados:**
+  - `lib/domain/entities/booking.dart`: Agregado `calculatedStatus` getter
+  - `lib/presentation/providers/booking_provider.dart`: Múltiples fixes de métodos
+  - `lib/presentation/widgets/booking/animated_compact_stats.dart`: Título "HORARIOS" y colores mejorados
+- **Resultado:** Estadísticas precisas mostrando estado real de reservas
+- **Estado:** ✅ RESUELTO Y FUNCIONAL
+
+### Texto de Modal para Reservas Incompletas (Septiembre 2025)
+- **Problema:** Modal decía "La grilla debe aparecer indicando 'Reservada'" para todas las reservas
+- **Solución:** Texto dinámico según deporte y estado de reserva
+- **Lógica implementada:**
+  - **Golf:** "Reservar (otros pueden unirse)" si incompleta, "Reservada" si completa
+  - **Tenis/Pádel:** Siempre "Reservada" (no permiten unirse a slots incompletos)
+- **Archivo modificado:** `reservation_form_modal.dart`
+- **Estado:** ✅ RESUELTO
+
 ---
 
 ## Issues Pendientes
@@ -411,6 +439,14 @@ Color _getCourtPrimaryColor(String courtName) {
   - `lib/presentation/pages/admin_reservations_page.dart`
   - Posible refactor de componentes de admin
 - **Prioridad:** Alta (afecta operaciones diarias del club)
+
+#### Navegación de Fechas en Golf (NUEVO - Septiembre 2025)
+- **Problema 1:** Al navegar entre fechas, la flecha derecha salta del día 6 (hoy) al 8, no se puede acceder al domingo 7
+- **Problema 2:** Ventana de 48 horas incorrecta - permite abrir el día 8 cuando desde hoy (5 sept) solo debería permitir días 6 y 7
+- **Excepción:** Cuando se está en horario de juego, la ventana debe ser: resto del día actual + todo el día siguiente + todo el día subsiguiente
+- **Impacto:** Funcionalidad básica de navegación comprometida
+- **Archivo afectado:** `golf_reservations_page.dart` y posiblemente `booking_provider.dart`
+- **Prioridad:** Alta (afecta usabilidad básica)
 
 ### **PRIORIDAD MEDIA**
 
@@ -444,11 +480,6 @@ Color _getCourtPrimaryColor(String courtName) {
 - **Estado:** Funcional con solución temporal
 - **Prioridad:** Media
 
-#### Problemas UI Menores
-- **Descripción:** Estadísticas incorrectas, AppBar dinámico por sección
-- **Impacto:** Experiencia de usuario
-- **Prioridad:** Media
-
 ### **PRIORIDAD BAJA**
 
 #### Reporte Múltiples Conflictos - Validación 4 Horas
@@ -473,36 +504,42 @@ Color _getCourtPrimaryColor(String courtName) {
 - **Canchas totales:** 9 (2 tees golf + 4 tenis + 3 pádel)
 
 ### Reglas de Negocio Implementadas
-- **Ventana Golf:** 48 horas desde hora actual
+- **Ventana Golf:** 48 horas desde hora actual (con problemas de navegación)
 - **Ventana Tenis/Pádel:** 72 horas desde hora actual
 - **Restricción temporal:** 4 horas mínimo entre reservas del mismo deporte
 - **Usuarios exentos:** Jugadores "VISITA" sin restricciones de horario
+- **Estados de reserva:** Calculados dinámicamente basado en número de jugadores
 
 ---
 
 ## Próximos Desarrollos Prioritarios
 
 ### Inmediato (Alta Prioridad)
-1. **Mejorar interfaz de administrador**
+1. **Corregir navegación de fechas en Golf**
+   - Resolver salto del día 6 al 8
+   - Implementar ventana correcta de 48 horas
+   - Agregar lógica de excepción para horario de juego
+
+2. **Mejorar interfaz de administrador**
    - Resolver problemas de layout y overflow
    - Implementar filtros funcionales de reservas
    - Optimizar para pantallas pequeñas
 
 ### Mediano Plazo (Media Prioridad)
-2. **Limpieza de performance**
+3. **Limpieza de performance**
    - Remover debug prints de producción
    - Optimizar navegación de fechas en golf
 
-3. **Mejora de plantillas email admin**
+4. **Mejora de plantillas email admin**
    - Desarrollar plantillas HTML específicas
    - Eliminar dependencia de reemplazo de texto
 
-4. **Validaciones backend**
+5. **Validaciones backend**
    - Jugadores duplicados
    - Integridad de datos
 
 ### Testing y Calidad
-5. **Testing integral sistema completo**
+6. **Testing integral sistema completo**
    - Validar flujo completo reservas todos los deportes
    - Confirmar emails funcionando correctamente
    - Testing de regresión para cambios implementados
@@ -519,10 +556,10 @@ Color _getCourtPrimaryColor(String courtName) {
    - Funcional pero requiere desarrollo de plantillas específicas
    - Monitorear que los reemplazos sigan funcionando tras updates
 
-2. **Formulario de Google Forms**
-   - Puede requerir autenticación en producción
-   - Monitorear funcionamiento tras deployment
-   - Tener plan B de contacto directo preparado
+2. **Navegación de Fechas Golf**
+   - Problema crítico identificado con salto de días
+   - Ventana de 48 horas incorrectamente implementada
+   - Puede afectar experiencia de usuario significativamente
 
 3. **Performance Logs Golf**
    - Debug prints causan degradación de performance
@@ -537,12 +574,13 @@ Color _getCourtPrimaryColor(String courtName) {
 ### 📋 Notas para el Cliente
 
 1. **Funcionalidades Nuevas Implementadas**
-   - Sistema de ventana 72 horas para Tennis/Pádel funcionando completamente
+   - Sistema de estadísticas "HORARIOS" completamente funcional
+   - Detección precisa de reservas completas/incompletas/libres
    - Validación de 4 horas entre reservas del mismo deporte operativa
    - Emails automáticos cuando admin modifica jugadores (temporal pero funcional)
-   - Canchas de tenis con nombres claros y colores únicos
-   - Modal de pádel muestra nombres reales de canchas
-   - UI de Golf mejorada mostrando organizador como en otros deportes
+   - Canchas con nombres claros y colores únicos en todos los deportes
+   - Modales de confirmación muestran nombres reales de canchas
+   - UI mejorada mostrando organizador en todos los deportes
 
 2. **Sistema de Emails Completo**
    - Funcionando para los 3 deportes
@@ -552,11 +590,12 @@ Color _getCourtPrimaryColor(String courtName) {
 3. **Reglas de Negocio Robustas**
    - Restricción temporal de 4 horas evita reservas abusivas
    - Flexibilidad total para usuarios "VISITA" del club
+   - Solo Golf permite unirse a slots incompletos
    - Consistencia de experiencia entre los tres deportes
 
-4. **Interfaz Admin Pendiente**
-   - Funcional pero con problemas de UX
-   - Requiere atención prioritaria para operaciones diarias
+4. **Issues Críticos Pendientes**
+   - Navegación de fechas en Golf requiere atención inmediata
+   - Interfaz admin necesita mejoras para operaciones diarias
 
 ---
 
@@ -601,15 +640,18 @@ Color _getCourtPrimaryColor(String courtName) {
 - `lib/core/constants/app_constants.dart`: Mapeo nombres canchas y detección deportes
 - `lib/core/constants/tennis_constants.dart`: Configuración tenis
 - `lib/core/utils/booking_time_utils.dart`: Lógica ventana 72 horas y funciones de tiempo
-- `lib/presentation/widgets/enhanced_court_tab.dart`: Colores diferenciados
+- `lib/presentation/widgets/booking/animated_compact_stats.dart`: Estadísticas centralizadas
+- `lib/presentation/widgets/booking/reservation_form_modal.dart`: Modal de confirmación
 
 **Página Principal:**
 - `lib/presentation/pages/main.dart`: Login y navegación principal (SimpleLoginPage)
 
 ### Estado Actual del Sistema (Septiembre 2025):
 
-**✅ FUNCIONAL:** Sistema multi-deporte completo con ventana de tiempo diferenciada (48h golf, 72h tennis/pádel), validación de 4 horas entre reservas del mismo deporte, emails automáticos para todas las acciones (crear, cancelar, modificar admin), excepción para usuarios VISITA, y UI optimizada por deporte.
+**✅ FUNCIONAL:** Sistema multi-deporte completo con estadísticas precisas, ventana de tiempo diferenciada (48h golf, 72h tennis/pádel), validación de 4 horas entre reservas del mismo deporte, emails automáticos para todas las acciones, excepción para usuarios VISITA, UI optimizada por deporte, y estado dinámico de reservas.
 
-**⚠️ PENDIENTE:** Optimización interfaz admin, limpieza debug logs, mejora plantillas email admin.
+**⚠️ PENDIENTE:** Corrección navegación fechas Golf, optimización interfaz admin, limpieza debug logs.
 
-El proyecto mantiene una arquitectura sólida y escalable, con separación clara de responsabilidades y funcionalidad completa para operación diaria del club. La implementación de la validación de 4 horas y las mejoras de UI representan avances significativos en la robustez y usabilidad del sistema.
+**🔧 ISSUES CRÍTICOS:** Navegación de fechas en Golf impide acceso correcto a días disponibles, afectando funcionalidad básica del sistema.
+
+El proyecto mantiene una arquitectura sólida y escalable, con separación clara de responsabilidades y funcionalidad completa para operación diaria del club. Las mejoras recientes en estadísticas y validaciones representan avances significativos en la robustez y usabilidad del sistema, pero los problemas de navegación en Golf requieren atención inmediata.

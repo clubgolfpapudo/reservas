@@ -573,17 +573,32 @@ class BookingProvider extends ChangeNotifier {
         current = current.add(Duration(days: 1));
       }
     } else {
-      // Tennis/Paddle: solo fechas futuras
-      DateTime current = DateTime(now.year, now.month, now.day + 1); // Mañana
+      // ✅ CORRECCIÓN: Tennis/Paddle empezar desde HOY, no mañana
+      DateTime today = DateTime(now.year, now.month, now.day);
+      
+      // TEMPORAL: Siempre empezar desde HOY (simplificado)
+      bool hasSlotsToday = now.hour < 16; // ← Lógica simple temporal
+      
+      DateTime startDate = hasSlotsToday ? today : today.add(Duration(days: 1));
       
       // DEBUG: Imprimir para verificar
       print('DEBUG: Hora actual: $now');
-      print('DEBUG: Primer día disponible: $current');
+      print('DEBUG: ¿Empezar desde hoy?: $hasSlotsToday (hora: ${now.hour})');
+      print('DEBUG: Fecha de inicio: $startDate');
       
+      DateTime current = startDate;
+      
+      // Generar 3 días desde la fecha de inicio
       for (int i = 0; i < 3; i++) {
         _availableDates.add(current);
         print('DEBUG: Agregando fecha: $current');
         current = current.add(Duration(days: 1));
+      }
+      
+      // Si no incluimos hoy, agregar un día más para mantener 3 días de ventana
+      if (!hasSlotsToday) {
+        _availableDates.add(current);
+        print('DEBUG: Agregando día extra: $current');
       }
     }
     
@@ -594,7 +609,49 @@ class BookingProvider extends ChangeNotifier {
     print('DEBUG: Fechas disponibles finales: $_availableDates');
     print('DEBUG: Fecha seleccionada: $_selectedDate');
   }
-  
+
+  // ✅ Verificar slots disponibles hoy  
+  bool _hasAvailableSlotsToday(DateTime now) {
+    // Slots estándar para Tennis/Paddle
+    List<String> allSlots = [
+      '9:00', '10:30', '12:00', '13:30', '15:00', '16:30'
+    ];
+    
+    // Agregar slots de verano si aplica - USAR MÉTODO EXISTENTE
+    if (_isSummerSeason(now)) {
+      allSlots.addAll(['18:00', '19:30']);
+    }
+    
+    // Verificar si algún slot es posterior a ahora + 1 hora (margen mínimo)
+    DateTime minimumTime = now.add(Duration(hours: 1));
+    
+    for (String slotStr in allSlots) {
+      DateTime slotTime = _parseSlotToDateTime(now, slotStr);
+      if (slotTime.isAfter(minimumTime)) {
+        print('DEBUG: Slot válido encontrado: $slotStr ($slotTime)');
+        return true;
+      }
+    }
+    
+    print('DEBUG: No hay slots válidos restantes hoy');
+    return false;
+  }
+
+  // ✅ Convertir slot string a DateTime
+  DateTime _parseSlotToDateTime(DateTime baseDate, String timeSlot) {
+    List<String> parts = timeSlot.split(':');
+    int hour = int.parse(parts[0]);
+    int minute = parts.length > 1 ? int.parse(parts[1]) : 0;
+    
+    return DateTime(
+      baseDate.year,
+      baseDate.month, 
+      baseDate.day,
+      hour,
+      minute
+    );
+  }
+
   Future<bool> _hasConflictingReservation(
     String userEmail, 
     String date, 
@@ -639,19 +696,35 @@ class BookingProvider extends ChangeNotifier {
         }
       }
       
-      // Filtrar por deporte y verificar ventana de 4 horas
-      for (final booking in userBookings) {
-        final bookingSport = AppConstants.getCourtSport(booking.courtId);
-        if (bookingSport == sport && BookingTimeUtils.isWithin4Hours(timeSlot, booking.timeSlot)) {
-          return true; // Hay conflicto
+      // Verificar conflictos de tiempo según deporte
+      for (final existingBooking in userBookings) {
+        String existingSport = AppConstants.getSportFromCourtId(existingBooking.courtId);
+        
+        // Solo verificar conflictos dentro del mismo deporte
+        if (existingSport == sport) {
+          // Verificar si están dentro de la ventana de 4 horas
+          if (BookingTimeUtils.isWithin4Hours(
+            existingBooking.timeSlot, 
+            timeSlot
+          )) {
+            return true; // Hay conflicto
+          }
         }
       }
       
-      return false; // Sin conflicto
+      return false; // No hay conflicto
+      
     } catch (e) {
-      print('Error checking conflicting reservation: $e');
+      print('Error verificando conflictos: $e');
       return false; // En caso de error, permitir la reserva
     }
+  }
+
+  // ✅ NUEVO MÉTODO: Determinar si es temporada de verano
+  bool _isSummerSeason(DateTime date) {
+    int month = date.month;
+    // Verano en Chile: Octubre a Marzo
+    return month >= 10 || month <= 3;
   }
 
   void _showConflictDialog(String sport, BuildContext context, {String? conflictingPlayerName}) {
@@ -694,7 +767,7 @@ class BookingProvider extends ChangeNotifier {
 
   // 🆕 MÉTODO NUEVO #2 - SIMPLIFICADO (solo para Golf)
   List<String> _getGolfTimeSlots() {
-    final bool isSummer = _isSummerSeason();
+    final bool isSummer = _isSummerSeason(DateTime.now());
     
     // Valores de golf desde configuración
     const startTime = '08:00';
@@ -712,12 +785,6 @@ class BookingProvider extends ChangeNotifier {
     }
     
     return slots;
-  }
-
-  // 🆕 MÉTODO NUEVO #3 - MANTENER IGUAL  
-  bool _isSummerSeason() {
-    final currentDate = DateTime.now();
-    return currentDate.month >= 10 || currentDate.month <= 3;
   }
 
   String _formatDate(DateTime date) {
