@@ -14,7 +14,7 @@ class AdminConstants {
   // 🎨 Configuración UI
   static const String adminPanelTitle = 'Panel de Administración';
   static const String adminMenuLabel = 'Admin';
-  static const String adminWelcomeMessage = 'Bienvenido al panel administrativo';
+  // static const String adminWelcomeMessage = 'Bienvenido al panel administrativo';
   
   // 🔑 Sistema de permisos granular
   static const Map<String, List<String>> adminPermissions = {
