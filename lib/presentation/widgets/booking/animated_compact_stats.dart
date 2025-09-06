@@ -1,4 +1,4 @@
-// lib/presentation/widgets/booking/animated_compact_stats.dart - ACTUALIZAR
+// lib/presentation/widgets/booking/animated_compact_stats.dart
 
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
@@ -27,6 +27,7 @@ class AnimatedCompactStats extends StatelessWidget {
         final availableCount = stats['available'] ?? 0;
         
         return Container(
+          key: ValueKey('stats_${provider.selectedDate}'),
           margin: const EdgeInsets.fromLTRB(20, 8, 20, 16),
           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
           decoration: BoxDecoration(
@@ -34,52 +35,73 @@ class AnimatedCompactStats extends StatelessWidget {
             borderRadius: BorderRadius.circular(8),
             border: Border.all(color: Colors.grey[200]!, width: 1),
           ),
-          child: Row(
+          child: Column(
             children: [
-              // Completas
-              _buildStatItem(
-                icon: Icons.check_circle,
-                count: completeCount,
-                label: 'Completas',
-                color: const Color(0xFF2E7AFF),
+              // Título HORARIOS
+              Text(
+                'HORARIOS',
+                style: TextStyle(
+                  fontSize: 14,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.grey[700],
+                  letterSpacing: 1.0,
+                ),
               ),
+              const SizedBox(height: 8),
               
-              const SizedBox(width: 16),
-              
-              // Separador
-              Container(
-                width: 1,
-                height: 20,
-                color: Colors.grey[300],
-              ),
-              
-              const SizedBox(width: 16),
-              
-              // Incompletas
-              _buildStatItem(
-                icon: Icons.group,
-                count: incompleteCount,
-                label: 'Incompletas',
-                color: AppColors.incomplete,
-              ),
-              
-              const SizedBox(width: 16),
-              
-              // Separador
-              Container(
-                width: 1,
-                height: 20,
-                color: Colors.grey[300],
-              ),
-              
-              const SizedBox(width: 16),
-              
-              // Disponibles
-              _buildStatItem(
-                icon: Icons.schedule,
-                count: availableCount,
-                label: 'Disponibles',
-                color: const Color(0xFF4CAF50),
+              // Estadísticas horizontales
+              Row(
+                children: [
+                  // Completos
+                  _buildStatItem(
+                    icon: Icons.check_circle,
+                    count: completeCount,
+                    label: 'Completos',
+                    color: const Color(0xFF2E7AFF),
+                  ),
+                  
+                  const SizedBox(width: 16),
+                  
+                  // Separador
+                  Container(
+                    width: 1,
+                    height: 20,
+                    color: Colors.grey[300],
+                  ),
+                  
+                  const SizedBox(width: 16),
+                  
+                  // Incompletos
+                  _buildStatItem(
+                    icon: Icons.group_add,
+                    count: incompleteCount,
+                    label: 'Incompletos',
+                    color: const Color(0xFFFF8C00), // Naranja oscuro más legible
+                    // Alternativas de color:
+                    // color: const Color(0xFFE65100), // Naranja profundo
+                    // color: const Color(0xFFFF9800), // Naranja material
+                    // color: const Color(0xFFF57C00), // Ámbar oscuro
+                  ),
+                  
+                  const SizedBox(width: 16),
+                  
+                  // Separador
+                  Container(
+                    width: 1,
+                    height: 20,
+                    color: Colors.grey[300],
+                  ),
+                  
+                  const SizedBox(width: 16),
+                  
+                  // Libres
+                  _buildStatItem(
+                    icon: Icons.schedule,
+                    count: availableCount,
+                    label: 'Libres',
+                    color: const Color(0xFF4CAF50),
+                  ),
+                ],
               ),
             ],
           ),

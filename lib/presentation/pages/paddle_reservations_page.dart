@@ -187,7 +187,7 @@ class _ReservationsPageState extends State<PaddleReservationsPage> {
       itemCount: availableTimeSlots.length,
       itemBuilder: (context, index) {
         final timeSlot = availableTimeSlots[index];
-        final booking = provider.getBookingForTimeSlot(timeSlot);
+        final booking = provider.getBookingForTimeSlot(timeSlot, provider.selectedCourtId);
 
         // Determinar estado del slot
         BookingStatus? status; // null = disponible

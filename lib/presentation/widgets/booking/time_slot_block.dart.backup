@@ -79,6 +79,7 @@ class _TimeSlotBlockState extends State<TimeSlotBlock>
         return const Color(0xFF2E7AFF); // Azul
       case BookingStatus.incomplete:
         return AppColors.incomplete; // Naranja
+      // case BookingStatus.cancelled:
         return Colors.grey; // Gris
     }
     // Return por defecto:
@@ -95,6 +96,7 @@ class _TimeSlotBlockState extends State<TimeSlotBlock>
         return "Reservada";
       case BookingStatus.incomplete:
         return "Incompleta";
+      case BookingStatus.cancelled:
         return "Cancelada";
       default:
         return "Desconocido";

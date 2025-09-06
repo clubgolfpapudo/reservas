@@ -100,12 +100,36 @@ class FirestoreService {
   /// Actualiza solo la lista de jugadores de una reserva en Firestore
   static Future<void> updateBookingPlayers(String bookingId, List<BookingPlayer> players) async {
     try {
-      await _firestore.collection('bookings').doc(bookingId).update({
-        'players': players.map((p) => p.toFirestore()).toList(),
+      // Obtener booking actual para calcular nuevo status
+      final bookingDoc = await FirebaseFirestore.instance.collection('bookings').doc(bookingId).get();
+      final bookingData = bookingDoc.data() as Map<String, dynamic>;
+      
+      // Crear booking temporal para calcular status (SIN organizerEmail)
+      final tempBooking = Booking(
+        id: bookingId,
+        courtId: bookingData['courtId'],
+        date: bookingData['date'],
+        timeSlot: bookingData['timeSlot'],
+        players: players,
+        status: BookingStatus.incomplete, // No importa, se recalculará
+      );
+      
+      final newStatus = tempBooking.calculatedStatus;
+      
+      await FirebaseFirestore.instance.collection('bookings').doc(bookingId).update({
+        'players': players.map((player) => {
+          'id': player.id,
+          'name': player.name,
+          'email': player.email,
+          'phone': player.phone,
+          'isConfirmed': player.isConfirmed,
+        }).toList(),
+        'status': newStatus.toString().split('.').last,
+        'updatedAt': FieldValue.serverTimestamp(),
       });
-      print('✅ Jugadores de la reserva $bookingId actualizados.');
     } catch (e) {
-      throw Exception('Error al actualizar la lista de jugadores: $e');
+      print('Error updating booking players: $e');
+      throw e;
     }
   }
 
@@ -161,6 +185,18 @@ class FirestoreService {
     } catch (e) {
       print('Error getting user bookings: $e');
       return [];
+    }
+  }
+
+  Future<void> updateBookingStatus(String bookingId, BookingStatus status) async {
+    try {
+      await _firestore.collection('bookings').doc(bookingId).update({
+        'status': status.toString().split('.').last,
+        'updatedAt': FieldValue.serverTimestamp(),
+      });
+    } catch (e) {
+      print('Error updating booking status: $e');
+      throw e;
     }
   }
 }

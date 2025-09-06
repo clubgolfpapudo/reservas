@@ -369,27 +369,89 @@ class BookingProvider extends ChangeNotifier {
   // ============================================================================
 
   Map<String, int> getStatsForVisibleTimeSlots(List<String> visibleTimeSlots) {
+    print('=== CALCULANDO STATS ===');
+  
+    // FIX: Extraer solo la fecha sin timestamp
+    final dateOnly = '${selectedDate.year}-${selectedDate.month.toString().padLeft(2, '0')}-${selectedDate.day.toString().padLeft(2, '0')}';
+    print('selectedDate original: $selectedDate');
+    print('dateOnly para comparar: $dateOnly');
+    
     int completeCount = 0;
     int incompleteCount = 0;
     int availableCount = 0;
     
-    for (final timeSlot in visibleTimeSlots) {
-      final booking = getBookingForTimeSlot(timeSlot);
-      
-      if (booking == null) {
-        availableCount++;
-      } else if (booking.status == BookingStatus.complete) {
-        completeCount++;
-      } else if (booking.status == BookingStatus.incomplete) {
-        incompleteCount++;
-      }
+    // Obtener canchas del deporte actual
+    List<String> courts = [];
+    if (selectedCourtId.startsWith('golf_')) {
+      courts = ['golf_tee_1', 'golf_tee_10'];
+    } else if (selectedCourtId.startsWith('tennis_')) {
+      courts = ['tennis_cancha_1', 'tennis_cancha_2', 'tennis_cancha_3', 'tennis_cancha_4'];
+    } else if (selectedCourtId.startsWith('padel_')) {
+      courts = ['padel_court_1', 'padel_court_2', 'padel_court_3'];
+    } else {
+      courts = ['pite', 'lilen', 'plaiya'];
     }
     
-    return {
+    print('selectedCourtId: $selectedCourtId');
+    print('courts array: $courts');
+
+    for (final timeSlot in visibleTimeSlots) {
+      for (final court in courts) {
+        print('DEBUG COMPARACIÓN:');
+        print('  selectedDate: "$selectedDate"');
+        print('  court buscada: "$court"');
+        print('  timeSlot: "$timeSlot"');
+
+        print('BUSCANDO: timeSlot="$timeSlot", court="$court", selectedDate="$selectedDate"');
+        for (final b in bookings) {
+          print('  COMPARANDO CON: timeSlot="${b.timeSlot}", court="${b.courtId}", date="${b.date}"');
+          print('    timeSlot match: ${b.timeSlot == timeSlot}');
+          print('    court match: ${b.courtId == court}');  
+          print('    date match: ${b.date == selectedDate}');
+        }
+
+        // Buscar reserva específica para esta cancha y horario
+        final bookingsForCourtAndTime = bookings.where(
+          (b) => b.timeSlot == timeSlot && b.date == dateOnly && b.courtId == court,
+        ).toList();
+        
+        if (bookingsForCourtAndTime.isEmpty) {
+          // No hay reserva en esta cancha para este horario
+          availableCount++;
+        } else {
+          final booking = bookingsForCourtAndTime.first;
+
+          print('ENCONTRÓ RESERVA: Court=${booking.courtId}, TimeSlot=${booking.timeSlot}, Players=${booking.players.length}');
+          
+          try {
+            final status = booking.calculatedStatus;
+            print('calculatedStatus: $status');
+            
+            if (status == BookingStatus.complete) {
+              completeCount++;
+              print('CATEGORIZADO COMO COMPLETO');
+            } else if (status == BookingStatus.incomplete) {
+              incompleteCount++;
+              print('CATEGORIZADO COMO INCOMPLETO');
+            }
+          } catch (e) {
+            print('ERROR al acceder calculatedStatus: $e');
+          }
+        }
+      }
+    }
+
+    final result = {
       'complete': completeCount,
-      'incomplete': incompleteCount,
+      'incomplete': incompleteCount,  
       'available': availableCount,
     };
+    
+    print('Slots: ${visibleTimeSlots.length}, Courts: ${courts.length}');
+    print('Total slots evaluados: ${visibleTimeSlots.length * courts.length}');
+    print('Resultado: complete=$completeCount, incomplete=$incompleteCount, available=$availableCount');
+    
+    return result;
   }
 
   // Métodos de conveniencia que mantienen la API existente
@@ -416,17 +478,27 @@ class BookingProvider extends ChangeNotifier {
   // MÉTODOS AUXILIARES
   // ============================================================================
 
-  Booking? getBookingForTimeSlot(String timeSlot) {
-    for (var booking in currentBookings) {
-      if (booking.timeSlot == timeSlot) {
+  Booking? getBookingForTimeSlot(String timeSlot, String courtId) {
+    print('DEBUG getBookingForTimeSlot: buscando slot $timeSlot en cancha $courtId');
+    
+    final dateOnly = selectedDate.toString().split(' ')[0];
+    
+    for (final booking in bookings) {
+      if (booking.timeSlot == timeSlot && 
+          booking.date == dateOnly && 
+          booking.courtId == courtId) {
+        print('  -> Booking encontrado: ${booking.courtId}, players: ${booking.players.length}');
         return booking;
       }
     }
+    
+    print('  -> No se encontró booking para $timeSlot en $courtId');
     return null;
   }
 
-  bool isTimeSlotAvailable(String timeSlot) {
-    return getBookingForTimeSlot(timeSlot) == null;
+  bool isTimeSlotAvailable(String timeSlot, [String? courtId]) {
+    final courtToCheck = courtId ?? selectedCourtId;
+    return getBookingForTimeSlot(timeSlot, courtToCheck) == null;
   }
 
   // ============================================================================
@@ -934,6 +1006,15 @@ class BookingProvider extends ChangeNotifier {
       
       final bookingId = await FirestoreService.createBooking(booking);
       print('✅ Reserva creada con ID: $bookingId');
+
+      if (bookingId.isEmpty) {
+        throw Exception('Error al crear reserva en Firebase');
+      }
+
+      // Actualizar booking con ID real y agregar a lista local
+      final finalBooking = booking.copyWith(id: bookingId);
+      _bookings.add(finalBooking);
+      notifyListeners(); // Esto forzará que las estadísticas se recalculen
       
       _setLoading(false);
     } catch (e) {

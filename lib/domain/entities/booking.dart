@@ -73,6 +73,21 @@ class Booking extends Equatable {
   bool get isComplete => players.length == 4;
   bool get isIncomplete => players.isNotEmpty && players.length < 4;
   bool get isEmpty => players.isEmpty;
+
+  // Calcular status dinámicamente basado en jugadores
+  BookingStatus get calculatedStatus {
+    final maxCapacity = _getMaxCapacityForCourt(courtId);
+    return players.length >= maxCapacity 
+        ? BookingStatus.complete 
+        : BookingStatus.incomplete;
+  }
+
+  int _getMaxCapacityForCourt(String courtId) {
+    if (courtId.startsWith('golf_')) return 4;
+    if (courtId.startsWith('tennis_')) return 4;
+    if (courtId.contains('pite') || courtId.contains('lilen') || courtId.contains('plaiya')) return 4;
+    return 4; // default
+  }
 }
 
 // ============================================================================
@@ -139,5 +154,4 @@ class BookingPlayer extends Equatable {
 enum BookingStatus {
   complete,
   incomplete,
-  cancelled,
 }

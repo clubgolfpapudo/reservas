@@ -782,8 +782,10 @@ class _ReservationFormModalState extends State<ReservationFormModal> {
                         ? 'La grilla ahora debe aparecer en color amarillo indicando "Reservada".'
                         : 'La grilla ahora debe aparecer en color ladrillo indicando "Reservada".'
                     : widget.sport == 'GOLF'
-                        ? 'La grilla ahora debe aparecer en color verde indicando "Reservada".'
-                        : 'La grilla ahora debe aparecer en azul indicando "Reservada".',
+                        ? _selectedPlayers.length < 4
+                            ? 'La grilla ahora debe aparecer en color verde indicando "Reservar" (otros pueden unirse).'
+                            : 'La grilla ahora debe aparecer en color verde indicando "Reservada".'
+                        : 'La grilla ahora debe aparecer en azul indicando "Reservada".', // Pádel siempre "Reservada"
                 style: TextStyle(
                   fontSize: 14,
                   color: Colors.grey[600],
@@ -878,6 +880,10 @@ class _ReservationFormModalState extends State<ReservationFormModal> {
     print('🔧 MODAL DEBUG: _getDisplayCourtName recibió: "$courtId"');
     
     switch (courtId) {
+      // GOLF - AGREGAR ESTOS CASOS
+      case 'golf_tee_1': return 'Hoyo 1';
+      case 'golf_tee_10': return 'Hoyo 10';
+      
       // PÁDEL - NOMBRES ORIGINALES
       case 'PITE': 
         print('🔧 MODAL DEBUG: Mapeando PITE → PITE');
@@ -885,18 +891,7 @@ class _ReservationFormModalState extends State<ReservationFormModal> {
       case 'LILEN': return 'LILEN';  
       case 'PLAIYA': return 'PLAIYA';
       
-      // PÁDEL - IDs CON PREFIJO
-      case 'padel_court_1': 
-        print('🔧 MODAL DEBUG: Mapeando padel_court_1 → PITE');
-        return 'PITE';
-      case 'padel_court_2': return 'LILEN';
-      case 'padel_court_3': return 'PLAIYA';
-      
-      // TENIS - IDs CON PREFIJO
-      case 'tennis_court_1': return 'Cancha 1';
-      case 'tennis_court_2': return 'Cancha 2';
-      case 'tennis_court_3': return 'Cancha 3';
-      case 'tennis_court_4': return 'Cancha 4';
+      // ... resto del código existente ...
       
       default: 
         print('🔧 MODAL DEBUG: FALLBACK - courtId no reconocido: "$courtId"');

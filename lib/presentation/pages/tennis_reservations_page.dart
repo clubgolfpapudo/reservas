@@ -218,7 +218,7 @@ class _TennisReservationsPageState extends State<TennisReservationsPage> {
       itemCount: availableTimeSlots.length,
       itemBuilder: (context, index) {
         final timeSlot = availableTimeSlots[index];
-        final booking = provider.getBookingForTimeSlot(timeSlot);
+        final booking = provider.getBookingForTimeSlot(timeSlot, provider.selectedCourtId);
 
         // Determinar estado del slot
         BookingStatus? status; // null = disponible
@@ -534,7 +534,7 @@ class _TennisReservationsPageState extends State<TennisReservationsPage> {
   return Consumer<BookingProvider>(
     builder: (context, provider, child) {
       // Get the actual booking to check player count
-      final booking = provider.getBookingForTimeSlot(timeSlot);
+      final booking = provider.getBookingForTimeSlot(timeSlot, provider.selectedCourtId);
       final playerCount = booking?.players.length ?? 0;
       
       switch (status) {

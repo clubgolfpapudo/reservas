@@ -138,7 +138,7 @@ class _SportSelectorPageState extends State<SportSelectorPage> {
               if (!isUserValidated) ...[
                 // Formulario de validación
                 const Text(
-                  'Ingrese su email para continuar',
+                  'Ingresa tu email',
                   style: TextStyle(
                     fontSize: 18,
                     fontWeight: FontWeight.w500,

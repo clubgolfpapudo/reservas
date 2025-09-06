@@ -50,16 +50,12 @@ class _TimeSlotBlockState extends State<TimeSlotBlock> {
           blockColor = AppColors.incomplete; // Naranja
           statusText = "Reservada";
           break;
-        case BookingStatus.cancelled:
-          blockColor = Colors.red;
-          statusText = "Cancelada";
-          break;
       }
     }
 
     return GestureDetector(
       onTap: () {
-        if (widget.status != null && widget.status != BookingStatus.cancelled) {
+        if (widget.status != null) {
           // Solo expandir si hay una reserva activa
           setState(() {
             _isExpanded = !_isExpanded;
