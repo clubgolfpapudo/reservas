@@ -229,20 +229,7 @@ class _SportSelectionPageState extends State<SportSelectionPage>
                     const SizedBox(height: 16),
                     
                     // Mensaje de bienvenida
-                    Consumer<UserProvider>(
-                      builder: (context, userProvider, child) {
-                        return Text(
-                          userProvider.isAuthenticated 
-                              ? 'Bienvenido, ${userProvider.displayName}'
-                              : 'Selecciona tu deporte favorito',
-                          style: TextStyle(
-                            color: Colors.white.withValues(alpha: 0.9),
-                            fontSize: 16,
-                            fontWeight: FontWeight.w500,
-                          ),
-                        );
-                      },
-                    ),
+                    SizedBox.shrink(), // No muestra nada
                   ],
                 ),
               ),

@@ -128,9 +128,17 @@ class _AdminReservationsPageState extends State<AdminReservationsPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Gestor de Reservas Admin'),
+        title: const Text(
+          'Panel de Administración',
+          style: TextStyle(
+            fontSize: 18, // Letra más pequeña como solicitaste
+            fontWeight: FontWeight.w500,
+          ),
+        ),
         backgroundColor: Colors.blue[800],
+        centerTitle: true,
       ),
+
       body: Consumer<BookingProvider>(
         builder: (context, bookingProvider, child) {
           if (bookingProvider.isLoading) {
