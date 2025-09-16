@@ -1,5 +1,6 @@
 // lib/presentation/pages/admin_reservations_page.dart
 
+import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:intl/intl.dart';
@@ -323,6 +324,7 @@ class _EditBookingModalContent extends StatefulWidget {
 class _EditBookingModalContentState extends State<_EditBookingModalContent> {
   late List<BookingPlayer> _players;
   final TextEditingController _userSearchController = TextEditingController();
+  final Random _random = Random();
   List<BookingPlayer> _filteredUsers = [];
 
   @override
@@ -378,19 +380,41 @@ class _EditBookingModalContentState extends State<_EditBookingModalContent> {
   }
 
   void _addPlayer(BookingPlayer player) {
-    print('DEBUG _addPlayer: Intentando agregar ${player.name} (ID: ${player.id})');
+    print('DEBUG _addPlayer: Intentando agregar ${player.name} (ID original: ${player.id})');
     print('DEBUG _addPlayer: Jugadores actuales: ${_players.length}/4');
-    print('DEBUG _addPlayer: ¿Ya existe este ID? ${_players.any((p) => p.id == player.id)}');
     
-    if (_players.length < 4 && !_players.any((p) => p.id == player.id)) {
+    // Usar el mismo generador de IDs que el resto del sistema
+    BookingPlayer playerToAdd = player;
+    
+    if (player.id == null || player.id == 'null-uid' || player.id!.isEmpty) {
+      // USAR EL MISMO FORMATO: '${DateTime.now().millisecondsSinceEpoch}_${random.nextInt(999999)}'
+      final uniqueId = '${DateTime.now().millisecondsSinceEpoch}_${_random.nextInt(999999)}';
+      
+      // Crear nuevo objeto con ID único
+      playerToAdd = BookingPlayer(
+        id: uniqueId,
+        name: player.name,
+        email: player.email,
+        phone: player.phone,
+      );
+      
+      print('DEBUG _addPlayer: ID único generado: $uniqueId');
+    }
+    
+    // Verificar que no exista duplicado (ahora con ID único garantizado)
+    final isDuplicate = _players.any((p) => p.id == playerToAdd.id);
+    print('DEBUG _addPlayer: ¿Ya existe este ID? $isDuplicate');
+    
+    // Verificar condiciones de adición
+    if (_players.length < 4 && !isDuplicate) {
       setState(() {
-        _players.add(player);
+        _players.add(playerToAdd);
       });
       _userSearchController.clear();
       _filteredUsers = [];
-      print('DEBUG _addPlayer: Jugador agregado exitosamente');
+      print('DEBUG _addPlayer: Jugador agregado exitosamente con ID: ${playerToAdd.id}. Total: ${_players.length}');
     } else {
-      print('DEBUG _addPlayer: NO se pudo agregar - Condiciones no cumplidas');
+      print('DEBUG _addPlayer: NO se pudo agregar - ${isDuplicate ? "ID duplicado" : "Límite alcanzado (${_players.length}/4)"}');
     }
   }
 
