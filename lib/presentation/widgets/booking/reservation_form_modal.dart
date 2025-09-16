@@ -18,6 +18,7 @@
 /// 2. Búsqueda → Filtrar usuarios → Seleccionar jugadores
 /// 3. Validación → Verificar conflictos → Crear reserva → Enviar emailsimport 'dart:convert';
 
+import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:http/http.dart' as http;
@@ -611,13 +612,12 @@ class _ReservationFormModalState extends State<ReservationFormModal> {
           userPhone = null; 
         }
 
-        // ✅ CÓDIGO CORREGIDO: Usar directamente selectedPlayer y generar un UUID si falta el ID
+        // Usar ID
+        final random = Random();
         bookingPlayers.add(BookingPlayer(
-          id: userId ?? DateTime.now().millisecondsSinceEpoch.toString(), // Genera un ID temporal si no se encuentra en Firebase
+          id: userId ?? '${DateTime.now().millisecondsSinceEpoch}_${random.nextInt(999999)}',
           name: selectedPlayer.name,
           email: selectedPlayer.email,
-          phone: userPhone,
-          isConfirmed: true,
         ));
       }
 
@@ -880,18 +880,20 @@ class _ReservationFormModalState extends State<ReservationFormModal> {
     print('🔧 MODAL DEBUG: _getDisplayCourtName recibió: "$courtId"');
     
     switch (courtId) {
-      // GOLF - AGREGAR ESTOS CASOS
+      // GOLF
       case 'golf_tee_1': return 'Hoyo 1';
       case 'golf_tee_10': return 'Hoyo 10';
       
-      // PÁDEL - NOMBRES ORIGINALES
-      case 'PITE': 
-        print('🔧 MODAL DEBUG: Mapeando PITE → PITE');
-        return 'PITE';
-      case 'LILEN': return 'LILEN';  
-      case 'PLAIYA': return 'PLAIYA';
+      // PÁDEL
+      case 'padel_court_1': return 'PITE';
+      case 'padel_court_2': return 'LILEN';
+      case 'padel_court_3': return 'PLAIYA';
       
-      // ... resto del código existente ...
+      // TENIS
+      case 'tennis_court_1': return 'Cancha 1';
+      case 'tennis_court_2': return 'Cancha 2';
+      case 'tennis_court_3': return 'Cancha 3';
+      case 'tennis_court_4': return 'Cancha 4';
       
       default: 
         print('🔧 MODAL DEBUG: FALLBACK - courtId no reconocido: "$courtId"');
@@ -1403,20 +1405,6 @@ class _ReservationFormModalState extends State<ReservationFormModal> {
   void dispose() {
     _searchController.dispose();
     super.dispose();
-  }
-
-  // Método para mostrar nombres amigables de canchas
-  String _getCourtDisplayName(String courtId) {
-    switch (courtId) {
-      case 'padel_court_1': return 'PITE';
-      case 'padel_court_2': return 'LILEN';  
-      case 'padel_court_3': return 'PLAIYA';
-      case 'tennis_court_1': return 'Cancha 1';
-      case 'tennis_court_2': return 'Cancha 2';
-      case 'tennis_court_3': return 'Cancha 3';
-      case 'tennis_court_4': return 'Cancha 4';
-      default: return courtId;
-    }
   }
 
   // Método para mostrar toast de conflicto

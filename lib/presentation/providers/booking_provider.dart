@@ -39,6 +39,7 @@ class BookingProvider extends ChangeNotifier {
   // ============================================================================
   
   List<BookingPlayer> _users = [];
+  List<BookingPlayer>? get users => _users;
   List<Court> _courts = [];
   List<Booking> _bookings = [];
   String _selectedCourtId = 'padel_court_1';
@@ -46,7 +47,6 @@ class BookingProvider extends ChangeNotifier {
   bool _isLoading = false;
   String? _error;
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
-  List<BookingPlayer>? users;
   
   List<DateTime> _availableDates = [];
   int _currentDateIndex = 0;
@@ -322,7 +322,7 @@ class BookingProvider extends ChangeNotifier {
             print('   Ya reservado en: ${booking.courtId} a las $timeSlot');
             return ValidationResult(
               isValid: false,
-              reason: 'El jugador "${existingPlayer.name}" ya tiene una reserva a las $timeSlot en ${_getCourtDisplayName(booking.courtId)}.'
+              reason: 'El jugador "${existingPlayer.name}" ya tiene una reserva a las $timeSlot en ${AppConstants.getCourtName(booking.courtId)}.'
             );
           }
         }
@@ -346,22 +346,6 @@ class BookingProvider extends ChangeNotifier {
     final clean1 = name1.trim().toUpperCase();
     final clean2 = name2.trim().toUpperCase();
     return clean1 == clean2;
-  }
-
-  /// Obtiene nombre amigable de cancha para mostrar en mensajes
-  String _getCourtDisplayName(String courtId) {
-    switch (courtId) {
-      // PÁDEL
-      case 'padel_court_1': return 'PITE';
-      case 'padel_court_2': return 'LILEN';
-      case 'padel_court_3': return 'PLAIYA';
-      // TENIS
-      case 'tennis_court_1': return 'CANCHA_1';
-      case 'tennis_court_2': return 'CANCHA_2';
-      case 'tennis_court_3': return 'CANCHA_3';
-      case 'tennis_court_4': return 'CANCHA_4';
-      default: return courtId;
-    }
   }
   
   // ============================================================================
@@ -1442,9 +1426,7 @@ class BookingProvider extends ChangeNotifier {
       _setLoading(true);
       final firebaseUsers = await FirebaseUserService.getAllUsers();
       
-      // ✅ AÑADE ESTA LÍNEA AQUÍ PARA VER QUÉ DEVUELVE FIREBASE
       print('📦 Datos de usuarios de Firebase: $firebaseUsers');
-
       _users = firebaseUsers.map((userMap) {
         return BookingPlayer(
           id: (userMap['uid'] as String?) ?? 'null-uid',
@@ -1454,8 +1436,6 @@ class BookingProvider extends ChangeNotifier {
         );
       }).toList();
       
-      users = _users;
-
       print('DEBUG Provider: _users asignados: ${_users.length}');
       print('DEBUG Provider: users getter: ${users?.length ?? "null"}');
     

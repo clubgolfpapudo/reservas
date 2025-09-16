@@ -29,11 +29,20 @@ class _AdminReservationsPageState extends State<AdminReservationsPage> {
   @override
   void initState() {
     super.initState();
-    _selectedDate = _getSmartInitialDate(); // Usar fecha inteligente
+    _selectedDate = _getSmartInitialDate(); 
     print('DEBUG Admin: Fecha inicial inteligente: $_selectedDate');
     
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _fetchReservations(_selectedDate);
+      
+      // FORZAR CARGA DE USUARIOS
+      final bookingProvider = Provider.of<BookingProvider>(context, listen: false);
+      bookingProvider.fetchUsers().then((_) {
+        print('DEBUG Admin: fetchUsers completado');
+        print('DEBUG Admin: Usuarios disponibles: ${bookingProvider.users?.length ?? 0}');
+      }).catchError((error) {
+        print('DEBUG Admin: Error en fetchUsers: $error');
+      });
     });
   }
 
@@ -131,7 +140,7 @@ class _AdminReservationsPageState extends State<AdminReservationsPage> {
         title: const Text(
           'Panel de Administración',
           style: TextStyle(
-            fontSize: 18, // Letra más pequeña como solicitaste
+            fontSize: 18,
             fontWeight: FontWeight.w500,
           ),
         ),
@@ -321,7 +330,8 @@ class _EditBookingModalContentState extends State<_EditBookingModalContent> {
     super.initState();
     _players = List.from(widget.booking.players);
     
-    print('DEBUG Modal: Usuarios disponibles: ${widget.bookingProvider.users?.length ?? "null"}');
+    print('DEBUG Modal: Usuarios en provider: ${widget.bookingProvider.users?.length ?? "null"}');
+    print('DEBUG Modal: Provider instance: ${widget.bookingProvider}');
     
     // Cargar usuarios si no están disponibles - DIFERIDO
     if (widget.bookingProvider.users == null) {
@@ -330,7 +340,7 @@ class _EditBookingModalContentState extends State<_EditBookingModalContent> {
         widget.bookingProvider.fetchUsers().then((_) {
           print('DEBUG Modal: Usuarios cargados: ${widget.bookingProvider.users?.length ?? 0}');
           if (mounted) {
-            setState(() {}); // Ahora es seguro llamar setState
+            setState(() {});
           }
         });
       });
@@ -356,7 +366,7 @@ class _EditBookingModalContentState extends State<_EditBookingModalContent> {
         
       print('DEBUG: Encontrados ${filtered.length} usuarios');
       if (filtered.isNotEmpty) {
-        print('DEBUG: Primer resultado: "${filtered.first.name}"');
+        print('DEBUG: Primer resultado: "${filtered.first.name}" (ID: ${filtered.first.id})'); // ← AGREGAR ID AQUÍ
       }
         
       setState(() {
@@ -368,18 +378,34 @@ class _EditBookingModalContentState extends State<_EditBookingModalContent> {
   }
 
   void _addPlayer(BookingPlayer player) {
+    print('DEBUG _addPlayer: Intentando agregar ${player.name} (ID: ${player.id})');
+    print('DEBUG _addPlayer: Jugadores actuales: ${_players.length}/4');
+    print('DEBUG _addPlayer: ¿Ya existe este ID? ${_players.any((p) => p.id == player.id)}');
+    
     if (_players.length < 4 && !_players.any((p) => p.id == player.id)) {
       setState(() {
         _players.add(player);
       });
       _userSearchController.clear();
       _filteredUsers = [];
+      print('DEBUG _addPlayer: Jugador agregado exitosamente');
+    } else {
+      print('DEBUG _addPlayer: NO se pudo agregar - Condiciones no cumplidas');
     }
   }
 
   void _removePlayer(BookingPlayer player) {
+    print('DEBUG: Intentando eliminar jugador:');
+    print('  - Nombre: ${player.name}');
+    print('  - ID: ${player.id}');
+    print('DEBUG: IDs de todos los jugadores:');
+    for (int i = 0; i < _players.length; i++) {
+      print('  - Jugador $i: ${_players[i].name} (ID: ${_players[i].id})');
+    }
+
     setState(() {
-      _players.removeWhere((p) => p.name == player.name && p.email == player.email);
+      // _players.removeWhere((p) => p.name == player.name && p.email == player.email);
+      _players.removeWhere((p) => p.id == player.id);
     });
   }
 

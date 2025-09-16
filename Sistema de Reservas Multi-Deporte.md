@@ -2,10 +2,10 @@
 
 ## Información General del Proyecto
 
-**Fecha de actualización:** 6 de Septiembre, 2025  
+**Fecha de actualización:** 12 de Septiembre, 2025 - 19:30 hrs (Chile)  
 **URL de Producción:** https://paddlepapudo.github.io/cgp_reservas/  
-**Estado actual:** Sistema multi-deporte funcional con ventana 72 horas implementada, emails de admin operativos, validación de 4 horas funcional, estadísticas mejoradas  
-**Usuarios activos:** 497+ socios sincronizados automáticamente  
+**Estado actual:** Sistema multi-deporte funcional con ventana 72 horas implementada, emails de admin operativos, validación de 4 horas funcional, sincronización automática de usuarios operativa  
+**Usuarios activos:** 512+ socios sincronizados automáticamente  
 
 ### Stack Tecnológico
 
@@ -15,256 +15,59 @@
 - **Arquitectura:** Clean Architecture
 - **Deployment:** GitHub Pages (Flutter Web)
 - **Email System:** Firebase Functions con plantillas HTML personalizadas
-
----
-
-## Arquitectura del Sistema
-
-### Estructura de Carpetas (Clean Architecture)
-
-```
-lib/
-├── core/
-│   ├── constants/
-│   │   ├── app_constants.dart
-│   │   └── tennis_constants.dart
-│   └── utils/                    
-│       └── booking_time_utils.dart  
-├── data/
-│   ├── models/
-│   ├── repositories/
-│   └── services/
-│       ├── firestore_service.dart
-│       ├── firebase_user_service.dart
-│       └── email_service.dart
-├── domain/
-│   ├── entities/
-│   │   └── booking.dart
-│   ├── repositories/
-│   └── use_cases/
-└── presentation/
-    ├── pages/
-    │   ├── admin_reservations_page.dart
-    │   ├── golf_reservations_page.dart
-    │   ├── paddle_reservations_page.dart
-    │   ├── tennis_reservations_page.dart
-    │   └── main.dart (SimpleLoginPage)
-    ├── providers/
-    │   ├── booking_provider.dart
-    │   ├── auth_provider.dart
-    │   └── admin_provider.dart
-    └── widgets/
-        ├── booking/
-        │   └── animated_compact_stats.dart (ACTIVO)
-        ├── admin/
-        └── enhanced_court_tab.dart
-```
-
-### Componentes Principales
-
-#### 1. Capa de Datos (Data Layer)
-
-**`lib/data/services/firestore_service.dart`**
-- Servicio principal para operaciones CRUD con Firebase
-- Métodos clave:
-  - `updateBooking(Booking booking)`: Actualización completa de reservas
-  - `updateBookingPlayers(String bookingId, List<BookingPlayer> players)`: Actualización atómica de jugadores
-  - `getBookingsByDate(DateTime date)`: Recuperación de reservas por fecha
-  - `deleteBooking(String bookingId)`: Eliminación de reservas
-  - `createBooking(Booking booking)`: Creación con actualización automática de lista local
-
-**`lib/data/services/email_service.dart`**
-- Servicio centralizado para envío de emails
-- Métodos implementados:
-  - `sendBookingConfirmation(Booking booking)`: Confirmaciones de reserva
-  - `sendCancellationNotification()`: Notificaciones de cancelación
-  - `sendPlayerAddedNotification()`: Notificaciones cuando admin agrega jugador
-  - `sendPlayerRemovedNotification()`: Notificaciones cuando admin remueve jugador
-
-#### 2. Capa de Dominio (Domain Layer)
-
-**`lib/domain/entities/booking.dart`**
-- Modelo de datos principal para reservas
-- Campos principales:
-  - `courtId`: Identificador de cancha/tee (ej: 'golf_tee_1', 'tennis_cancha_1')
-  - `date`: Fecha de la reserva (String)
-  - `timeSlot`: Horario reservado (String)
-  - `players`: Lista de jugadores (BookingPlayer)
-- **Nuevo:** Getter `calculatedStatus` que determina dinámicamente si la reserva está completa o incompleta
-
-**`lib/domain/entities/booking_player.dart`**
-- Modelo para jugadores individuales
-- Campos: `id`, `name`, `phone`, `email`, `isConfirmed`
-
-#### 3. Capa de Presentación (Presentation Layer)
-
-**Provider Pattern para Estado:**
-- `BookingProvider`: Gestiona estado de reservas y llamadas a servicios
-  - **Nuevo:** Método `getStatsForVisibleTimeSlots()` con fix de formato de fecha
-  - **Nuevo:** Método `getBookingForTimeSlot()` corregido para filtrar por courtId
-  - **Nuevo:** Validación automática de ventana 4 horas entre reservas
-- `AuthProvider`: Maneja autenticación de usuarios
-- `AdminProvider`: Controla funcionalidades administrativas
-
-**Páginas por Deporte:**
-- `main.dart`: Página de login principal (SimpleLoginPage)
-- `golf_reservations_page.dart`: Sistema de reservas para golf
-- `tennis_reservations_page.dart`: Sistema de reservas para tenis  
-- `paddle_reservations_page.dart`: Sistema de reservas para pádel
-
----
-
-## Funcionalidades por Deporte
-
-### Golf System
-- **Canchas:** Hoyo 1 (golf_tee_1) y Hoyo 10 (golf_tee_10)
-- **Capacidad:** 1-4 jugadores por reserva
-- **Colores UI:** Verde golf (#4CAF50, #7CB342)
-- **Horarios:** 8:00 AM - 16:00/17:00 PM (invierno/verano), intervalos de 12 minutos
-- **Ventana de reservas:** 48 horas desde hora actual
-- **UI Mejorada:** Muestra organizador + número de acompañantes similar a Pádel/Tenis
-- **Funcionalidad especial:** Permite unirse a slots incompletos (único deporte con esta característica)
-- **Plantilla Email:** generateGolfEmailTemplate() con diseño verde corporativo
-- **Estado:** Funcional, sistema de emails implementado, estadísticas operativas
-
-### Tenis System  
-- **Canchas:** 4 canchas (tennis_cancha_1 a tennis_cancha_4)
-- **Nombres mostrados:** C.1, C.2, C.3, C.4 (implementado Sept 2025)
-- **Capacidad:** Variable según configuración
-- **Colores UI diferenciados por cancha:**
-  - C.1: Azul (#2196F3)
-  - C.2: Verde (#4CAF50)
-  - C.3: Turquesa (#00BCD4)
-  - C.4: Púrpura (#9C27B0)
-- **Horarios:** Slots predefinidos intervalos 90 min
-  - Invierno: 9:00, 10:30, 12:00, 13:30, 15:00, 16:30
-  - Verano: + 18:00, 19:30
-- **Ventana de reservas:** 72 horas desde hora actual
-- **Restricción:** No permite unirse a slots incompletos (siempre aparece "Reservada")
-- **Estado:** Funcional con UI mejorada y ventana 72h implementada
-
-### Pádel System
-- **Canchas:** 3 canchas (padel_court_1, padel_court_2, padel_court_3)
-- **Nombres mostrados:** PITE, LILEN, PLAIYA (nombres reales implementados Sept 2025)
-- **Capacidad:** Sistema estándar pádel (4 jugadores)
-- **Colores UI:** Azul profesional (#2E7AFF, #1E5AFF) 
-- **Auto-selección:** PITE por defecto
-- **Modal de confirmación:** Muestra nombres reales de canchas (implementado Sept 2025)
-- **Horarios:** Slots predefinidos intervalos 90 min
-  - Invierno: 9:00, 10:30, 12:00, 13:30, 15:00, 16:30
-  - Verano: + 18:00, 19:30
-- **Ventana de reservas:** 72 horas desde hora actual
-- **Restricción:** No permite unirse a slots incompletos (siempre aparece "Reservada")
-- **Estado:** Completamente funcional con ventana 72h implementada
-
----
-
-## Sistema de Estadísticas (NUEVO - Septiembre 2025)
-
-### Widget de Estadísticas Actualizado
-**`animated_compact_stats.dart`** - Widget único para los tres deportes
-- **Título:** "HORARIOS" centralizado
-- **Formato horizontal:** Completos | Incompletos | Libres
-- **Colores mejorados:** Naranja legible para "Incompletos"
-- **Fix crítico:** Formato de fecha corregido para detectar reservas reales
-
-### Lógica de Cálculo
-- **Método:** `getStatsForVisibleTimeSlots()` en BookingProvider
-- **Fix implementado:** Conversión de DateTime a string de fecha para comparación correcta
-- **Filtrado por cancha:** Considera todas las canchas del deporte específico
-- **Estados dinámicos:** Usa `calculatedStatus` en lugar de status de Firebase
-
-### Definición de Estados
-- **Completos:** Slots con reservas de capacidad máxima (4/4 jugadores)
-- **Incompletos:** Slots con reservas bajo capacidad máxima (1-3/4 jugadores)
-- **Libres:** Slots sin reservas
-
----
-
-## Sistema de Backend (Firebase Functions)
-
-### Estructura de Functions
-
-**`functions/index.js`** - Archivo principal con todas las cloud functions
-
-### Funciones Principales
-
-#### 1. Sistema de Emails
-```javascript
-// Detección de tipo de email basada en parámetros
-const requestType = req.body.type; // 'player_added', 'player_removed', o undefined
-const { isAdminAction = false, adminActionType = null } = req.body;
-
-// Generación condicional de contenido
-if (requestType === 'player_added') {
-  emailHtml = generateBookingEmailHtml(...).replace(...); // Reemplazos para "agregado"
-} else if (requestType === 'player_removed') {
-  emailHtml = generateBookingEmailHtml(...).replace(...); // Reemplazos para "removido"
-} else {
-  emailHtml = generateBookingEmailHtml(...); // Email normal
-}
-```
-
-#### 2. Plantillas de Email
-
-**Golf Email Template:**
-- Diseño verde corporativo (#4CAF50)
-- Logo Club de Golf Papudo
-- Información específica de tees (Hoyo 1/Hoyo 10)
-- Botón de cancelación integrado
-- Mensaje especial para jugadores VISITA
-
-**Tennis/Paddle Templates:**
-- Diseños diferenciados por colores de deporte
-- Información específica de canchas
-- Funcionalidad de cancelación
-
-#### 3. Cloud Functions Activas
-- `sendBookingEmailHTTP`: Envío de confirmaciones y notificaciones admin
-- `cancelBooking`: Gestión de cancelaciones
-- `sendCancellationNotification`: Notificaciones a jugadores restantes
-- `dailyUserSync`: Sincronización automática de usuarios desde Google Sheets
-
----
-
-## Base de Datos (Firestore)
-
-### Estructura de Colecciones
-
-```
-cgpreservas/
-├── users/{userId}
-│   ├── uid: string
-│   ├── name: string  
-│   ├── email: string
-│   └── memberNumber: string
-├── bookings/{bookingId}
-│   ├── courtId: string
-│   ├── date: string
-│   ├── timeSlot: string
-│   ├── players: array
-│   └── organizerEmail: string
-└── sports_config/{sportName}
-    ├── courts: array
-    ├── timeSlots: array
-    └── maxPlayers: number
-```
-
-### Identificadores de Canchas
-
-**Golf:**
-- `golf_tee_1`: Hoyo 1
-- `golf_tee_10`: Hoyo 10
-
-**Tenis:**
-- `tennis_cancha_1` a `tennis_cancha_4` (mostrados como C.1 a C.4)
-
-**Pádel:**
-- `padel_court_1` (PITE), `padel_court_2` (LILEN), `padel_court_3` (PLAIYA)
+- **Sincronización:** Google Sheets API con service account automático
 
 ---
 
 ## Issues Completamente Resueltos
+
+### Fecha inicial incorrecta Tennis/Pádel (Septiembre 2025)
+- **Problema:** Tennis/Pádel se abrían con fecha de mañana en lugar de hoy
+- **Causa:** `DateTime(now.year, now.month, now.day + 1)` forzaba inicio desde mañana
+- **Solución temporal:** Cambio a `DateTime(now.year, now.month, now.day)` + lógica simplificada `now.hour < 16`
+- **Fix técnico:** `_isSummerSeason(DateTime.now())` para resolver errores de scope
+- **Estado:** ✅ FUNCIONAL (solución temporal)
+- **Archivos modificados:** `lib/presentation/providers/booking_provider.dart`
+
+### Sincronización Automática de Usuarios (Septiembre 2025)
+- **Problema:** Función `dailyUserSync` filtraba todos los usuarios (512 filtrados, 0 procesados)
+- **Causa raíz:** Falta columna EMAIL en Google Sheets + errores `serverTimestamp`
+- **Solución:** Agregar columna EMAIL + cambiar a `new Date()` en lugar de `admin.firestore.FieldValue.serverTimestamp()`
+- **Resultado:** 512 usuarios procesados exitosamente (0 errores)
+- **Ejecución:** Automática diaria a las 6:00 AM (timezone America/Santiago)
+- **Archivos modificados:** `functions/index.js`
+- **Estado:** ✅ FUNCIONAL Y OPERATIVO
+
+### Configuración de Dominio Personalizado - GitHub Pages (Septiembre 2025)
+- **Investigación:** Dominio `clubgolfpapudo.cl` alojado en Wix (ns12.wixdns.net, ns13.wixdns.net)
+- **Descubrimiento:** Subdominio `reservas.clubgolfpapudo.cl` ya existe pero sin IP asignada
+- **Configuración implementada:**
+  1. **GitHub Pages:** Configurado dominio personalizado `reservas.clubgolfpapudo.cl` en Settings → Pages
+  2. **Archivo CNAME:** GitHub creó automáticamente archivo CNAME en repositorio
+  3. **Wix DNS Settings:** Configurado registro CNAME `reservas` (con error inicial)
+  4. **Error identificado:** CNAME apuntaba a `paddlepapudo.github.com` en lugar de `paddlepapudo.github.io`
+  5. **Corrección requerida:** Cambiar CNAME en Wix de `.github.com` a `.github.io`
+- **Configuración DNS correcta requerida en Wix:**
+  ```
+  Tipo: CNAME
+  Nombre: reservas
+  Valor: paddlepapudo.github.io  ← Correcto (.io no .com)
+  ```
+- **Verificación:** `nslookup -type=CNAME reservas.clubgolfpapudo.cl` debe mostrar `paddlepapudo.github.io`
+- **URL objetivo:** `https://reservas.clubgolfpapudo.cl` (pendiente corrección DNS)
+- **Beneficios esperados:**
+  - URL profesional sin referencia personal "paddlePapudo"
+  - Certificado SSL automático
+  - Branding corporativo del club
+  - Redirección automática desde URL antigua
+- **Estado:** 🟡 CONFIGURACIÓN PARCIAL (pendiente corrección CNAME en Wix)
+
+### Sistema de Branches para Marcha Blanca (Septiembre 2025)
+- **Implementación:** Configuración de branches separados `main` (desarrollo) y `production` (marcha blanca)
+- **Ventaja:** Permite desarrollo continuo sin afectar versión live
+- **URL:** Mantiene la misma URL `https://paddlepapudo.github.io/cgp_reservas/`
+- **Flujo:** GitHub Pages construye desde branch `production`, desarrollo en `main`
+- **Estado:** 🟡 CONFIGURADO LOCALMENTE (pendiente configuración GitHub Pages)
 
 ### Arquitectura y Compilación (Agosto 2025)
 - **Problema:** Implementación de golf violaba Clean Architecture
@@ -440,218 +243,180 @@ cgpreservas/
   - Posible refactor de componentes de admin
 - **Prioridad:** Alta (afecta operaciones diarias del club)
 
-#### Navegación de Fechas en Golf (NUEVO - Septiembre 2025)
-- **Problema 1:** Al navegar entre fechas, la flecha derecha salta del día 6 (hoy) al 8, no se puede acceder al domingo 7
-- **Problema 2:** Ventana de 48 horas incorrecta - permite abrir el día 8 cuando desde hoy (5 sept) solo debería permitir días 6 y 7
-- **Excepción:** Cuando se está en horario de juego, la ventana debe ser: resto del día actual + todo el día siguiente + todo el día subsiguiente
-- **Impacto:** Funcionalidad básica de navegación comprometida
-- **Archivo afectado:** `golf_reservations_page.dart` y posiblemente `booking_provider.dart`
-- **Prioridad:** Alta (afecta usabilidad básica)
-
 ### **PRIORIDAD MEDIA**
 
+#### Optimización Fecha Inicial Tennis/Pádel (Septiembre 2025)
+- **Problema:** Solución temporal implementada con lógica simplificada
+- **Estado actual:** Funcional con `now.hour < 16`
+- **Mejora pendiente:** Implementar verificación real de slots disponibles
+- **Archivos:** `lib/presentation/providers/booking_provider.dart`
+- **Estado:** 🟡 TEMPORAL - REQUIERE OPTIMIZACIÓN
+
 #### Optimización de Performance - Logs Masivos (Septiembre 2025)
-- **Problema:** Golf genera 1300+ líneas de log al cambiar fechas, causando performance lenta
-- **Causa:** Debug prints en `_generateAvailableDates()` creando flood de logs
-- **Impacto:** Performance degradada en navegación de fechas golf
-- **Solución propuesta:** Remover debug prints de producción
-- **Archivos afectados:** `booking_provider.dart`, páginas de tennis/pádel
-- **Prioridad:** Media (sistema funciona, pero con performance subóptima)
+- **Problema:** Golf genera 1300+ líneas de log al cambiar fechas
+- **Causa:** Debug prints en `_generateAvailableDates()` 
+- **Impacto:** Performance degradada en navegación
+- **Solución:** Remover debug prints de producción
+- **Estado:** 🟡 PENDIENTE
 
 #### Verificar Funcionalidad Link de Registro en Producción
-- **Descripción:** Formulario de Google Forms requiere autenticación cuando antes funcionaba sin login
-- **URL:** https://docs.google.com/forms/d/e/1FAIpQLSfTWfH6tgPk9orGb8CUmAqHdtBFCRq-nlJLyJA2XVDr7OmCew/viewform?usp=sf_link
-- **Causa probable:** Cambio reciente en configuración o políticas de Google Forms
-- **Estado:** Pendiente verificación en producción (funciona en localhost)
-- **Solución temporal:** Si persiste, cambiar mensaje a contacto directo por email
-- **Ubicación:** Implementado en `main.dart` clase `_SimpleLoginPageState`
-- **Prioridad:** Media
+- **Problema:** Formulario Google Forms requiere autenticación
+- **URL:** https://docs.google.com/forms/d/e/1FAIpQLSfTWfH6tgPk9orGb8CUmAqHdtBFCRq-nlJLyJA2XVDr7OmCew/viewform
+- **Estado:** Funciona en localhost, pendiente verificación producción
+- **Estado:** 🟡 PENDIENTE VERIFICACIÓN
 
 #### Validación Backend Faltante
-- **Descripción:** Sin validación para jugadores duplicados en reservas
-- **Impacto:** Vulnerabilidad de integridad de datos
+- **Problema:** Sin validación para jugadores duplicados en reservas
 - **Solución propuesta:** Agregar validación en cloud functions
-- **Prioridad:** Media
+- **Impacto:** Vulnerabilidad de integridad de datos
+- **Estado:** 🟡 PENDIENTE
 
 #### Mejora de Plantillas Email Admin
-- **Descripción:** Crear plantillas HTML específicas para acciones de admin en lugar de usar reemplazo de texto
-- **Beneficios:** Mejor diseño, consistencia visual, mantenibilidad
-- **Archivos afectados:** `functions/index.js`
-- **Estado:** Funcional con solución temporal
-- **Prioridad:** Media
+- **Problema:** Usando reemplazo de texto temporal
+- **Beneficio:** Mejor diseño, consistencia visual, mantenibilidad
+- **Archivos:** `functions/index.js`
+- **Estado actual:** Funcional pero temporal
+- **Estado:** 🟡 PENDIENTE MEJORA
 
 ### **PRIORIDAD BAJA**
 
 #### Reporte Múltiples Conflictos - Validación 4 Horas
-- **Descripción:** Mostrar todos los jugadores con conflicto en lugar de solo el primero
-- **Ejemplo:** Si 2 jugadores tienen conflictos, mostrar ambos en el mensaje
-- **Estado:** Funcional pero solo reporta el primer conflicto
-- **Prioridad:** Baja (mejora de UX)
+- **Problema:** Solo muestra primer jugador con conflicto
+- **Mejora:** Mostrar todos los jugadores en conflicto
+- **Estado actual:** Funcional pero limitado
+- **Estado:** 🟢 MEJORA UX
+
+#### Problemas UI Menores
+- **Problemas:** Estadísticas incorrectas, AppBar dinámico
+- **Impacto:** Experiencia de usuario menor
+- **Estado:** 🟢 MEJORAS MENORES
 
 ---
 
-## Métricas de Performance
+## Estado Actual del Sistema (Septiembre 2025)
 
-### Compilación y Deployment
-- **Build Flutter:** <40 segundos exitoso
-- **Deploy Firebase Functions:** Sin errores tras correcciones
-- **Carga inicial:** <3 segundos optimizada
-- **Navegación entre deportes:** <500ms
+**✅ FUNCIONAL:** Sistema multi-deporte completo con estadísticas precisas, ventana de tiempo diferenciada (48h golf, 72h tennis/pádel), validación de 4 horas entre reservas del mismo deporte, emails automáticos para todas las acciones, excepción para usuarios VISITA, UI optimizada por deporte, sincronización automática de 512 usuarios diaria, y branches configurados para marcha blanca.
 
-### Base de Usuarios
-- **Usuarios sincronizados:** 497+ socios activos
-- **Deportes operativos:** 3 (Golf, Tenis, Pádel)
-- **Canchas totales:** 9 (2 tees golf + 4 tenis + 3 pádel)
+**⚠️ PENDIENTE:** Optimización interfaz admin, limpieza debug logs, configuración DNS dominio personalizado, implementación branch production en GitHub Pages.
 
-### Reglas de Negocio Implementadas
-- **Ventana Golf:** 48 horas desde hora actual (con problemas de navegación)
-- **Ventana Tenis/Pádel:** 72 horas desde hora actual
-- **Restricción temporal:** 4 horas mínimo entre reservas del mismo deporte
-- **Usuarios exentos:** Jugadores "VISITA" sin restricciones de horario
-- **Estados de reserva:** Calculados dinámicamente basado en número de jugadores
+**🔧 MEJORAS TÉCNICAS:** Fecha inicial Tennis/Pádel con lógica temporal funcional pero requiere optimización para verificación real de slots disponibles.
 
----
+El proyecto mantiene una arquitectura sólida y escalable, con separación clara de responsabilidades y funcionalidad completa para operación diaria del club. La sincronización automática de usuarios y la configuración de branches para marcha blanca representan avances significativos en la robustez y escalabilidad del sistema.
 
-## Próximos Desarrollos Prioritarios
 
-### Inmediato (Alta Prioridad)
-1. **Corregir navegación de fechas en Golf**
-   - Resolver salto del día 6 al 8
-   - Implementar ventana correcta de 48 horas
-   - Agregar lógica de excepción para horario de juego
+# ACTUALIZACIÓN - 16 de Septiembre 2025, 01:30 hrs (Chile)
 
-2. **Mejorar interfaz de administrador**
-   - Resolver problemas de layout y overflow
-   - Implementar filtros funcionales de reservas
-   - Optimizar para pantallas pequeñas
+## Issues Completamente Resueltos (Nueva Sesión)
 
-### Mediano Plazo (Media Prioridad)
-3. **Limpieza de performance**
-   - Remover debug prints de producción
-   - Optimizar navegación de fechas en golf
+### Refactorización de Nomenclatura de Canchas y Eliminación de Duplicación (Septiembre 2025)
+- **Problema:** Métodos duplicados `_getCourtDisplayName` en múltiples archivos con mapeos inconsistentes
+- **Causa:** Falta de centralización y nomenclatura inconsistente entre archivos
+- **Solución:** Centralización en `AppConstants.getCourtName()` y estandarización de nombres
+- **Archivos modificados:** 
+  - `app_constants.dart`: Unificación de mapeos
+  - `booking_provider.dart`: Eliminación de método duplicado
+  - `reservation_form_modal.dart`: Eliminación de método duplicado
+- **Beneficios:** Mantenimiento centralizado, nomenclatura consistente, optimización móvil
+- **Estado:** ✅ RESUELTO
 
-4. **Mejora de plantillas email admin**
-   - Desarrollar plantillas HTML específicas
-   - Eliminar dependencia de reemplazo de texto
+### Modal de Confirmación Pádel - Nombres de Canchas (Septiembre 2025)
+- **Problema:** Modal mostraba "Cancha: padel_court_1" en lugar de "Cancha: PITE"
+- **Causa:** Método `_getDisplayCourtName()` con mapeo incorrecto usando nombres en lugar de IDs
+- **Solución:** Corrección de cases del switch para usar IDs reales (`padel_court_1 → PITE`)
+- **Archivos modificados:** `reservation_form_modal.dart`
+- **Estado:** ✅ RESUELTO
 
-5. **Validaciones backend**
-   - Jugadores duplicados
-   - Integridad de datos
+### Comportamiento Errático del Admin - IDs de Jugadores Duplicados (Septiembre 2025)
+- **Problema:** Admin no podía modificar jugadores en posiciones intermedias; eliminar cualquier jugador borraba todos
+- **Causa raíz:** Todos los jugadores tenían el mismo ID temporal (timestamp en milisegundos)
+- **Soluciones implementadas:**
+  1. **Generación de IDs únicos:** Cambio de `DateTime.now().millisecondsSinceEpoch.toString()` a `'${DateTime.now().millisecondsSinceEpoch}_${random.nextInt(999999)}'`
+  2. **Corrección de lógica de eliminación:** Cambio de comparación por nombre+email a comparación por ID único
+  3. **Restauración de carga de usuarios:** Reparación del método `fetchUsers()` en `BookingProvider`
+- **Archivos modificados:**
+  - `reservation_form_modal.dart`: Generación de IDs únicos con Random
+  - `admin_reservations_page.dart`: Lógica de eliminación por ID, debug de adición de jugadores
+  - `booking_provider.dart`: Restauración de método `fetchUsers()` funcional, agregado de getter `users`
+- **Resultado:** Admin puede eliminar cualquier jugador independientemente de posición, IDs únicos garantizados
+- **Estado:** ✅ RESUELTO (eliminación) / 🟡 PENDIENTE (problema de adición con null-uid)
 
-### Testing y Calidad
-6. **Testing integral sistema completo**
-   - Validar flujo completo reservas todos los deportes
-   - Confirmar emails funcionando correctamente
-   - Testing de regresión para cambios implementados
-   - Validar funcionalidades admin en diferentes dispositivos
-
----
-
-## Warnings y Consideraciones Importantes
-
-### 🚨 Advertencias Técnicas
-
-1. **Plantillas Email Admin**
-   - Implementación actual es temporal usando reemplazo de texto
-   - Funcional pero requiere desarrollo de plantillas específicas
-   - Monitorear que los reemplazos sigan funcionando tras updates
-
-2. **Navegación de Fechas Golf**
-   - Problema crítico identificado con salto de días
-   - Ventana de 48 horas incorrectamente implementada
-   - Puede afectar experiencia de usuario significativamente
-
-3. **Performance Logs Golf**
-   - Debug prints causan degradación de performance
-   - Priorizar limpieza para mejorar experiencia usuario
-   - No afecta funcionalidad pero sí UX
-
-4. **Validación 4 Horas**
-   - Implementada y funcional en los tres deportes
-   - Usuarios "VISITA" exentos de todas las restricciones
-   - Solo reporta primer jugador en conflicto (mejora pendiente)
-
-### 📋 Notas para el Cliente
-
-1. **Funcionalidades Nuevas Implementadas**
-   - Sistema de estadísticas "HORARIOS" completamente funcional
-   - Detección precisa de reservas completas/incompletas/libres
-   - Validación de 4 horas entre reservas del mismo deporte operativa
-   - Emails automáticos cuando admin modifica jugadores (temporal pero funcional)
-   - Canchas con nombres claros y colores únicos en todos los deportes
-   - Modales de confirmación muestran nombres reales de canchas
-   - UI mejorada mostrando organizador en todos los deportes
-
-2. **Sistema de Emails Completo**
-   - Funcionando para los 3 deportes
-   - Cobertura total: crear, cancelar, modificar por admin
-   - Cada deporte tiene su plantilla personalizada
-
-3. **Reglas de Negocio Robustas**
-   - Restricción temporal de 4 horas evita reservas abusivas
-   - Flexibilidad total para usuarios "VISITA" del club
-   - Solo Golf permite unirse a slots incompletos
-   - Consistencia de experiencia entre los tres deportes
-
-4. **Issues Críticos Pendientes**
-   - Navegación de fechas en Golf requiere atención inmediata
-   - Interfaz admin necesita mejoras para operaciones diarias
+### Carga de Usuarios en Admin - Getter Faltante (Septiembre 2025)
+- **Problema:** Buscador de usuarios mostraba "allUsers es null" aunque había 516 usuarios cargados
+- **Causa:** Variable privada `_users` tenía datos pero faltaba getter público `users`
+- **Solución:** Agregado de getter `List<BookingPlayer>? get users => _users;` en `BookingProvider`
+- **Debug revelador:**
+  ```
+  DEBUG Provider: _users asignados: 516
+  DEBUG Provider: users getter: null    ← Problema
+  DEBUG Admin: Usuarios disponibles: 0  ← Problema
+  ```
+- **Resultado:** Buscador de admin funcional con acceso a 516 usuarios sincronizados
+- **Archivos modificados:** `booking_provider.dart`
+- **Estado:** ✅ RESUELTO
 
 ---
 
-## Guía de Desarrollo
+## Issues Pendientes (Actualizados)
 
-### Para continuar el desarrollo de este proyecto:
+### **PRIORIDAD ALTA**
 
-1. **Clonar repositorio y configurar entorno:**
-   ```bash
-   git clone [repository-url]
-   flutter pub get
-   ```
+#### IDs Duplicados null-uid en Admin (Septiembre 2025)
+- **Problema:** Usuarios agregados por admin reciben ID `null-uid`, causando conflictos de unicidad
+- **Causa:** Usuarios sincronizados desde Google Sheets no tienen UIDs de Firebase válidos
+- **Comportamiento actual:** 
+  - Primer usuario con `null-uid` se agrega correctamente
+  - Usuarios subsecuentes con `null-uid` no se pueden agregar por validación `!_players.any((p) => p.id == player.id)`
+- **Debug revelador:**
+  ```
+  DEBUG _addPlayer: Intentando agregar ANA M BUZETA P (ID: null-uid)
+  DEBUG _addPlayer: ¿Ya existe este ID? true
+  DEBUG _addPlayer: NO se pudo agregar - Condiciones no cumplidas
+  ```
+- **Soluciones posibles:**
+  1. Asignar UIDs únicos durante sincronización automática de Google Sheets
+  2. Generar IDs únicos para usuarios `null-uid` al momento de carga
+  3. Modificar validación de duplicados para usuarios `null-uid` (temporal)
+- **Impacto:** Admin no puede agregar múltiples usuarios que no tienen UIDs de Firebase
+- **Estado:** 🔴 ALTA PRIORIDAD
 
-2. **Configurar Firebase:**
-   - Verificar `firebase.json` y configuración Functions
-   - Asegurar permisos Firestore correctos
+### **PRIORIDAD MEDIA** (Sin cambios)
 
-3. **Estructura de trabajo recomendada:**
-   - Usar branches feature para nuevos desarrollos
-   - Mantener `main` estable para producción
-   - Seguir patrón Clean Architecture establecido
+#### OptimizaciÃ³n Fecha Inicial Tennis/PÃ¡del (Septiembre 2025)
+- **Estado:** 🟡 TEMPORAL - REQUIERE OPTIMIZACIÃ"N
 
-4. **Testing:**
-   - Probar cada deporte por separado
-   - Validar emails en entorno de pruebas
-   - Confirmar funcionalidad admin antes de deploy
-   - Verificar reglas de 4 horas con usuarios reales y VISITA
+#### OptimizaciÃ³n de Performance - Logs Masivos (Septiembre 2025)  
+- **Estado:** 🟡 PENDIENTE
 
-### Archivos críticos para modificaciones:
+#### Verificar Funcionalidad Link de Registro en ProducciÃ³n
+- **Estado:** 🟡 PENDIENTE VERIFICACIÃ"N
 
-**Backend:**
-- `functions/index.js`: Lógica principal cloud functions
-- Plantillas email específicas por deporte
+#### ValidaciÃ³n Backend Faltante
+- **Estado:** 🟡 PENDIENTE
 
-**Frontend:**  
-- `lib/presentation/providers/booking_provider.dart`: Estado reservas
-- `lib/data/services/firestore_service.dart`: Operaciones base datos
-- `lib/data/services/email_service.dart`: Envío de emails centralizado
-- `lib/presentation/pages/{sport}_reservations_page.dart`: UI por deporte
+#### Mejora de Plantillas Email Admin
+- **Estado:** 🟡 PENDIENTE MEJORA
 
-**Constantes y Configuración:**
-- `lib/core/constants/app_constants.dart`: Mapeo nombres canchas y detección deportes
-- `lib/core/constants/tennis_constants.dart`: Configuración tenis
-- `lib/core/utils/booking_time_utils.dart`: Lógica ventana 72 horas y funciones de tiempo
-- `lib/presentation/widgets/booking/animated_compact_stats.dart`: Estadísticas centralizadas
-- `lib/presentation/widgets/booking/reservation_form_modal.dart`: Modal de confirmación
+### **PRIORIDAD BAJA** (Sin cambios)
 
-**Página Principal:**
-- `lib/presentation/pages/main.dart`: Login y navegación principal (SimpleLoginPage)
+#### Mejoras Interfaz Administrador (Septiembre 2025)
+- **Estado:** Parcialmente resuelto (funcionalidad core restaurada)
 
-### Estado Actual del Sistema (Septiembre 2025):
+---
 
-**✅ FUNCIONAL:** Sistema multi-deporte completo con estadísticas precisas, ventana de tiempo diferenciada (48h golf, 72h tennis/pádel), validación de 4 horas entre reservas del mismo deporte, emails automáticos para todas las acciones, excepción para usuarios VISITA, UI optimizada por deporte, y estado dinámico de reservas.
+## Estado Actual del Sistema (16 Septiembre 2025, 01:30 hrs)
 
-**⚠️ PENDIENTE:** Corrección navegación fechas Golf, optimización interfaz admin, limpieza debug logs.
+**✅ AVANCES PRINCIPALES:**
+- **Sistema de admin funcional**: Eliminación de jugadores corregida con IDs únicos
+- **Buscador de usuarios operativo**: 516 usuarios accesibles desde admin
+- **Nomenclatura estandarizada**: Un solo punto de mapeo para nombres de canchas
+- **Arquitectura limpia**: Eliminada duplicación de código y métodos
 
-**🔧 ISSUES CRÍTICOS:** Navegación de fechas en Golf impide acceso correcto a días disponibles, afectando funcionalidad básica del sistema.
+**⚠️ PROBLEMA CRÍTICO RESTANTE:**
+- **IDs null-uid**: Múltiples usuarios sincronizados desde Google Sheets carecen de UIDs únicos de Firebase, impidiendo agregar más de un usuario con null-uid por reserva
 
-El proyecto mantiene una arquitectura sólida y escalable, con separación clara de responsabilidades y funcionalidad completa para operación diaria del club. Las mejoras recientes en estadísticas y validaciones representan avances significativos en la robustez y usabilidad del sistema, pero los problemas de navegación en Golf requieren atención inmediata.
+**🔧 PRÓXIMOS PASOS RECOMENDADOS:**
+1. **Prioridad inmediata**: Resolver problema de null-uid en usuarios sincronizados
+2. **Optimización**: Limpieza de debug logs para mejorar performance
+3. **Mejoras menores**: Completar issues de prioridad media y baja
+
+El sistema mantiene robustez operativa con funcionalidad completa para usuarios con UIDs válidos y capacidad parcial para usuarios sincronizados externamente.

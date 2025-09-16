@@ -331,16 +331,16 @@ abstract class AppConstants {
     'padel_court_2': 'LILEN', 
     'padel_court_3': 'PLAIYA',
     
-    // TENIS
-    'tennis_court_1': 'Cancha 1',
-    'tennis_court_2': 'Cancha 2',
-    'tennis_court_3': 'Cancha 3',
-    'tennis_court_4': 'Cancha 4',
+    // TENIS - Nomenclatura optimizada para móviles
+    'tennis_court_1': 'C.1',
+    'tennis_court_2': 'C.2',
+    'tennis_court_3': 'C.3',
+    'tennis_court_4': 'C.4',
     
-    // GOLF
-    'golf_tee_1': 'Hoyo 1-9',
-    'golf_tee_10': 'Hoyo 10-18',
-    'golf_course_3': 'Campo Práctica',
+    // GOLF - Nomenclatura simplificada
+    'golf_tee_1': 'Hoyo 1',
+    'golf_tee_10': 'Hoyo 10',
+    'golf_course_3': 'Campo Práctica',  // Si se usa
   };
 
   // ═══════════════════════════════════════════════════════════════════════════
@@ -349,29 +349,13 @@ abstract class AppConstants {
   
   /// Obtiene el nombre de la cancha por ID
   static String getCourtName(String courtId) {
-    switch (courtId) {
-      // PÁDEL - Nombres reales de las canchas
-      case 'PITE': return 'PITE';
-      case 'LILEN': return 'LILEN';
-      case 'PLAIYA': return 'PLAIYA';
-      
-      // PÁDEL - IDs genéricos (por compatibilidad)
-      case 'padel_court_1': return 'PITE';
-      case 'padel_court_2': return 'LILEN';
-      case 'padel_court_3': return 'PLAIYA';
-      
-      // TENIS
-      case 'tennis_court_1': return 'C.1';  // Actualizado para usar C.1
-      case 'tennis_court_2': return 'C.2';  // Actualizado para usar C.2
-      case 'tennis_court_3': return 'C.3';  // Actualizado para usar C.3
-      case 'tennis_court_4': return 'C.4';  // Actualizado para usar C.4
-      
-      // GOLF
-      case 'golf_tee_1': return 'Hoyo 1';
-      case 'golf_tee_10': return 'Hoyo 10';
-      
-      default: return 'Cancha Desconocida';
+    // Casos especiales para compatibilidad con nombres directos
+    if (courtId == 'PITE' || courtId == 'LILEN' || courtId == 'PLAIYA') {
+      return courtId;
     }
+    
+    // Usar el mapeo centralizado
+    return courtIdToName[courtId] ?? 'Cancha Desconocida';
   }
 
   static String getSportFromCourtId(String courtId) {

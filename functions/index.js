@@ -259,7 +259,7 @@ exports.dailyUserSync = onSchedule({
           
           // Campos sistema
           isActive: true,
-          lastSyncFromSheets: admin.firestore.FieldValue.serverTimestamp(),
+          lastSyncFromSheets: new Date(),
           source: 'google_sheets_auto'
         };
         
@@ -269,7 +269,7 @@ exports.dailyUserSync = onSchedule({
         // Usar .set() para reemplazo completo (evita campos duplicados)
         await usersRef.doc(email).set({
           ...userData,
-          createdAt: userDoc.exists ? userDoc.data().createdAt : admin.firestore.FieldValue.serverTimestamp()
+          createdAt: userDoc.exists ? userDoc.data().createdAt : new Date()
         });
         
         if (userDoc.exists) {
