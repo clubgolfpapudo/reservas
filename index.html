@@ -24,41 +24,16 @@
   <meta name="mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black">
   <meta name="apple-mobile-web-app-title" content="cgp_reservas">
-  <link rel="apple-touch-icon" href="icons/Icon-192.png">
+  <link rel="apple-touch-icon" href="icons/club_logo.png">
 
   <!-- Favicon -->
-  <link rel="icon" type="image/png" href="favicon.png"/>
+  <!-- <link rel="icon" type="image/png" href="favicon.png"/> -->
+  <link rel="icon" type="image/png" href="icons/club_logo.png"/>
 
   <title>cgp_reservas</title>
   <link rel="manifest" href="manifest.json">
 </head>
 <body>
-  <!-- Firebase Configuration -->
-  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
-  
-  <script>
-    // Your web app's Firebase configuration
-    const firebaseConfig = {
-      apiKey: "AIzaSyDdXsf0ZxA8IS7GD9pDAnAwkJFOsq6YVRE",
-      authDomain: "cgpreservas.firebaseapp.com",
-      projectId: "cgpreservas",
-      storageBucket: "cgpreservas.firebasestorage.app",
-      messagingSenderId: "577498054078",
-      appId: "1:577498054078:web:fb7b12b9e355065d3d0def"
-    };
-
-    // Initialize Firebase and make it globally available
-    firebase.initializeApp(firebaseConfig);
-    
-    // Debug: Verify Firebase is loaded
-    console.log("🔥 Firebase loaded:", typeof firebase);
-    console.log("🔥 Firestore available:", typeof firebase.firestore);
-    
-    // Make Firestore globally available for Flutter
-    window.firebaseDb = firebase.firestore();
-  </script>
-
   <script src="flutter_bootstrap.js" async></script>
 </body>
 </html>
