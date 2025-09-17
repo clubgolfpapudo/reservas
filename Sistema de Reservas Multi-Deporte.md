@@ -420,3 +420,136 @@ El proyecto mantiene una arquitectura sólida y escalable, con separación clara
 3. **Mejoras menores**: Completar issues de prioridad media y baja
 
 El sistema mantiene robustez operativa con funcionalidad completa para usuarios con UIDs válidos y capacidad parcial para usuarios sincronizados externamente.
+
+
+# Sistema de Reservas Multi-Deporte - Club de Golf Papudo
+
+## Información General del Proyecto
+
+**Fecha de actualización:** 16 de Septiembre, 2025 - 22:00 hrs (Chile)  
+**URL de Producción:** https://reservas.clubgolfpapudo.cl (dominio personalizado configurado)  
+**URL Alternativa:** https://paddlepapudo.github.io/cgp_reservas/  
+**Estado actual:** Sistema multi-deporte con funcionalidad admin completa, dominio personalizado configurado, pero con problemas de deployment web persistentes  
+**Usuarios activos:** 512+ socios sincronizados automáticamente  
+
+### Stack Tecnológico
+
+- **Framework:** Flutter 3.x
+- **Lenguaje:** Dart
+- **Backend:** Firebase (Firestore, Authentication, Functions)
+- **Arquitectura:** Clean Architecture
+- **Deployment:** GitHub Pages con dominio personalizado
+- **Email System:** Firebase Functions con plantillas HTML personalizadas
+- **Sincronización:** Google Sheets API con service account automático
+
+---
+
+## Issues Completamente Resueltos
+
+### Fix de IDs Únicos para Admin (Septiembre 2025)
+- **Problema:** Admin no podía agregar múltiples jugadores debido a IDs duplicados `null-uid`
+- **Solución:** Implementación de generador de IDs únicos usando el mismo formato del sistema: `'${DateTime.now().millisecondsSinceEpoch}_${_random.nextInt(999999)}'`
+- **Archivos modificados:** `lib/presentation/pages/admin_reservations_page.dart`
+- **Resultado:** Admin puede agregar/eliminar jugadores sin limitaciones
+- **Estado:** ✅ RESUELTO Y FUNCIONAL
+
+### Configuración de Dominio Personalizado - GitHub Pages (Septiembre 2025)
+- **Implementación:** Configuración completa de `reservas.clubgolfpapudo.cl`
+- **DNS:** CNAME configurado en Wix apuntando a `paddlepapudo.github.io`
+- **SSL:** Certificado automático de Let's Encrypt generado y activo
+- **Redirección:** HTTPS forzado configurado
+- **GitHub Pages:** Deployment desde branch `main` configurado
+- **Estado:** ✅ RESUELTO - Dominio completamente funcional con SSL
+
+### Todos los Issues Previos (Documentados anteriormente)
+- Sincronización automática de usuarios (512 usuarios)
+- Ventana de reservas 72/48 horas por deporte
+- Validación de 4 horas entre reservas
+- Sistema de emails automáticos
+- Nomenclatura de canchas estandarizada
+- Estadísticas de horarios precisas
+- Y 15+ issues adicionales previamente resueltos
+
+---
+
+## Issues Críticos Pendientes
+
+### **PRIORIDAD CRÍTICA**
+
+#### Problema de Deployment Flutter Web (Septiembre 2025)
+- **Problema:** Aplicación Flutter Web no carga en producción (página en blanco)
+- **Síntomas:** 
+  - Errores 404 para `flutter_bootstrap.js` y `manifest.json`
+  - Rutas incorrectas: busca archivos en `/cgp_reservas/` en lugar de `/`
+  - Página completamente en blanco en navegadores
+- **Investigación realizada:**
+  - ✅ DNS y SSL funcionan correctamente
+  - ✅ Archivos locales generados correctamente con `flutter build web --base-href "/"`
+  - ✅ `index.html` tiene `<base href="/">` correcto
+  - ✅ No hay referencias hardcodeadas a `cgp_reservas` en código Dart
+  - ✅ Cache de Flutter limpiado completamente (`flutter clean`)
+  - ✅ Archivos regenerados desde cero con timestamps actuales
+- **Configuraciones probadas:**
+  - GitHub Actions deployment ❌
+  - Deploy from branch ❌
+  - Base href `/cgp_reservas/` ❌
+  - Base href `/` ❌
+  - Clean rebuild completo ❌
+- **Estado actual:** Flutter genera código JavaScript con rutas incorrectas internas
+- **Impacto:** Sistema completamente inaccesible para usuarios finales
+- **Estado:** 🔴 CRÍTICO - SIN SOLUCIÓN IDENTIFICADA
+
+#### Desconexión Git-GitHub (Septiembre 2025)
+- **Problema:** Archivos locales actualizados no se reflejan en GitHub Pages
+- **Síntomas:** 
+  - Archivos con timestamps actuales localmente
+  - GitHub muestra timestamps desactualizados ("1 hour ago")
+  - `git status` muestra "working tree clean"
+  - Push exitoso sin errores
+- **Teorías:**
+  - GitHub Pages cache agresivo
+  - Problema de sincronización entre Git y GitHub Pages CDN
+  - Archivos grandes (`main.dart.js` 3.5MB) no procesándose correctamente
+- **Estado:** 🔴 BLOQUEANTE - Impide deployment efectivo
+
+---
+
+## Estado Actual del Sistema (16 Septiembre 2025, 22:00 hrs)
+
+### **✅ FUNCIONAL:**
+- **Backend completo:** Firebase, autenticación, base de datos
+- **Lógica de negocio:** Reservas multi-deporte, validaciones, emails
+- **Herramientas admin:** Gestión completa de reservas y jugadores
+- **Sincronización:** 512 usuarios automáticos desde Google Sheets
+- **Infraestructura:** Dominio personalizado con SSL funcional
+
+### **🔴 CRÍTICO:**
+- **Frontend web:** Aplicación completamente inaccesible
+- **Deployment:** Flutter Web no se despliega correctamente
+- **Usuarios finales:** Sin acceso al sistema de reservas
+
+### **📊 ANÁLISIS TÉCNICO:**
+
+**Problema raíz identificado:** Flutter Web está generando código JavaScript con rutas absolutas incorrectas que no respetan la configuración de `--base-href`. El problema no está en la configuración DNS, SSL, o archivos estáticos, sino en cómo Flutter compila y genera las referencias internas de archivos.
+
+**Limitaciones técnicas encontradas:**
+1. Flutter Web + GitHub Pages + dominio personalizado tiene problemas de compatibilidad no documentados
+2. El sistema de build de Flutter no respeta consistentemente la configuración de base href
+3. GitHub Pages CDN tiene comportamiento impredecible con archivos grandes generados
+
+### **🔍 PRÓXIMOS PASOS RECOMENDADOS:**
+
+1. **Investigar alternativas de hosting:** Considerar Netlify, Vercel, o Firebase Hosting para Flutter Web
+2. **Explorar configuración específica:** Buscar configuraciones especiales para Flutter Web + GitHub Pages
+3. **Considerar architecture change:** Evaluar si mantener Flutter Web o migrar a solución web diferente
+4. **Consultar comunidad:** GitHub issues, Stack Overflow para casos similares
+
+### **⚠️ IMPACTO EN OPERACIONES:**
+
+El sistema backend está completamente funcional y el dominio personalizado está correctamente configurado. El único bloqueante es la capa de presentación web. Todas las funcionalidades de reservas, emails, y administración funcionarían perfectamente si se resolviera el problema de deployment de Flutter Web.
+
+---
+
+## Conclusión
+
+El proyecto ha alcanzado un estado técnicamente robusto en backend y funcionalidad, con todos los issues de lógica de negocio resueltos. Sin embargo, enfrenta un bloqueante crítico en el deployment web que requiere investigación especializada en Flutter Web + GitHub Pages + dominios personalizados, o consideración de alternativas de hosting.
