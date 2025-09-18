@@ -1,4 +1,4 @@
-// lib/features/admin/presentation/widgets/admin_menu_button.dart
+﻿// lib/features/admin/presentation/widgets/admin_menu_button.dart
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../providers/admin_provider.dart';
@@ -39,7 +39,7 @@ class AdminMenuButton extends StatelessWidget {
             ),
             child: Stack(
               children: [
-                // Contenido principal del botón
+                // Contenido principal del botÃ³n
                 Row(
                   mainAxisSize: MainAxisSize.min,
                   children: [
@@ -60,8 +60,8 @@ class AdminMenuButton extends StatelessWidget {
                   ],
                 ),
                 
-                // Badge de notificaciones no leídas
-                if (showBadge && adminProvider.unreadNotifications > 0)
+                // Badge de notificaciones no leÃ­das
+                if (false && adminProvider.unreadNotifications > 0)
                   Positioned(
                     right: -4,
                     top: -4,
@@ -104,7 +104,7 @@ class AdminMenuButton extends StatelessWidget {
   }
 }
 
-// 🎨 Variante del botón para usar en diferentes contextos
+// ðŸŽ¨ Variante del botÃ³n para usar en diferentes contextos
 class AdminMenuButtonVariant extends StatelessWidget {
   final AdminMenuStyle style;
   final VoidCallback? onTap;
@@ -173,7 +173,7 @@ class AdminMenuButtonVariant extends StatelessWidget {
                 ),
               ],
             ),
-            if (showBadge && adminProvider.unreadNotifications > 0)
+            if (false && adminProvider.unreadNotifications > 0)
               Positioned(
                 right: -2,
                 top: -2,
@@ -236,7 +236,7 @@ class AdminMenuButtonVariant extends StatelessWidget {
                 ),
               ],
             ),
-            if (showBadge && adminProvider.unreadNotifications > 0)
+            if (false && adminProvider.unreadNotifications > 0)
               Positioned(
                 right: -4,
                 top: -4,
@@ -273,7 +273,7 @@ class AdminMenuButtonVariant extends StatelessWidget {
               size: 20,
               color: Colors.white,
             ),
-            if (showBadge && adminProvider.unreadNotifications > 0)
+            if (false && adminProvider.unreadNotifications > 0)
               Positioned(
                 right: -2,
                 top: -2,
@@ -302,7 +302,7 @@ class AdminMenuButtonVariant extends StatelessWidget {
             Icons.admin_panel_settings,
             size: 18,
           ),
-          if (showBadge && adminProvider.unreadNotifications > 0)
+          if (false && adminProvider.unreadNotifications > 0)
             Positioned(
               right: -2,
               top: -2,
@@ -329,7 +329,7 @@ class AdminMenuButtonVariant extends StatelessWidget {
   }
 }
 
-// 🎨 Enum para estilos del botón admin
+// ðŸŽ¨ Enum para estilos del botÃ³n admin
 enum AdminMenuStyle {
   default_,
   compact,

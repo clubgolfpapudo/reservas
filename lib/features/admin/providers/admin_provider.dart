@@ -1,25 +1,25 @@
-// lib/features/admin/providers/admin_provider.dart
+﻿// lib/features/admin/providers/admin_provider.dart
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import '../../../core/constants/admin_constants.dart';
 
 class AdminProvider extends ChangeNotifier {
-  // 🔐 Estado de autenticación admin
+  // ðŸ” Estado de autenticaciÃ³n admin
   bool _isAdmin = false;
   String? _currentAdminEmail;
   List<String> _currentPermissions = [];
   AdminPermissionLevel _permissionLevel = AdminPermissionLevel.readOnly;
   
-  // 📊 Estado del dashboard
+  // ðŸ“Š Estado del dashboard
   List<AdminMetric> _metrics = [];
   List<AdminNotification> _notifications = [];
   bool _isLoadingMetrics = false;
   bool _isLoadingNotifications = false;
   
-  // 🔔 Estado de notificaciones
-  int _unreadNotifications = 0;
+  // ðŸ”” Estado de notificaciones
+  int _unreadNotifications = 0; // Always 0 - notifications disabled
   
-  // Getters públicos
+  // Getters pÃºblicos
   bool get isAdmin => _isAdmin;
   String? get currentAdminEmail => _currentAdminEmail;
   List<String> get currentPermissions => List.unmodifiable(_currentPermissions);
@@ -30,7 +30,7 @@ class AdminProvider extends ChangeNotifier {
   bool get isLoadingNotifications => _isLoadingNotifications;
   int get unreadNotifications => _unreadNotifications;
   
-  // 🔐 Verificar estado de administrador
+  // ðŸ” Verificar estado de administrador
   void checkAdminStatus(String? email) {
     _isAdmin = AdminConstants.adminEmails.contains(email);
     _currentAdminEmail = _isAdmin ? email : null;
@@ -46,12 +46,12 @@ class AdminProvider extends ChangeNotifier {
     notifyListeners();
   }
   
-  // 🔑 Cargar permisos del administrador
+  // ðŸ”‘ Cargar permisos del administrador
   void _loadAdminPermissions(String email) {
     _currentPermissions = AdminConstants.adminPermissions[email] ?? [];
   }
   
-  // 📊 Determinar nivel de permisos
+  // ðŸ“Š Determinar nivel de permisos
   void _determinePermissionLevel() {
     if (_currentPermissions.contains('full_access')) {
       _permissionLevel = AdminPermissionLevel.superAdmin;
@@ -64,7 +64,7 @@ class AdminProvider extends ChangeNotifier {
     }
   }
   
-  // 📱 Cargar datos administrativos
+  // ðŸ“± Cargar datos administrativos
   Future<void> _loadAdminData() async {
     await Future.wait([
       _loadMetrics(),
@@ -72,7 +72,7 @@ class AdminProvider extends ChangeNotifier {
     ]);
   }
   
-  // 🧹 Limpiar datos admin al cerrar sesión
+  // ðŸ§¹ Limpiar datos admin al cerrar sesiÃ³n
   void _clearAdminData() {
     _currentPermissions.clear();
     _metrics.clear();
@@ -81,19 +81,19 @@ class AdminProvider extends ChangeNotifier {
     _permissionLevel = AdminPermissionLevel.readOnly;
   }
   
-  // 🔑 Verificar permisos específicos
+  // ðŸ”‘ Verificar permisos especÃ­ficos
   bool hasPermission(String permission) {
     if (!_isAdmin) return false;
     return _currentPermissions.contains('full_access') || 
            _currentPermissions.contains(permission);
   }
   
-  // 📊 Verificar nivel mínimo de permisos
+  // ðŸ“Š Verificar nivel mÃ­nimo de permisos
   bool hasMinimumPermissionLevel(AdminPermissionLevel requiredLevel) {
     return _permissionLevel.index >= requiredLevel.index;
   }
   
-  // 🔧 Obtener funciones disponibles para el admin actual
+  // ðŸ”§ Obtener funciones disponibles para el admin actual
   List<AdminFunction> getAvailableFunctions() {
     if (!_isAdmin) return [];
     
@@ -102,7 +102,7 @@ class AdminProvider extends ChangeNotifier {
     }).toList();
   }
   
-  // 📊 Cargar métricas del dashboard
+  // ðŸ“Š Cargar mÃ©tricas del dashboard
   Future<void> _loadMetrics() async {
     if (!_isAdmin) return;
     
@@ -110,7 +110,7 @@ class AdminProvider extends ChangeNotifier {
     notifyListeners();
     
     try {
-      // Simular carga de métricas (reemplazar con servicio real)
+      // Simular carga de mÃ©tricas (reemplazar con servicio real)
       await Future.delayed(const Duration(seconds: 1));
       
       _metrics = [
@@ -136,7 +136,7 @@ class AdminProvider extends ChangeNotifier {
         ),
         AdminMetric(
           id: 'court_occupation',
-          title: 'Ocupación Canchas',
+          title: 'OcupaciÃ³n Canchas',
           value: '84%',
           subtitle: 'Promedio semanal',
           icon: Icons.sports_tennis,
@@ -156,14 +156,14 @@ class AdminProvider extends ChangeNotifier {
         ),
       ];
     } catch (e) {
-      debugPrint('Error cargando métricas: $e');
+      debugPrint('Error cargando mÃ©tricas: $e');
     } finally {
       _isLoadingMetrics = false;
       notifyListeners();
     }
   }
   
-  // 🔔 Cargar notificaciones
+  // ðŸ”” Cargar notificaciones
   Future<void> _loadNotifications() async {
     if (!_isAdmin) return;
     
@@ -178,14 +178,14 @@ class AdminProvider extends ChangeNotifier {
         AdminNotification(
           id: '1',
           title: 'Nueva reserva',
-          message: 'Juan Pérez reservó Cancha 1 de Tenis',
+          message: 'Juan PÃ©rez reservÃ³ Cancha 1 de Tenis',
           timestamp: DateTime.now().subtract(const Duration(minutes: 5)),
           type: AdminNotificationType.info,
         ),
         AdminNotification(
           id: '2',
-          title: 'Cancelación',
-          message: 'María González canceló reserva de Pádel',
+          title: 'CancelaciÃ³n',
+          message: 'MarÃ­a GonzÃ¡lez cancelÃ³ reserva de PÃ¡del',
           timestamp: DateTime.now().subtract(const Duration(minutes: 15)),
           type: AdminNotificationType.warning,
         ),
@@ -200,7 +200,7 @@ class AdminProvider extends ChangeNotifier {
         AdminNotification(
           id: '4',
           title: 'Mantenimiento programado',
-          message: 'Mantenimiento del servidor programado para mañana',
+          message: 'Mantenimiento del servidor programado para maÃ±ana',
           timestamp: DateTime.now().subtract(const Duration(hours: 6)),
           type: AdminNotificationType.urgent,
         ),
@@ -215,7 +215,7 @@ class AdminProvider extends ChangeNotifier {
     }
   }
   
-  // 🔄 Refrescar datos del dashboard
+  // ðŸ”„ Refrescar datos del dashboard
   Future<void> refreshDashboard() async {
     if (!_isAdmin) return;
     
@@ -225,7 +225,7 @@ class AdminProvider extends ChangeNotifier {
     ]);
   }
   
-  // 🔔 Marcar notificación como leída
+  // ðŸ”” Marcar notificaciÃ³n como leÃ­da
   void markNotificationAsRead(String notificationId) {
     final index = _notifications.indexWhere((n) => n.id == notificationId);
     if (index != -1 && !_notifications[index].isRead) {
@@ -244,7 +244,7 @@ class AdminProvider extends ChangeNotifier {
     }
   }
   
-  // 🔔 Marcar todas las notificaciones como leídas
+  // ðŸ”” Marcar todas las notificaciones como leÃ­das
   void markAllNotificationsAsRead() {
     _notifications = _notifications.map((notification) => 
       AdminNotification(
@@ -262,7 +262,7 @@ class AdminProvider extends ChangeNotifier {
     notifyListeners();
   }
   
-  // 📊 Obtener métrica específica
+  // ðŸ“Š Obtener mÃ©trica especÃ­fica
   AdminMetric? getMetricById(String metricId) {
     try {
       return _metrics.firstWhere((metric) => metric.id == metricId);
@@ -271,7 +271,7 @@ class AdminProvider extends ChangeNotifier {
     }
   }
   
-  // 🔔 Agregar nueva notificación (para testing o desarrollo)
+  // ðŸ”” Agregar nueva notificaciÃ³n (para testing o desarrollo)
   void addNotification(AdminNotification notification) {
     _notifications.insert(0, notification);
     if (!notification.isRead) {
@@ -280,7 +280,7 @@ class AdminProvider extends ChangeNotifier {
     notifyListeners();
   }
   
-  // 🔧 Obtener resumen de permisos
+  // ðŸ”§ Obtener resumen de permisos
   Map<String, dynamic> getPermissionsSummary() {
     return {
       'isAdmin': _isAdmin,
@@ -291,7 +291,7 @@ class AdminProvider extends ChangeNotifier {
     };
   }
   
-  // 📱 Verificar si puede acceder a una función específica
+  // ðŸ“± Verificar si puede acceder a una funciÃ³n especÃ­fica
   bool canAccessFunction(String functionId) {
     final function = AdminConstants.adminFunctions
         .where((f) => f.id == functionId)
@@ -301,7 +301,7 @@ class AdminProvider extends ChangeNotifier {
     return hasPermission(function.permission);
   }
   
-  // 🔧 Debug: Obtener información del estado actual
+  // ðŸ”§ Debug: Obtener informaciÃ³n del estado actual
   void debugPrintAdminStatus() {
     if (kDebugMode) {
       print('=== ADMIN STATUS DEBUG ===');
