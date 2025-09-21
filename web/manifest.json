@@ -1,7 +1,7 @@
-{
+﻿{
     "name": "CGP Reservas - Club de Golf Papudo",
     "short_name": "CGP Reservas",
-    "description": "Sistema de reservas para canchas de pádel del Club de Golf y Pádel",
+    "description": "Sistema de reservas para canchas de pádel del Club de Golf y pádel",
     "start_url": "/",
     "display": "standalone",
     "background_color": "#ffffff",
