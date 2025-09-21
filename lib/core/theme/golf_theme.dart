@@ -1,23 +1,23 @@
-// lib/core/theme/golf_theme.dart
+﻿// lib/core/theme/golf_theme.dart
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
-// ═══════════════════════════════════════════════════════════════════════════════════════════════════
-// COLORES DE LA APLICACIÓN - GOLF (VERDE PROFESIONAL)
-// ═══════════════════════════════════════════════════════════════════════════════════════════════════
+// â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+// COLORES DE LA APLICACIÃ“N - GOLF (VERDE PROFESIONAL)
+// â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
 abstract class GolfColors {
-  // Colores principales - GOLF (Verde Profesional) ⛳
-  static const Color primaryGreen = Color(0xFF7CB342);       // 🌿 VERDE GOLF AUTÉNTICO
-  static const Color primaryGreenLight = Color(0xFFF1F8E9);  // 🌱 Verde muy claro fondo
-  static const Color primaryGreenDark = Color(0xFF689F38);   // 🌲 Verde golf oscuro
-  static const Color primaryGreenBorder = Color(0xFF8BC34A); // 🍃 Verde claro borde
+  // Colores principales - GOLF (Verde Profesional) â›³
+  static const Color primaryGreen = Color(0xFF7CB342);       // ðŸŒ¿ VERDE GOLF AUTÃ‰NTICO
+  static const Color primaryGreenLight = Color(0xFFF1F8E9);  // ðŸŒ± Verde muy claro fondo
+  static const Color primaryGreenDark = Color(0xFF689F38);   // ðŸŒ² Verde golf oscuro
+  static const Color primaryGreenBorder = Color(0xFF8BC34A); // ðŸƒ Verde claro borde
 
   // Colores de estado para reservas
   static const Color available = Color(0xFFE8F5E8);          // Verde muy claro disponible
   static const Color availableBorder = Color(0xFF81C784);    // Verde medio borde
   static const Color availableText = Color(0xFF2E7D32);
-  static const Color reserved = Color(0xFF7CB342);           // ⛳ VERDE GOLF reservado
-  static const Color reservedBorder = Color(0xFF689F38);     // ⛳ Verde golf oscuro borde
+  static const Color reserved = Color(0xFF7CB342);           // â›³ VERDE GOLF reservado
+  static const Color reservedBorder = Color(0xFF689F38);     // â›³ Verde golf oscuro borde
   static const Color reservedText = Colors.white;
   static const Color incomplete = Color(0xFFFFF9C4);         // Amarillo claro incompleto
   static const Color incompleteBorder = Color(0xFFFFCC02);   // Amarillo borde
@@ -27,7 +27,7 @@ abstract class GolfColors {
   static const Color success = Color(0xFF4CAF50);
   static const Color warning = Color(0xFFFF9800);
   static const Color error = Color(0xFFf44336);
-  static const Color info = primaryGreen;                    // ⛳ Verde golf
+  static const Color info = primaryGreen;                    // â›³ Verde golf
 
   // Colores adicionales
   static const Color white = Color(0xFFFFFFFF);
@@ -92,3 +92,4 @@ abstract class GolfTheme {
     );
   }
 }
+

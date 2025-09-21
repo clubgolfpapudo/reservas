@@ -1,4 +1,4 @@
-// lib/data/repositories/user_repository_impl.dart
+﻿// lib/data/repositories/user_repository_impl.dart
 import 'package:cloud_firestore/cloud_firestore.dart';
 import '../../domain/entities/user.dart';
 import '../../domain/repositories/user_repository.dart';
@@ -12,9 +12,9 @@ class UserRepositoryImpl implements UserRepository {
   UserRepositoryImpl({FirebaseFirestore? firestore})
       : _firestore = firestore ?? FirebaseFirestore.instance;
 
-  // ═══════════════════════════════════════════════════════════════════════════
-  // MÉTODOS DE CONSULTA
-  // ═══════════════════════════════════════════════════════════════════════════
+  // â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+  // MÃ‰TODOS DE CONSULTA
+  // â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
 
   @override
   Future<User?> getUserById(String userId) async {
@@ -32,7 +32,7 @@ class UserRepositoryImpl implements UserRepository {
   @override
   Future<User?> getUserByEmail(String email) async {
     try {
-      print('🔍 DEBUG: Buscando usuario con email: "${email.toLowerCase()}"');
+      print('ðŸ” DEBUG: Buscando usuario con email: "${email.toLowerCase()}"');
       
       final query = await _firestore
           .collection(_collection)
@@ -41,13 +41,13 @@ class UserRepositoryImpl implements UserRepository {
           .limit(1)
           .get();
 
-      print('📊 DEBUG: Documentos encontrados: ${query.docs.length}');
-      print('📊 DEBUG: Collection usada: $_collection');
+      print('ðŸ“Š DEBUG: Documentos encontrados: ${query.docs.length}');
+      print('ðŸ“Š DEBUG: Collection usada: $_collection');
       
       if (query.docs.isNotEmpty) {
         final doc = query.docs.first;
         final userData = doc.data() as Map<String, dynamic>;
-        print('👤 DEBUG: Usuario encontrado: $userData');
+        print('ðŸ‘¤ DEBUG: Usuario encontrado: $userData');
         print('✅ DEBUG: Email en DB: "${userData['email']}"');
         print('✅ DEBUG: DisplayName: "${userData['displayName']}"');
         print('✅ DEBUG: IsActive: ${userData['isActive']}');
@@ -55,10 +55,10 @@ class UserRepositoryImpl implements UserRepository {
         return UserModel.fromFirestore(doc);
       }
       
-      print('❌ DEBUG: No se encontró usuario con email: "${email.toLowerCase()}"');
+      print('âŒ DEBUG: No se encontró usuario con email: "${email.toLowerCase()}"');
       return null;
     } catch (e) {
-      print('🚨 DEBUG: Error en getUserByEmail: $e');
+      print('ðŸš¨ DEBUG: Error en getUserByEmail: $e');
       throw Exception('Error al buscar usuario por email: $e');
     }
   }
@@ -179,9 +179,9 @@ class UserRepositoryImpl implements UserRepository {
     }
   }
 
-  // ═══════════════════════════════════════════════════════════════════════════
-  // MÉTODOS DE MODIFICACIÓN
-  // ═══════════════════════════════════════════════════════════════════════════
+  // â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+  // MÃ‰TODOS DE MODIFICACIÃ“N
+  // â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
 
   @override
   Future<void> createUser(User user) async {
@@ -351,9 +351,9 @@ class UserRepositoryImpl implements UserRepository {
     }
   }
 
-  // ═══════════════════════════════════════════════════════════════════════════
-  // MÉTODOS DE VALIDACIÓN
-  // ═══════════════════════════════════════════════════════════════════════════
+  // â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+  // MÃ‰TODOS DE VALIDACIÃ“N
+  // â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
 
   @override
   Future<bool> isEmailRegistered(String email) async {
@@ -420,9 +420,9 @@ class UserRepositoryImpl implements UserRepository {
     }
   }
 
-  // ═══════════════════════════════════════════════════════════════════════════
-  // MÉTODOS DE ESTADÍSTICAS Y REPORTES
-  // ═══════════════════════════════════════════════════════════════════════════
+  // â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+  // MÃ‰TODOS DE ESTADÃSTICAS Y REPORTES
+  // â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
 
   @override
   Future<Map<UserRole, int>> getUserCountByRole() async {
@@ -478,9 +478,9 @@ class UserRepositoryImpl implements UserRepository {
     }
   }
 
-  // ═══════════════════════════════════════════════════════════════════════════
-  // MÉTODOS DE STREAM (TIEMPO REAL)
-  // ═══════════════════════════════════════════════════════════════════════════
+  // â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+  // MÃ‰TODOS DE STREAM (TIEMPO REAL)
+  // â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
 
   @override
   Stream<User?> watchUser(String userId) {
@@ -521,3 +521,4 @@ class UserRepositoryImpl implements UserRepository {
             .toList());
   }
 }
+

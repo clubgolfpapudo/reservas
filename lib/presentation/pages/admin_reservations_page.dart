@@ -58,12 +58,12 @@ class _AdminReservationsPageState extends State<AdminReservationsPage> {
         return DateTime(now.year, now.month, now.day);
     }
     
-    // Obtener Ãºltimo horario segÃºn los deportes disponibles
+    // Obtener último horario según los deportes disponibles
     final lastGolfSlot = AppConstants.getLastTimeSlotForSport('golf');
     final lastPadelSlot = AppConstants.getLastTimeSlotForSport('padel');
     final lastTennisSlot = AppConstants.getLastTimeSlotForSport('tennis');
     
-    // Usar el Ãºltimo horario mÃ¡s tardÃ­o como referencia
+    // Usar el último horario más tardío como referencia
     final latestEndTime = [lastGolfSlot, lastPadelSlot, lastTennisSlot]
         .map((time) {
             final parts = time.split(':');
@@ -71,8 +71,8 @@ class _AdminReservationsPageState extends State<AdminReservationsPage> {
         })
         .reduce((a, b) => a > b ? a : b);
     
-    // Si ya pasÃ³ la mayorÃ­a de horarios del dÃ­a, mostrar maÃ±ana
-    if (currentTimeInMinutes > (latestEndTime - 120)) { // 2 horas antes del Ãºltimo horario
+    // Si ya pasó la mayoría de horarios del día, mostrar mañana
+    if (currentTimeInMinutes > (latestEndTime - 120)) { // 2 horas antes del último horario
         return DateTime(now.year, now.month, now.day + 1);
     }
     
@@ -139,7 +139,7 @@ class _AdminReservationsPageState extends State<AdminReservationsPage> {
     return Scaffold(
       appBar: AppBar(
         title: const Text(
-          'Panel de AdministraciÃ³n',
+          'Panel de Administración',
           style: TextStyle(
             fontSize: 18,
             fontWeight: FontWeight.w500,
@@ -185,7 +185,7 @@ class _AdminReservationsPageState extends State<AdminReservationsPage> {
 
           return Column(
             children: [
-              // BÃºsqueda por jugador
+              // Búsqueda por jugador
               Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
                 child: TextField(
@@ -221,7 +221,7 @@ class _AdminReservationsPageState extends State<AdminReservationsPage> {
                         });
                       },
                     ),
-                    // NavegaciÃ³n de fechas centrada
+                    // Navegación de fechas centrada
                     Row(
                       mainAxisSize: MainAxisSize.min,
                       children: [
@@ -335,7 +335,7 @@ class _EditBookingModalContentState extends State<_EditBookingModalContent> {
     // PERF: print('DEBUG Modal: Usuarios en provider: ${widget.bookingProvider.users?.length ?? "null"}');
     // PERF: print('DEBUG Modal: Provider instance: ${widget.bookingProvider}');
     
-    // Cargar usuarios si no estÃ¡n disponibles - DIFERIDO
+    // Cargar usuarios si no están disponibles - DIFERIDO
     if (widget.bookingProvider.users == null) {
       // PERF: print('DEBUG Modal: Cargando usuarios...');
       WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -390,7 +390,7 @@ class _EditBookingModalContentState extends State<_EditBookingModalContent> {
       // USAR EL MISMO FORMATO: '${DateTime.now().millisecondsSinceEpoch}_${random.nextInt(999999)}'
       final uniqueId = '${DateTime.now().millisecondsSinceEpoch}_${_random.nextInt(999999)}';
       
-      // Crear nuevo objeto con ID Ãºnico
+      // Crear nuevo objeto con ID único
       playerToAdd = BookingPlayer(
         id: uniqueId,
         name: player.name,
@@ -398,14 +398,14 @@ class _EditBookingModalContentState extends State<_EditBookingModalContent> {
         phone: player.phone,
       );
       
-      // PERF: print('DEBUG _addPlayer: ID Ãºnico generado: $uniqueId');
+      // PERF: print('DEBUG _addPlayer: ID único generado: $uniqueId');
     }
     
-    // Verificar que no exista duplicado (ahora con ID Ãºnico garantizado)
+    // Verificar que no exista duplicado (ahora con ID único garantizado)
     final isDuplicate = _players.any((p) => p.id == playerToAdd.id);
-    // PERF: print('DEBUG _addPlayer: Â¿Ya existe este ID? $isDuplicate');
+    // PERF: print('DEBUG _addPlayer: ¿Ya existe este ID? $isDuplicate');
     
-    // Verificar condiciones de adiciÃ³n
+    // Verificar condiciones de adición
     if (_players.length < 4 && !isDuplicate) {
       setState(() {
         _players.add(playerToAdd);
@@ -414,7 +414,7 @@ class _EditBookingModalContentState extends State<_EditBookingModalContent> {
       _filteredUsers = [];
       // PERF: print('DEBUG _addPlayer: Jugador agregado exitosamente con ID: ${playerToAdd.id}. Total: ${_players.length}');
     } else {
-      // PERF: print('DEBUG _addPlayer: NO se pudo agregar - ${isDuplicate ? "ID duplicado" : "LÃ­mite alcanzado (${_players.length}/4)"}');
+      // PERF: print('DEBUG _addPlayer: NO se pudo agregar - ${isDuplicate ? "ID duplicado" : "Límite alcanzado (${_players.length}/4)"}');
     }
   }
 
@@ -446,8 +446,8 @@ class _EditBookingModalContentState extends State<_EditBookingModalContent> {
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('Confirmar EliminaciÃ³n'),
-        content: const Text('Â¿EstÃ¡s seguro de que deseas eliminar esta reserva?'),
+        title: const Text('Confirmar Eliminación'),
+        content: const Text('¿Estás seguro de que deseas eliminar esta reserva?'),
         actions: [
           TextButton(
             onPressed: () => Navigator.of(context).pop(false),
@@ -506,7 +506,7 @@ class _EditBookingModalContentState extends State<_EditBookingModalContent> {
             );
           },
         ),
-        // BÃºsqueda de usuarios
+        // Búsqueda de usuarios
         if (_players.length < 4) ...[
           const SizedBox(height: 16),
           TextField(
@@ -533,7 +533,7 @@ class _EditBookingModalContentState extends State<_EditBookingModalContent> {
             ),
         ],
         const SizedBox(height: 20),
-        // Botones de acciÃ³n
+        // Botones de acción
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
@@ -565,4 +565,6 @@ class _EditBookingModalContentState extends State<_EditBookingModalContent> {
     );
   }
 }
+
+
 

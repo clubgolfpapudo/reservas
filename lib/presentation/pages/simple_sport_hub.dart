@@ -1,4 +1,4 @@
-// lib/presentation/pages/simple_sport_hub.dart
+﻿// lib/presentation/pages/simple_sport_hub.dart
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../providers/auth_provider.dart';
@@ -19,31 +19,31 @@ class _SimpleSportHubState extends State<SimpleSportHub> {
   void initState() {
     super.initState();
     
-    // 🔐 Verificar estado admin después de inicializar
+    // ðŸ” Verificar estado admin después de inicializar
     Future.delayed(const Duration(milliseconds: 500), () {
       _checkAdminStatus();
     });
   }
 
-  // 🔐 Verificar estado de administrador
+  // ðŸ” Verificar estado de administrador
   void _checkAdminStatus() {
     final authProvider = Provider.of<AuthProvider>(context, listen: false);
     final adminProvider = Provider.of<AdminProvider>(context, listen: false);
     
-    print('🔍 DEBUG: Email actual: ${authProvider.currentUserEmail}');
-    print('🔍 DEBUG: Es autenticado: ${authProvider.isUserValidated}');
+    print('ðŸ” DEBUG: Email actual: ${authProvider.currentUserEmail}');
+    print('ðŸ” DEBUG: Es autenticado: ${authProvider.isUserValidated}');
     
     if (authProvider.isUserValidated) {
       adminProvider.checkAdminStatus(authProvider.currentUserEmail);
-      print('🔍 DEBUG: Es admin: ${adminProvider.isAdmin}');
+      print('ðŸ” DEBUG: Es admin: ${adminProvider.isAdmin}');
     }
   }
 
   @override
   Widget build(BuildContext context) {
-    // 🚨 DEBUG: Para confirmar que este archivo se está ejecutando
-    print("🔥🔥🔥 EJECUTANDO SIMPLE_SPORT_HUB.DART - VERSIÓN CON ADMIN");
-    print("🔥🔥🔥 ORDEN CORRECTO: 1️⃣Golf → 2️⃣Pádel → 3️⃣Tenis");
+    // ðŸš¨ DEBUG: Para confirmar que este archivo se está ejecutando
+    print("ðŸ”¥ðŸ”¥ðŸ”¥ EJECUTANDO SIMPLE_SPORT_HUB.DART - VERSIÃ“N CON ADMIN");
+    print("ðŸ”¥ðŸ”¥ðŸ”¥ ORDEN CORRECTO: 1ï¸âƒ£Golf â†’ 2ï¸âƒ£Pádel â†’ 3ï¸âƒ£Tenis");
     
     return Scaffold(
       backgroundColor: const Color(0xFFF8F9FA),
@@ -137,7 +137,7 @@ class _SimpleSportHubState extends State<SimpleSportHub> {
                     ),
                   ),
                   
-                  // 🔐 BOTÓN ADMIN
+                  // ðŸ” BOTÃ“N ADMIN
                   const AdminMenuButton(
                     showBadge: true,
                     padding: EdgeInsets.symmetric(horizontal: 8, vertical: 4),
@@ -146,7 +146,7 @@ class _SimpleSportHubState extends State<SimpleSportHub> {
                   
                   const SizedBox(width: 8),
                   
-                  // 🍔 NUEVO: MENÚ HAMBURGUESA
+                  // ðŸ” NUEVO: MENÃš HAMBURGUESA
                   IconButton(
                     icon: const Icon(Icons.menu, color: Colors.white),
                     onPressed: () => _showMainMenu(context),
@@ -207,7 +207,7 @@ class _SimpleSportHubState extends State<SimpleSportHub> {
                 welcomeMessage,
                 style: TextStyle(
                   color: Colors.white.withOpacity(0.9),
-                  fontSize: 18,  // ← Aumenté un poco el tamaño ya que es el único texto
+                  fontSize: 18,  // â† Aumenté un poco el tamaño ya que es el único texto
                   fontWeight: FontWeight.w500,
                 ),
                 textAlign: TextAlign.center,
@@ -222,42 +222,42 @@ class _SimpleSportHubState extends State<SimpleSportHub> {
   Widget _buildSportsCards() {
     return Column(
       children: [
-        // 🏌️ GOLF - PRIMER DEPORTE (POSICIÓN 1)
+        // ðŸŒï¸ GOLF - PRIMER DEPORTE (POSICIÃ“N 1)
         _buildSportCard(
           title: 'Golf',
           description: 'Campo de golf de 18 hoyos, par 68',
           icon: Icons.golf_course,
           color: const Color(0xFF7CB342),
           onTap: () {
-            print("🏌️ TAP EN GOLF - PRIMER DEPORTE");
+            print("ðŸŒï¸ TAP EN GOLF - PRIMER DEPORTE");
             Navigator.pushNamed(context, '/golf-reservations');
           },
         ),
         
         const SizedBox(height: 16),
         
-        // 🏓 PÁDEL - SEGUNDO DEPORTE (POSICIÓN 2)
+        // ðŸ“ PÃDEL - SEGUNDO DEPORTE (POSICIÃ“N 2)
         _buildSportCard(
           title: 'Pádel',
           description: 'Tres canchas profesionales',
           icon: Icons.sports_handball,
           color: const Color(0xFF2E7AFF),
           onTap: () {
-            print("🏓 TAP EN PÁDEL - SEGUNDO DEPORTE");
+            print("ðŸ“ TAP EN PÃDEL - SEGUNDO DEPORTE");
             Navigator.pushNamed(context, '/paddle-reservations');
           },
         ),
         
         const SizedBox(height: 16),
         
-        // 🎾 TENIS - TERCER DEPORTE (POSICIÓN 3)
+        // ðŸŽ¾ TENIS - TERCER DEPORTE (POSICIÃ“N 3)
         _buildSportCard(
           title: 'Tenis',
           description: 'Cuatro canchas de arcilla',
           icon: Icons.sports_tennis,
           color: const Color(0xFFD2691E),
           onTap: () {
-            print("🎾 TAP EN TENIS - TERCER DEPORTE");
+            print("ðŸŽ¾ TAP EN TENIS - TERCER DEPORTE");
             Navigator.pushNamed(context, '/tennis-reservations');
           },
         ),
@@ -350,7 +350,7 @@ class _SimpleSportHubState extends State<SimpleSportHub> {
     );
   }
 
-  // 📱 Footer de navegación (igual que el anterior)
+  // ðŸ“± Footer de navegación (igual que el anterior)
   Widget _buildFooterNavigation() {
     return Container(
       padding: const EdgeInsets.all(20),
@@ -471,7 +471,7 @@ class _SimpleSportHubState extends State<SimpleSportHub> {
     );
   }
 
-  // 📱 Modal para funciones del footer
+  // ðŸ“± Modal para funciones del footer
   void _showComingSoonModal(String feature) {
     showDialog(
       context: context,
@@ -577,3 +577,4 @@ class _SimpleSportHubState extends State<SimpleSportHub> {
     );
   }
 }
+

@@ -39,18 +39,18 @@ class _GolfReservationsPageState extends State<GolfReservationsPage> {
         // PERF: print('ERROR: Usuario no autenticado en Firebase, redirigiendo a login');
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
-            content: Text('SesiÃ³n expirada. Redirigiendo al login...'),
+            content: Text('Sesión expirada. Redirigiendo al login...'),
             backgroundColor: Colors.red,
           ),
         );
-        // Redirigir al login despuÃ©s de 2 segundos
+        // Redirigir al login después de 2 segundos
         Future.delayed(const Duration(seconds: 2), () {
           Navigator.of(context).pushNamedAndRemoveUntil('/', (route) => false);
         });
         return;
       }
       
-      // Resto del cÃ³digo existente...
+      // Resto del código existente...
       final provider = context.read<BookingProvider>();
       provider.fetchUsers();
       // PERF: print('Golf INIT: provider.selectedCourtId = ${provider.selectedCourtId}');
@@ -65,7 +65,7 @@ class _GolfReservationsPageState extends State<GolfReservationsPage> {
     WidgetsBinding.instance.addPostFrameCallback((_) {
       final provider = context.read<BookingProvider>();
       
-      // Agregar esta lÃ­nea para cargar los usuarios
+      // Agregar esta línea para cargar los usuarios
       provider.fetchUsers();
       
       // PERF: print('â›³ GOLF INIT: provider.selectedCourtId = ${provider.selectedCourtId}');
@@ -89,7 +89,7 @@ class _GolfReservationsPageState extends State<GolfReservationsPage> {
         builder: (context, bookingProvider, child) {
           return Column(
             children: [
-              // Header con navegaciÃ³n de fechas
+              // Header con navegación de fechas
               DateNavigationHeader(
                 title: 'Golf',
                 selectedDate: bookingProvider.selectedDate,
@@ -106,7 +106,7 @@ class _GolfReservationsPageState extends State<GolfReservationsPage> {
                 onDateTap: () => _showDateSelector(context, bookingProvider),
               ),
 
-              // EstadÃ­sticas compactas
+              // Estadísticas compactas
               AnimatedCompactStats(
                 bookings: bookingProvider.currentBookings,
               ),
@@ -204,12 +204,12 @@ class _GolfReservationsPageState extends State<GolfReservationsPage> {
         Expanded(
           child: Column(
             children: [
-              // Header Hoyo 1 - Verde estÃ¡ndar
+              // Header Hoyo 1 - Verde estándar
               Container(
                 padding: const EdgeInsets.all(12),
                 margin: const EdgeInsets.symmetric(horizontal: 8),
                 decoration: BoxDecoration(
-                  color: Color(0xFF4CAF50), // Verde estÃ¡ndar mÃ¡s contrastante
+                  color: Color(0xFF4CAF50), // Verde estándar más contrastante
                   borderRadius: BorderRadius.circular(8),
                 ),
                 child: Row(
@@ -284,7 +284,7 @@ class _GolfReservationsPageState extends State<GolfReservationsPage> {
     );
   }
 
-  // Nuevo mÃ©todo en la clase _GolfReservationsPageState
+  // Nuevo método en la clase _GolfReservationsPageState
   Widget _buildAddPlayerModal(BuildContext context, List<BookingPlayer> allUsers, List<BookingPlayer> bookedPlayers) {
     final bookedPlayerIds = bookedPlayers.map((p) => p.id).toSet();
     final availablePlayers = allUsers.where((user) => !bookedPlayerIds.contains(user.id)).toList();
@@ -349,7 +349,7 @@ class _GolfReservationsPageState extends State<GolfReservationsPage> {
       itemBuilder: (context, index) {
         final timeSlot = availableSlots[index];
         
-        // BÃºsqueda directa sin filtros previos
+        // Búsqueda directa sin filtros previos
         Booking? booking;
         for (var b in provider.bookings) {  // Usar bookings en lugar de currentBookings
           if (b.courtId == hoyoId && 
@@ -370,7 +370,7 @@ class _GolfReservationsPageState extends State<GolfReservationsPage> {
           // PERF: print('DEBUG Found booking for $timeSlot: ${booking != null}');
         }
 
-        // Determinar nÃºmero de jugadores
+        // Determinar número de jugadores
         int playerCount = 0;
         BookingStatus? status;
         List<BookingPlayer> players = [];
@@ -416,7 +416,7 @@ class _GolfReservationsPageState extends State<GolfReservationsPage> {
                   
                   const SizedBox(height: 4),
                   
-                  // Estado/AcciÃ³n
+                  // Estado/Acción
                   if (playerCount == 4)
                     Column(
                       mainAxisSize: MainAxisSize.min,
@@ -464,14 +464,14 @@ class _GolfReservationsPageState extends State<GolfReservationsPage> {
                           ),
                           const SizedBox(height: 4),
                         ],
-                        // Reemplaza el GestureDetector que estÃ¡ en el bloque 'else'
+                        // Reemplaza el GestureDetector que está en el bloque 'else'
                         GestureDetector(
                           onTap: () {
                             if (playerCount == 0) {
-                              // Si el slot estÃ¡ vacÃ­o, usa la funciÃ³n para crear una nueva reserva
+                              // Si el slot está vacío, usa la función para crear una nueva reserva
                               _handleReserveSlot(context, hoyoId, timeSlot);
                             } else {
-                              // Si el slot estÃ¡ incompleto, usa la funciÃ³n para modificar la reserva existente
+                              // Si el slot está incompleto, usa la función para modificar la reserva existente
                               _handleSlotTap(context, booking!);
                             }
                           },
@@ -503,7 +503,7 @@ class _GolfReservationsPageState extends State<GolfReservationsPage> {
     );
   }
 
-  // Colores especÃ­ficos para golf
+  // Colores específicos para golf
   Color _getGolfSlotBackgroundColor(int playerCount, bool isSuspended) {
     if (isSuspended) {
       return Colors.grey[100]!;
@@ -707,7 +707,7 @@ class _GolfReservationsPageState extends State<GolfReservationsPage> {
                     mainAxisSize: MainAxisSize.min,
                     children: [
                       Text(
-                        'Ver reservas de maÃ±ana',
+                        'Ver reservas de mañana',
                         style: TextStyle(
                           color: Colors.white,
                           fontSize: 16,
@@ -742,7 +742,7 @@ class _GolfReservationsPageState extends State<GolfReservationsPage> {
 
   String _getDayName(DateTime date) {
     const days = [
-      '', 'Lunes', 'Martes', 'MiÃ©rcoles', 'Jueves', 'Viernes', 'SÃ¡bado', 'Domingo'
+      '', 'Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado', 'Domingo'
     ];
     return days[date.weekday];
   }
@@ -754,14 +754,14 @@ class _GolfReservationsPageState extends State<GolfReservationsPage> {
   void _handleAddReservation(BuildContext context) {
     ScaffoldMessenger.of(context).showSnackBar(
       const SnackBar(
-        content: Text('FunciÃ³n de agregar reserva prÃ³ximamente'),
+        content: Text('Función de agregar reserva próximamente'),
         // backgroundColor: GolfColors.primaryGreen,
         backgroundColor: const Color(0xFF4CAF50),
       ),
     );
   }
 
-  /// MÃ©todo principal - Muestra el modal de reservas para golf
+  /// Método principal - Muestra el modal de reservas para golf
   void _handleReserveSlot(BuildContext context, String hoyoId, String timeSlot) async {
     final provider = context.read<BookingProvider>();
     
@@ -783,7 +783,7 @@ class _GolfReservationsPageState extends State<GolfReservationsPage> {
   Future<void> _handleAddPlayerToBooking(BuildContext context, Booking booking) async {
     final provider = context.read<BookingProvider>();
 
-    // âœ… 1. Primero, asegura que los datos estÃ©n cargados antes de cualquier navegaciÃ³n
+    // ✅ 1. Primero, asegura que los datos estén cargados antes de cualquier navegación
     if (provider.users == null || provider.users!.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
@@ -792,7 +792,7 @@ class _GolfReservationsPageState extends State<GolfReservationsPage> {
       );
       await provider.fetchUsers();
       
-      // Si la carga sigue fallando, notifica y detÃ©n
+      // Si la carga sigue fallando, notifica y detén
       if (provider.users == null || provider.users!.isEmpty) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
@@ -803,17 +803,17 @@ class _GolfReservationsPageState extends State<GolfReservationsPage> {
       }
     }
 
-    // âœ… 2. Abre el modal de forma segura, esperando a que el usuario interactÃºe
+    // ✅ 2. Abre el modal de forma segura, esperando a que el usuario interactúe
     final selectedPlayer = await showDialog<BookingPlayer>(
       context: context,
       builder: (context) => _buildAddPlayerModal(context, provider.users!, booking.players)
     );
     
-    // âœ… 3. Si se selecciona un jugador, realiza la acciÃ³n y muestra un mensaje
+    // ✅ 3. Si se selecciona un jugador, realiza la acción y muestra un mensaje
     if (selectedPlayer != null) {
       await provider.addPlayerToBooking(booking.id!, selectedPlayer.id, selectedPlayer.name);
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Jugador agregado con Ã©xito'))
+        const SnackBar(content: Text('Jugador agregado con éxito'))
       );
     }
   }
@@ -854,7 +854,7 @@ class _GolfReservationsPageState extends State<GolfReservationsPage> {
         try {
           await FirebaseAuth.instance.currentUser?.reload();
           final reloadedUser = FirebaseAuth.instance.currentUser;
-          // PERF: print('DEBUG - Usuario despuÃ©s de reload: ${reloadedUser?.uid ?? "STILL NULL"}');
+          // PERF: print('DEBUG - Usuario después de reload: ${reloadedUser?.uid ?? "STILL NULL"}');
           
           if (reloadedUser != null) {
             currentUserId = reloadedUser.uid;
@@ -896,12 +896,12 @@ class _GolfReservationsPageState extends State<GolfReservationsPage> {
     
     // 2. VERIFICAR SI SE PUDO IDENTIFICAR AL USUARIO
     if (currentUserId == null) {
-      // PERF: print('ERROR CRÃTICO - No se pudo identificar al usuario despuÃ©s de todos los intentos');
+      // PERF: print('ERROR CRÃTICO - No se pudo identificar al usuario después de todos los intentos');
       
-      // Mostrar informaciÃ³n de diagnÃ³stico al usuario
+      // Mostrar información de diagnóstico al usuario
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: const Text('Error de autenticaciÃ³n. Su sesiÃ³n puede haber expirado.'),
+          content: const Text('Error de autenticación. Su sesión puede haber expirado.'),
           backgroundColor: Colors.red,
           duration: const Duration(seconds: 6),
           action: SnackBarAction(
@@ -930,7 +930,7 @@ class _GolfReservationsPageState extends State<GolfReservationsPage> {
     });
 
     if (isPlayerAlreadyInBooking) {
-      // PERF: print('DEBUG - Usuario ya estÃ¡ en la reserva');
+      // PERF: print('DEBUG - Usuario ya está en la reserva');
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
           content: Text('Ya eres parte de esta reserva.'),
@@ -942,17 +942,17 @@ class _GolfReservationsPageState extends State<GolfReservationsPage> {
 
     // 4. VERIFICAR CAPACIDAD MÃXIMA
     if (booking.players.length >= 4) {
-      // PERF: print('DEBUG - Reserva ya estÃ¡ completa');
+      // PERF: print('DEBUG - Reserva ya está completa');
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
-          content: Text('Esta reserva ya estÃ¡ completa.'),
+          content: Text('Esta reserva ya está completa.'),
           duration: Duration(seconds: 3),
         ),
       );
       return;
     }
 
-    // PERF: print('DEBUG - Mostrando diÃ¡logo de confirmaciÃ³n');
+    // PERF: print('DEBUG - Mostrando diálogo de confirmación');
     
     // 5. PEDIR CONFIRMACIÃ“N
     final confirmed = await showDialog<bool>(
@@ -963,7 +963,7 @@ class _GolfReservationsPageState extends State<GolfReservationsPage> {
           'Â¿Deseas unirte a esta reserva?\n\n'
           'Horario: ${booking.timeSlot}\n'
           'Jugadores actuales: ${booking.players.length}/4\n'
-          'QuedarÃ¡n ${3 - booking.players.length} espacios disponibles'
+          'Quedarán ${3 - booking.players.length} espacios disponibles'
         ),
         actions: <Widget>[
           TextButton(
@@ -978,7 +978,7 @@ class _GolfReservationsPageState extends State<GolfReservationsPage> {
       ),
     );
 
-    // PERF: print('DEBUG - Usuario confirmÃ³: ${confirmed == true}');
+    // PERF: print('DEBUG - Usuario confirmó: ${confirmed == true}');
 
     // 6. SI CONFIRMA, AGREGAR EL JUGADOR
     if (confirmed == true) {
@@ -1002,7 +1002,7 @@ class _GolfReservationsPageState extends State<GolfReservationsPage> {
             );
           }
         } else {
-          // PERF: print('DEBUG - Provider users estÃ¡ vacÃ­o o null');
+          // PERF: print('DEBUG - Provider users está vacío o null');
           currentUserData = BookingPlayer(
             id: currentUserId!,
             name: currentUserName ?? 'Usuario Desconocido',
@@ -1024,7 +1024,7 @@ class _GolfReservationsPageState extends State<GolfReservationsPage> {
         
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
-            content: Text('Te has unido a la reserva con Ã©xito.'),
+            content: Text('Te has unido a la reserva con éxito.'),
             backgroundColor: Colors.green,
             duration: Duration(seconds: 3),
           ),
@@ -1047,3 +1047,5 @@ class _GolfReservationsPageState extends State<GolfReservationsPage> {
     // PERF: print('=== FIN DEBUG AUTENTICACIÃ“N ===');
   }
 }
+
+

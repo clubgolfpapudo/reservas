@@ -1,4 +1,4 @@
-// lib/presentation/pages/home/home_page.dart
+﻿// lib/presentation/pages/home/home_page.dart
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../providers/booking_provider.dart';
@@ -36,7 +36,7 @@ class _HomePageState extends State<HomePage> {
       
       body: Column(
         children: [
-          // 🔥 NUEVO: Selector de usuario
+          // ðŸ”¥ NUEVO: Selector de usuario
           UserSelectorWidget(
             onUserChanged: () {
               setState(() {
@@ -45,9 +45,9 @@ class _HomePageState extends State<HomePage> {
             },
           ),
           
-          // 🔥 TU CONTENIDO ACTUAL (envolver en Expanded)
+          // ðŸ”¥ TU CONTENIDO ACTUAL (envolver en Expanded)
           Expanded(
-            child: /* AQUÍ VA TODO TU CÓDIGO ACTUAL DEL BODY */
+            child: /* AQUÃ VA TODO TU CÃ“DIGO ACTUAL DEL BODY */
             // No cambies nada de tu código actual, solo envuélvelo en Expanded
           ),
         ],
@@ -218,7 +218,7 @@ class _HomePageState extends State<HomePage> {
       onRefresh: () => bookingProvider.refresh(),
       child: ListView.builder(
         padding: const EdgeInsets.all(AppSizes.spacingM),
-        // 🔥 USAR HORARIOS DINÁMICOS según la fecha seleccionada
+        // ðŸ”¥ USAR HORARIOS DINÃMICOS según la fecha seleccionada
         itemCount: AppConstants.getAllTimeSlots(bookingProvider.selectedDate).length,
         itemBuilder: (context, index) {
           final availableTimeSlots = AppConstants.getAllTimeSlots(bookingProvider.selectedDate);
@@ -334,3 +334,5 @@ class _HomePageState extends State<HomePage> {
     return months[month];
   }
 }
+
+

@@ -1,4 +1,4 @@
-// lib/presentation/pages/Golf_reservations_page.dart - VERSIÓN CORREGIDA
+﻿// lib/presentation/pages/Golf_reservations_page.dart - VERSIÃ“N CORREGIDA
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../providers/booking_provider.dart';
@@ -39,14 +39,14 @@ class _GolfReservationsPageMinimalState extends State<GolfReservationsPageMinima
       initialPage: context.read<BookingProvider>().currentDateIndex,
     );
     
-    // ESTO DEBE ESTAR AQUÍ
+    // ESTO DEBE ESTAR AQUÃ
     WidgetsBinding.instance.addPostFrameCallback((_) {
       final provider = context.read<BookingProvider>();
-      print('⛳ GOLF INIT ANTES: provider.selectedCourtId = ${provider.selectedCourtId}');
+      print('â›³ GOLF INIT ANTES: provider.selectedCourtId = ${provider.selectedCourtId}');
       
       provider.selectCourt('golf_tee_1');
       
-      print('⛳ GOLF INIT DESPUÉS: provider.selectedCourtId = ${provider.selectedCourtId}');
+      print('â›³ GOLF INIT DESPUÃ‰S: provider.selectedCourtId = ${provider.selectedCourtId}');
     });
   }
 
@@ -57,14 +57,14 @@ class _GolfReservationsPageMinimalState extends State<GolfReservationsPageMinima
   }
 
   String _mapCourtIdToGolfName(String? courtId) {
-    print('🔍 DEBUG MAPPING: courtId recibido = $courtId');
+    print('ðŸ” DEBUG MAPPING: courtId recibido = $courtId');
     switch (courtId) {
-      case 'Golf_court_1': return 'Hoyo 1';    // 🔧 NUEVO ID
-      case 'Golf_court_2': return 'Hoyo 10';    // 🔧 NUEVO ID
-      case 'Golf_court_3': return 'Hoyo 1';    // 🔧 NUEVO ID
-      case 'Golf_court_4': return 'Hoyo 10';    // 🔧 NUEVO ID
+      case 'Golf_court_1': return 'Hoyo 1';    // ðŸ”§ NUEVO ID
+      case 'Golf_court_2': return 'Hoyo 10';    // ðŸ”§ NUEVO ID
+      case 'Golf_court_3': return 'Hoyo 1';    // ðŸ”§ NUEVO ID
+      case 'Golf_court_4': return 'Hoyo 10';    // ðŸ”§ NUEVO ID
       default: 
-        print('⚠️ DEFAULT CASE: courtId no reconocido = $courtId');
+        print('âš ï¸ DEFAULT CASE: courtId no reconocido = $courtId');
         return 'Hoyo 1';
     }
   }
@@ -122,7 +122,7 @@ class _GolfReservationsPageMinimalState extends State<GolfReservationsPageMinima
           courtNames: ['Hoyo 1', 'Hoyo 10'],
           selectedCourt: _mapCourtIdToGolfName(provider.selectedCourtId),
           onCourtSelected: (courtName) {
-            print('🎾 Seleccionando hoyo: $courtName');
+            print('ðŸŽ¾ Seleccionando hoyo: $courtName');
             
             // Mapear nombre a ID de TENIS
             String courtId;
@@ -143,13 +143,13 @@ class _GolfReservationsPageMinimalState extends State<GolfReservationsPageMinima
                 courtId = 'Golf_court_1';
             }
             
-            // 🔧 AGREGAR ESTAS LÍNEAS DE DEBUG
-            print('🔧 ANTES: provider.selectedCourtId = ${provider.selectedCourtId}');
-            print('🔧 LLAMANDO: provider.selectCourt($courtId)');
+            // ðŸ”§ AGREGAR ESTAS LÃNEAS DE DEBUG
+            print('ðŸ”§ ANTES: provider.selectedCourtId = ${provider.selectedCourtId}');
+            print('ðŸ”§ LLAMANDO: provider.selectCourt($courtId)');
             
             provider.selectCourt(courtId);
             
-            print('🔧 DESPUÉS: provider.selectedCourtId = ${provider.selectedCourtId}');
+            print('ðŸ”§ DESPUÃ‰S: provider.selectedCourtId = ${provider.selectedCourtId}');
           },
         ),
 
@@ -304,7 +304,7 @@ class _GolfReservationsPageMinimalState extends State<GolfReservationsPageMinima
   }
 
   // ============================================================================
-  // NAVEGACIÓN DE FECHAS
+  // NAVEGACIÃ“N DE FECHAS
   // ============================================================================
 
   void _goToPreviousDate(BookingProvider provider) {
@@ -402,48 +402,48 @@ class _GolfReservationsPageMinimalState extends State<GolfReservationsPageMinima
   }
 
   // ============================================================================
-  // MÉTODOS DE UTILIDAD Y COLORES - 🔧 CORREGIDOS (solo colores que existen)
+  // MÃ‰TODOS DE UTILIDAD Y COLORES - ðŸ”§ CORREGIDOS (solo colores que existen)
   // ============================================================================
 
   Color _getSlotBackgroundColor(BookingStatus? status) {
     switch (status) {
       case BookingStatus.complete:
-        return primaryGreen; // 🔧 HARDCODE (AppColors.confirmed NO EXISTE)
+        return primaryGreen; // ðŸ”§ HARDCODE (AppColors.confirmed NO EXISTE)
       case BookingStatus.incomplete:
-        return primaryGreenLight; // ✅ ESTE SÍ EXISTE
+        return primaryGreenLight; // ✅ ESTE SÃ EXISTE
       default:
-        return const Color(0xFFE8F4F9); // 🔧 HARDCODE (AppColors.available NO EXISTE)
+        return const Color(0xFFE8F4F9); // ðŸ”§ HARDCODE (AppColors.available NO EXISTE)
     }
   }
 
   Color _getSlotBorderColor(BookingStatus? status) {
     switch (status) {
       case BookingStatus.complete:
-        return const Color(0xFF1a5ce6); // 🔧 HARDCODE (AppColors.confirmedBorder NO EXISTE)
+        return const Color(0xFF1a5ce6); // ðŸ”§ HARDCODE (AppColors.confirmedBorder NO EXISTE)
       case BookingStatus.incomplete:
-        return primaryGreenLightBorder; // ✅ ESTE SÍ EXISTE
+        return primaryGreenLightBorder; // ✅ ESTE SÃ EXISTE
       default:
-        return primaryGreen.withOpacity(0.2); // 🔧 HARDCODE
+        return primaryGreen.withOpacity(0.2); // ðŸ”§ HARDCODE
     }
   }
 
   Color _getTextColor(BookingStatus? status) {
     switch (status) {
       case BookingStatus.complete:
-        return Colors.white; // 🔧 HARDCODE (AppColors.confirmedText NO EXISTE)
+        return Colors.white; // ðŸ”§ HARDCODE (AppColors.confirmedText NO EXISTE)
       case BookingStatus.incomplete:
-        return primaryGreenLightText; // ✅ ESTE SÍ EXISTE
+        return primaryGreenLightText; // ✅ ESTE SÃ EXISTE
       default:
-        return Colors.black87; // 🔧 HARDCODE
+        return Colors.black87; // ðŸ”§ HARDCODE
     }
   }
 
   Color _getSubtextColor(BookingStatus? status) {
     switch (status) {
       case BookingStatus.complete:
-        return Colors.white.withOpacity(0.9); // 🔧 HARDCODE
+        return Colors.white.withOpacity(0.9); // ðŸ”§ HARDCODE
       case BookingStatus.incomplete:
-        return primaryGreenLightText.withOpacity(0.7); // ✅ ESTE SÍ EXISTE
+        return primaryGreenLightText.withOpacity(0.7); // ✅ ESTE SÃ EXISTE
       default:
         return Colors.grey[600]!; // Para disponible
     }
@@ -636,7 +636,7 @@ class _GolfReservationsPageMinimalState extends State<GolfReservationsPageMinima
 }
 
   // ============================================================================
-  // MÉTODOS DE FORMATO
+  // MÃ‰TODOS DE FORMATO
   // ============================================================================
 
   String _formatDate(DateTime date) {
@@ -668,16 +668,16 @@ class _GolfReservationsPageMinimalState extends State<GolfReservationsPageMinima
     );
   }
 
-  /// MÉTODO PRINCIPAL - Muestra el modal nativo de reservas Flutter-Firebase
+  /// MÃ‰TODO PRINCIPAL - Muestra el modal nativo de reservas Flutter-Firebase
   void _handleReserveSlot(BuildContext context, String timeSlot) async {
     final provider = context.read<BookingProvider>();
 
-    print('🚨 DEBUG MODAL: provider.selectedCourtId = ${provider.selectedCourtId}');
+    print('ðŸš¨ DEBUG MODAL: provider.selectedCourtId = ${provider.selectedCourtId}');
 
-    // 🔧 NUEVO DEBUG ADICIONAL
-    print('🔧 DEBUG: Esperando 100ms para verificar si cambia...');
+    // ðŸ”§ NUEVO DEBUG ADICIONAL
+    print('ðŸ”§ DEBUG: Esperando 100ms para verificar si cambia...');
     await Future.delayed(Duration(milliseconds: 100));
-    print('🔧 DEBUG: Después de 100ms: provider.selectedCourtId = ${provider.selectedCourtId}');
+    print('ðŸ”§ DEBUG: Después de 100ms: provider.selectedCourtId = ${provider.selectedCourtId}');
     
     final courtName = _mapCourtIdToGolfName(provider.selectedCourtId);
     
@@ -689,7 +689,7 @@ class _GolfReservationsPageMinimalState extends State<GolfReservationsPageMinima
         courtName: courtName,
         date: _formatDateForSystem(provider.selectedDate),
         timeSlot: timeSlot,
-        sport: 'TENIS', // 🔧 NUEVO PARÁMETRO
+        sport: 'TENIS', // ðŸ”§ NUEVO PARÃMETRO
       ),
     );
   }
@@ -736,14 +736,14 @@ class _GolfReservationsPageMinimalState extends State<GolfReservationsPageMinima
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text('hoyo: ${AppConstants.getCourtName(booking.courtId)}'),  // ← CAMBIADO
+              Text('hoyo: ${AppConstants.getCourtName(booking.courtId)}'),  // â† CAMBIADO
               Text('Fecha: ${_formatDate(context.read<BookingProvider>().selectedDate)}'),
               Text('Estado: ${_getStatusText(booking.status)}'),
               const SizedBox(height: 8),
               const Text('Jugadores:', style: TextStyle(fontWeight: FontWeight.bold)),
               ...booking.players.map((player) => Padding(
                 padding: const EdgeInsets.only(left: 8, top: 4),
-                child: Text('• ${player.name}'),
+                child: Text('â€¢ ${player.name}'),
               )),
             ],
           ),
@@ -758,3 +758,5 @@ class _GolfReservationsPageMinimalState extends State<GolfReservationsPageMinima
     }
   }
 }
+
+

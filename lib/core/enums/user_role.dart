@@ -1,4 +1,4 @@
-// lib/core/enums/user_role.dart
+﻿// lib/core/enums/user_role.dart
 enum UserRole {
   socio,
   hijoSocio,
@@ -21,3 +21,4 @@ enum CourtStatus {
   inactive,
   maintenance;
 }
+

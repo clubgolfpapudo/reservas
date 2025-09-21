@@ -5,7 +5,7 @@ import '../../domain/entities/booking.dart';
 import '../../core/constants/app_constants.dart';
 
 class EmailService {
-  // ðŸ”¥ CORREGIDO: URL correcta segÃºn documentaciÃ³n
+  // ðŸ”¥ CORREGIDO: URL correcta según documentación
   static const String FUNCTIONS_URL = 
     'https://us-central1-cgpreservas.cloudfunctions.net/sendBookingEmailHTTP';
   
@@ -16,7 +16,7 @@ class EmailService {
   
   static const Duration TIMEOUT = Duration(seconds: 30);
   
-  /// EnvÃ­a emails de confirmaciÃ³n para una reserva
+  /// Envía emails de confirmación para una reserva
   static Future<bool> sendBookingConfirmation(Booking booking) async {
     try {
       // EMAIL-VERBOSE: print('ðŸ“§ INICIANDO ENVÃO DE EMAILS');
@@ -58,7 +58,7 @@ class EmailService {
         final responseData = jsonDecode(response.body);
         
         if (responseData['success'] == true) {
-          // EMAIL-VERBOSE: print('âœ… Emails enviados exitosamente');
+          // EMAIL-VERBOSE: print('✅ Emails enviados exitosamente');
           return true;
         } else {
           print('âŒ Error en respuesta: ${responseData['error']}');
@@ -75,7 +75,7 @@ class EmailService {
     }
   }
   
-  /// EnvÃ­a notificaciones de cancelaciÃ³n
+  /// Envía notificaciones de cancelación
   static Future<bool> sendCancellationNotification({
     required Booking booking,
     required BookingPlayer cancelingPlayer,
@@ -128,20 +128,20 @@ class EmailService {
       return response.statusCode == 200;
       
     } catch (e) {
-      print('âŒ Error enviando notificaciones de cancelaciÃ³n: $e');
+      print('âŒ Error enviando notificaciones de cancelación: $e');
       return false;
     }
   }
 
-  /// EnvÃ­a notificaciones a los jugadores cuando un admin agrega a un jugador
+  /// Envía notificaciones a los jugadores cuando un admin agrega a un jugador
   static Future<bool> sendPlayerAddedNotification({
     required Booking updatedBooking,
   }) async {
     try {
       // EMAIL-VERBOSE: print('ðŸ“§ ENVIANDO NOTIFICACIÃ“N DE JUGADOR AGREGADO POR ADMIN');
       
-      // Preparar los datos para el endpoint de la funciÃ³n de la nube
-      // El 'type' serÃ¡ 'player_added' para que la Cloud Function lo maneje
+      // Preparar los datos para el endpoint de la función de la nube
+      // El 'type' será 'player_added' para que la Cloud Function lo maneje
       final requestData = {
         'type': 'player_added',
         'booking': {
@@ -162,7 +162,7 @@ class EmailService {
 
       // EMAIL-VERBOSE: print('ðŸ“§ Player Added request: ${jsonEncode(requestData)}');
       
-      // Realizar la llamada HTTP a la funciÃ³n de la nube
+      // Realizar la llamada HTTP a la función de la nube
       final response = await http.post(
         Uri.parse(FUNCTIONS_URL),
         headers: HEADERS,
@@ -173,12 +173,12 @@ class EmailService {
       
       return response.statusCode == 200;
     } catch (e) {
-      print('âŒ Error enviando notificaciones de modificaciÃ³n por admin: $e');
+      print('âŒ Error enviando notificaciones de modificación por admin: $e');
       return false;
     }
   }
 
-  /// EnvÃ­a notificaciones a los jugadores cuando un admin remueve a un jugador
+  /// Envía notificaciones a los jugadores cuando un admin remueve a un jugador
   static Future<bool> sendPlayerRemovedNotification({
     required Booking updatedBooking,
     required BookingPlayer removedPlayer,
@@ -213,7 +213,7 @@ class EmailService {
       // EMAIL-VERBOSE: print('ðŸ“§ Player Removed response: ${response.statusCode} ${response.body}');
       return response.statusCode == 200;
     } catch (e) {
-      print('âŒ Error enviando notificaciÃ³n de jugador removido: $e');
+      print('âŒ Error enviando notificación de jugador removido: $e');
       return false;
     }
   }
@@ -225,7 +225,7 @@ class EmailService {
       
       final testData = {
         'test': true,
-        'message': 'VerificaciÃ³n de conectividad desde Flutter'
+        'message': 'Verificación de conectividad desde Flutter'
       };
       
       final response = await http.post(
@@ -245,3 +245,5 @@ class EmailService {
     }
   }
 }
+
+

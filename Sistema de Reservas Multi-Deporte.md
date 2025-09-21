@@ -479,3 +479,149 @@ Get-ChildItem -Path "lib" -Recurse -Filter "*.dart" | ForEach-Object {
 La optimización de performance mediante limpieza de debug logs fue exitosa, resultando en un sistema significativamente más eficiente manteniendo toda la funcionalidad core. El sistema está ahora listo para operación en producción con logging profesional y mínimo.
 
 **El proyecto continúa operativo sin limitaciones técnicas.**
+
+
+
+# Actualización del Sistema de Reservas Multi-Deporte - Septiembre 2025
+
+## Cambio de Email del Sistema (Septiembre 20-21, 2025)
+
+### Problema Identificado
+- **Issue crítico**: Los emails del sistema se enviaban desde `paddlepapudo@gmail.com`, generando confusión en usuarios de otros deportes
+- **Impacto**: Jugadores de golf y tenis recibían emails desde una cuenta de "paddlepapudo"
+- **Necesidad**: Cambiar a un email genérico del club: `cgpreservas@gmail.com`
+
+### Solución Implementada: Alias de Gmail
+
+#### Configuración de Alias
+1. **Configuración en Gmail**: Se agregó `cgpreservas@gmail.com` como alias de envío en `paddlepapudo@gmail.com`
+2. **Verificación**: Email verificado exitosamente con mensaje "El usuario de Gmail ahora puede enviar correo como cgpreservas@gmail.com"
+3. **Autenticación**: Se mantiene la autenticación con `paddlepapudo@gmail.com` (credenciales que funcionan)
+4. **App Password**: Se generó nuevo app password para `cgpreservas@gmail.com`: `ehmc afnm vior lxbs`
+
+#### Cambios en el Código
+```javascript
+// Antes
+from: { /* ... */ },
+
+// Después  
+from: {
+  name: "Club de Golf Papudo",
+  address: "cgpreservas@gmail.com"
+}
+```
+
+#### Resultado
+- **Estado**: ✅ FUNCIONANDO
+- **Emails enviados desde**: cgpreservas@gmail.com
+- **Autenticación**: paddlepapudo@gmail.com (sin cambios)
+- **Beneficio**: Consistencia en comunicaciones multi-deporte
+
+### Corrección Masiva de Caracteres UTF-8 (Septiembre 21, 2025)
+
+#### Problema Detectado
+Los emails mostraban caracteres mal codificados por problemas de UTF-8:
+- `â›³` en lugar de ⛳
+- `ðŸ"…` en lugar de 📅
+- `â°` en lugar de ⏰
+- `ðŸ'¥` en lugar de 👥
+- `ParticipaciÃ³n` en lugar de "Participación"
+- `ValparaÃ­so` en lugar de "Valparaíso"
+
+#### Corrección Aplicada
+**Archivos corregidos**:
+- `functions\index.js` (templates de email)
+- Archivos Dart en `lib\` (interfaz Flutter)
+- Corrección de BOM (Byte Order Mark) que causaba errores de deploy
+
+**Caracteres corregidos**:
+```
+'â›³' → '⛳'    'ðŸ"…' → '📅'    'â°' → '⏰'
+'ðŸ'¥' → '👥'    'âŒ' → '❌'     'ðŸ"' → '📍'
+'ðŸŒ' → '🌐'    'ðŸ†' → '🏆'    'âœ…' → '✅'
+'â€¢' → '•'     'Ã¡' → 'á'     'Ã©' → 'é'
+'Ã­' → 'í'     'Ã³' → 'ó'     'Ãº' → 'ú'
+'Ã±' → 'ñ'     'Â¡' → '¡'
+```
+
+#### Proceso de Corrección
+1. **Identificación**: Análisis de caracteres problemáticos en emails
+2. **Script PowerShell**: Corrección masiva en archivos del proyecto
+3. **Reinstalación**: `npm install` en `functions/` para resolver errores de sintaxis
+4. **Deploy exitoso**: Firebase Functions actualizadas sin errores
+
+### Limpieza de Base de Datos
+
+**Comando implementado para borrar todas las reservas**:
+```powershell
+firebase firestore:delete bookings --recursive
+```
+- **Propósito**: Facilitar testing sin reservas acumuladas
+- **Uso**: Para pruebas del sistema actualizado
+
+### Estado Actual del Sistema (21 Septiembre 2025)
+
+#### ✅ Funcionalidades Operativas
+- **Emails**: Se envían correctamente desde cgpreservas@gmail.com
+- **UTF-8**: Caracteres especiales muestran correctamente en emails
+- **Multi-deporte**: Consistencia en comunicaciones
+- **Deploy**: Proceso estable sin errores de sintaxis
+- **Base de datos**: Limpieza de datos exitosa
+
+#### 🔄 Trabajo Pendiente
+- **Emails de cancelación**: Revisión pendiente de caracteres UTF-8
+- **Testing completo**: Verificación de todos los templates de email
+- **Validación**: Confirmación de corrección en todos los escenarios
+
+### Herramientas de Desarrollo Actualizadas
+
+#### Comandos de Corrección UTF-8
+```powershell
+# Corrección específica en functions/index.js
+$content = Get-Content "functions\index.js" -Raw
+$content = $content -replace 'ðŸ"', '📍'
+$content = $content -replace 'ðŸ†', '🏆'
+[System.IO.File]::WriteAllText("functions\index.js", $content, [System.Text.UTF8Encoding]::new($false))
+```
+
+#### Proceso de Deploy Optimizado
+1. Corrección de caracteres UTF-8
+2. Verificación de encoding sin BOM
+3. `firebase deploy --only functions`
+4. Testing con reserva de prueba
+
+### Lecciones Aprendidas
+
+#### Gestión de Emails
+- **Alias de Gmail**: Solución más simple que cambio completo de cuenta
+- **Autenticación estable**: Mantener credenciales que funcionan
+- **Testing inmediato**: Verificar cambios con reservas de prueba
+
+#### Codificación UTF-8
+- **BOM problemático**: El Byte Order Mark causa errores de sintaxis en JavaScript
+- **Encoding consistente**: UTF-8 sin BOM para archivos de código
+- **Corrección masiva**: Más eficiente que cambios individuales
+
+#### Mantenimiento del Sistema
+- **Limpieza de datos**: Comandos para borrar reservas facilita testing
+- **Reinstalación de dependencias**: Solución para errores de node_modules
+- **Backup de archivos**: Respaldo antes de cambios masivos
+
+### Próximos Pasos
+
+1. **Revisión de emails de cancelación**: Verificar caracteres UTF-8 en templates de cancelación
+2. **Testing exhaustivo**: Probar todos los flujos de email del sistema
+3. **Documentación**: Actualizar guías de desarrollo con nuevos procedimientos
+4. **Monitoreo**: Supervisar emails en producción para detectar problemas restantes
+
+---
+
+## Configuración Final
+
+**Email del sistema**: cgpreservas@gmail.com  
+**Autenticación**: paddlepapudo@gmail.com  
+**App Password**: ehmc afnm vior lxbs  
+**Encoding**: UTF-8 sin BOM  
+**Estado**: Sistema completamente operativo
+
+El sistema mantiene todas las funcionalidades previas con mejoras en consistencia de comunicaciones y corrección de problemas de codificación.

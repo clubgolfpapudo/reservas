@@ -1,4 +1,4 @@
-class User {
+﻿class User {
   final String id;
   final String name;
   final String email;
@@ -56,3 +56,4 @@ enum UserRole {
   
   bool get isAdmin => this == UserRole.admin;
 }
+

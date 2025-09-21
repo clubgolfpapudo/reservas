@@ -1,4 +1,4 @@
-// lib/core/services/schedule_service.dart
+﻿// lib/core/services/schedule_service.dart
 import 'package:flutter/material.dart';
 
 /// Servicio para manejar horarios de reservas según temporada (verano/invierno)
@@ -81,3 +81,4 @@ class ScheduleService {
            date1.day == date2.day;
   }
 }
+

@@ -1,4 +1,4 @@
-// lib/presentation/widgets/common/date_navigation_header.dart
+﻿// lib/presentation/widgets/common/date_navigation_header.dart
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import '../../../core/constants/app_constants.dart';
@@ -7,7 +7,7 @@ import '../../../core/theme/corporate_theme.dart';
 // SOLO REEMPLAZAR EL CONSTRUCTOR en date_navigation_header.dart
 
 class DateNavigationHeader extends StatelessWidget {
-  // MANTENER ESTOS PARÁMETROS PARA SER COMPATIBLE
+  // MANTENER ESTOS PARÃMETROS PARA SER COMPATIBLE
   final DateTime selectedDate;          // Era currentDate en las páginas
   final int? currentIndex;             // AGREGAR - usado en las páginas
   final int? totalDays;                // AGREGAR - usado en las páginas  
@@ -18,7 +18,7 @@ class DateNavigationHeader extends StatelessWidget {
   final VoidCallback? onNextDate;      // AGREGAR - usado en las páginas
   final VoidCallback? onDateTap;       // AGREGAR - usado en las páginas
   
-  // MANTENER LOS ORIGINALES TAMBIÉN POR COMPATIBILIDAD
+  // MANTENER LOS ORIGINALES TAMBIÃ‰N POR COMPATIBILIDAD
   final Function(DateTime)? onDateChanged;
   final VoidCallback? onMenuPressed;
   final List<Widget>? actions;
@@ -426,3 +426,5 @@ class SimpleHeader extends StatelessWidget {
     );
   }
 }
+
+

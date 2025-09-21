@@ -1,4 +1,4 @@
-// lib/main.dart - CON RUTAS DE NAVEGACIÓN COMPLETAS
+﻿// lib/main.dart - CON RUTAS DE NAVEGACIÃ“N COMPLETAS
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -70,7 +70,7 @@ class CGPReservasApp extends StatelessWidget {
           fontFamily: 'Roboto',
         ),
         
-        // ✅ AGREGAR LOCALIZACIONES AQUÍ (después de theme):
+        // ✅ AGREGAR LOCALIZACIONES AQUÃ (después de theme):
         localizationsDelegates: const [
           GlobalMaterialLocalizations.delegate,
           GlobalWidgetsLocalizations.delegate,
@@ -86,7 +86,7 @@ class CGPReservasApp extends StatelessWidget {
         // Ruta inicial
         home: const AuthWrapper(),
         
-        // 🚀 RUTAS DE NAVEGACIÓN AGREGADAS
+        // ðŸš€ RUTAS DE NAVEGACIÃ“N AGREGADAS
         routes: {
           '/hub': (context) => const SimpleSportHub(),
           '/paddle-reservations': (context) => const PaddleReservationsPage(),
@@ -109,7 +109,7 @@ class CGPReservasApp extends StatelessWidget {
   }
 }
 
-// WRAPPER DE AUTENTICACIÓN
+// WRAPPER DE AUTENTICACIÃ“N
 class AuthWrapper extends StatefulWidget {
   const AuthWrapper({super.key});
 
@@ -148,7 +148,7 @@ class _AuthWrapperState extends State<AuthWrapper> {
   }
 }
 
-// PÁGINA DE LOGIN SIMPLE
+// PÃGINA DE LOGIN SIMPLE
 class SimpleLoginPage extends StatefulWidget {
   const SimpleLoginPage({super.key});
 
@@ -489,3 +489,5 @@ class SplashScreen extends StatelessWidget {
     );
   }
 }
+
+

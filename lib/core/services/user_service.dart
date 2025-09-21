@@ -1,75 +1,75 @@
 ﻿/// lib/core/services/user_service.dart
 /// 
 /// PROPÃ“SITO:
-/// Servicio de alto nivel que abstrae la lÃ³gica de obtenciÃ³n del usuario actual
-/// para el sistema hÃ­brido GAS-Flutter. Maneja mÃºltiples fuentes de datos para
-/// determinar quiÃ©n es el usuario actual que estÃ¡ utilizando la aplicaciÃ³n:
-/// - ParÃ¡metros de URL desde integraciÃ³n GAS (sistema hÃ­brido actual)
-/// - ConfiguraciÃ³n manual para testing y desarrollo
+/// Servicio de alto nivel que abstrae la lógica de obtención del usuario actual
+/// para el sistema híbrido GAS-Flutter. Maneja múltiples fuentes de datos para
+/// determinar quién es el usuario actual que está utilizando la aplicación:
+/// - Parámetros de URL desde integración GAS (sistema híbrido actual)
+/// - Configuración manual para testing y desarrollo
 /// - Consultas directas a Firebase Firestore cuando sea necesario
 /// - Fallbacks robustos para diferentes plataformas (Web, Android, iOS)
 /// 
 /// INTEGRACIÃ“N CON SISTEMA HÃBRIDO:
 /// 1. Usuario ingresa email en sistema GAS (pageLogin.html)
-/// 2. Selecciona "Pádel" y es redirigido a Flutter Web con parÃ¡metros URL
-/// 3. UserService detecta email/nombre desde URL automÃ¡ticamente
+/// 2. Selecciona "Pádel" y es redirigido a Flutter Web con parámetros URL
+/// 3. UserService detecta email/nombre desde URL automáticamente
 /// 4. Auto-completa organizador en formularios de reserva
 /// 5. Proporciona datos para validaciones y sistema de emails
 /// 
 /// FUENTES DE DATOS MANEJADAS (en orden de prioridad):
-/// 1. **URL Parameters**: email y name desde sistema GAS (producciÃ³n)
-/// 2. **ConfiguraciÃ³n Manual**: setCurrentUser() para desarrollo/testing
+/// 1. **URL Parameters**: email y name desde sistema GAS (producción)
+/// 2. **Configuración Manual**: setCurrentUser() para desarrollo/testing
 /// 3. **Firebase Firestore**: Consulta directa por email cuando sea necesario
 /// 4. **Fallbacks por Plataforma**: Web vs Android/iOS con valores apropiados
 /// 
 /// COMPATIBILIDAD MULTIPLATAFORMA:
 /// - **Web**: Lectura de URL parameters + fallbacks web
-/// - **Android/iOS**: ConfiguraciÃ³n manual + fallbacks mÃ³vil
+/// - **Android/iOS**: Configuración manual + fallbacks móvil
 /// - **Desarrollo**: Sistema flexible para testing offline
-/// - **Futuro**: Base para migraciÃ³n a Firebase Auth completo
+/// - **Futuro**: Base para migración a Firebase Auth completo
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/foundation.dart' show kIsWeb, kDebugMode;
 
 // Solo importar dart:html en web con conditional import
 import 'dart:html' as html show window;
 
-/// Servicio de alto nivel para gestiÃ³n del usuario actual
+/// Servicio de alto nivel para gestión del usuario actual
 /// 
-/// Centraliza la lÃ³gica compleja de detectar el usuario actual desde mÃºltiples
-/// fuentes de datos en el sistema hÃ­brido GAS-Flutter. Proporciona API limpia
-/// y consistente para el resto de la aplicaciÃ³n independientemente de la fuente
+/// Centraliza la lógica compleja de detectar el usuario actual desde múltiples
+/// fuentes de datos en el sistema híbrido GAS-Flutter. Proporciona API limpia
+/// y consistente para el resto de la aplicación independientemente de la fuente
 /// de datos utilizada.
 /// 
 /// CARACTERÃSTICAS PRINCIPALES:
-/// - DetecciÃ³n automÃ¡tica de usuario desde URL parameters (integraciÃ³n GAS)
-/// - ConfiguraciÃ³n manual para desarrollo y testing
+/// - Detección automática de usuario desde URL parameters (integración GAS)
+/// - Configuración manual para desarrollo y testing
 /// - Consultas a Firebase como fuente de datos secundaria
 /// - Fallbacks robustos por plataforma
-/// - Logging detallado para debugging de integraciÃ³n
-/// - Compatibilidad con futuras migraciones de autenticaciÃ³n
+/// - Logging detallado para debugging de integración
+/// - Compatibilidad con futuras migraciones de autenticación
 class UserService {
   /// Email del usuario actual cacheado en memoria
-  /// Puede ser establecido desde URL, configuraciÃ³n manual, o consulta Firebase
+  /// Puede ser establecido desde URL, configuración manual, o consulta Firebase
   static String? _currentUserEmail;
   /// Nombre del usuario actual cacheado en memoria
   /// Correspondiente al email actual, usado para auto-completado
   static String? _currentUserName;
 
-  /// Inicializa el servicio desde parÃ¡metros de URL al arrancar la aplicaciÃ³n
+  /// Inicializa el servicio desde parámetros de URL al arrancar la aplicación
   /// 
-  /// MÃ©todo llamado desde main.dart para detectar automÃ¡ticamente el usuario
+  /// Método llamado desde main.dart para detectar automáticamente el usuario
   /// desde URL parameters cuando la app es abierta desde el sistema GAS.
   /// 
   /// PROCESO DE INICIALIZACIÃ“N:
-  /// 1. Verifica que estÃ© ejecutÃ¡ndose en plataforma Web
+  /// 1. Verifica que esté ejecutándose en plataforma Web
   /// 2. Extrae email y nombre desde URL parameters
-  /// 3. Configura usuario actual si los parÃ¡metros son vÃ¡lidos
+  /// 3. Configura usuario actual si los parámetros son válidos
   /// 4. Maneja errores gracefully con fallbacks apropiados
   /// 
   /// INTEGRACIÃ“N GAS:
-  /// URL tÃ­pica: https://domain.com/app?email=user@club.cl&name=USER%20NAME
+  /// URL típica: https://domain.com/app?email=user@club.cl&name=USER%20NAME
   /// 
-  /// @sideEffect Actualiza _currentUserEmail y _currentUserName si detecta datos vÃ¡lidos
+  /// @sideEffect Actualiza _currentUserEmail y _currentUserName si detecta datos válidos
   /// @throws No propaga excepciones, maneja errores internamente con logs
   static Future<void> initializeFromUrl() async {
     if (kIsWeb) {
@@ -77,54 +77,54 @@ class UserService {
         // PERF: print('ðŸŒ Inicializando UserService desde URL...');
         final email = await getCurrentUserEmail();
         final name = await getCurrentUserName();
-        // PERF: print('âœ… Usuario inicializado desde URL: $name ($email)');
+        // PERF: print('✅ Usuario inicializado desde URL: $name ($email)');
       } catch (e) {
         // PERF: print('âš ï¸ Error inicializando desde URL: $e');
       }
     } else {
-      // PERF: print('ðŸ“± UserService: Ejecutando en mÃ³vil, no hay URL que procesar');
+      // PERF: print('ðŸ“± UserService: Ejecutando en móvil, no hay URL que procesar');
     }
   }
 
   /// Configura manualmente el usuario actual
   /// 
   /// Utilizado para development, testing, o cuando se conocen los datos
-  /// del usuario desde otra fuente (ej: autenticaciÃ³n Flutter futura).
+  /// del usuario desde otra fuente (ej: autenticación Flutter futura).
   /// 
-  /// @param email Email vÃ¡lido del usuario
+  /// @param email Email válido del usuario
   /// @param name Nombre formateado del usuario
-  /// @sideEffect Actualiza variables estÃ¡ticas de usuario actual
+  /// @sideEffect Actualiza variables estáticas de usuario actual
   static void setCurrentUser(String email, String name) {
     _currentUserEmail = email;
     _currentUserName = name;
-    // PERF: print('âœ… Usuario actual configurado: $name ($email)');
+    // PERF: print('✅ Usuario actual configurado: $name ($email)');
   }
 
-  /// **MÃ‰TODO PRINCIPAL** - Obtiene email del usuario actual con fallbacks mÃºltiples
+  /// **MÃ‰TODO PRINCIPAL** - Obtiene email del usuario actual con fallbacks múltiples
   /// 
-  /// Implementa algoritmo de detecciÃ³n de usuario con 4 niveles de fallback:
+  /// Implementa algoritmo de detección de usuario con 4 niveles de fallback:
   /// 1. **URL Parameters** (Web): Extrae email desde query string de URL
-  /// 2. **ConfiguraciÃ³n Manual**: Usa email establecido con setCurrentUser()
-  /// 3. **Fallback MÃ³vil**: Email por defecto para plataformas Android/iOS
+  /// 2. **Configuración Manual**: Usa email establecido con setCurrentUser()
+  /// 3. **Fallback Móvil**: Email por defecto para plataformas Android/iOS
   /// 4. **Fallback Web**: Email por defecto para Web cuando no hay URL params
   /// 
   /// URL PARSING DETALLADO:
   /// - Parsea URL completa de la ventana del navegador
   /// - Extrae query parameters usando Uri.queryParameters
-  /// - Busca especÃ­ficamente parÃ¡metro 'email'
-  /// - Actualiza estado interno si encuentra email vÃ¡lido
-  /// - Logs detallados para debugging de integraciÃ³n GAS
+  /// - Busca específicamente parámetro 'email'
+  /// - Actualiza estado interno si encuentra email válido
+  /// - Logs detallados para debugging de integración GAS
   /// 
   /// DEBUGGING:
   /// Incluye logs extensivos de cada paso del proceso:
   /// - URL completa parseada
   /// - Todos los query parameters encontrados
-  /// - Proceso de extracciÃ³n del email especÃ­fico
+  /// - Proceso de extracción del email específico
   /// - Fuente final de datos utilizada
   /// 
   /// @return Email del usuario actual (nunca null)
-  /// @platform Web: Prioriza URL parameters, fallback a configuraciÃ³n manual
-  /// @platform Mobile: Usa configuraciÃ³n manual o fallback especÃ­fico mÃ³vil
+  /// @platform Web: Prioriza URL parameters, fallback a configuración manual
+  /// @platform Mobile: Usa configuración manual o fallback específico móvil
   static Future<String> getCurrentUserEmail() async {
     // 1. ðŸ”¥ NUEVO: Intentar leer email de la URL primero (SOLO EN WEB)
     if (kIsWeb) {
@@ -134,21 +134,21 @@ class UserService {
         // PERF: print('ðŸ” URL completa: ${html.window.location.href}');
         // PERF: print('ðŸ” URI parseada: $uri');
         // PERF: print('ðŸ” Query string: ${uri.query}');
-        // PERF: print('ðŸ” Todos los parÃ¡metros: ${uri.queryParameters}');
-        // PERF: print('ðŸ” ParÃ¡metro email especÃ­fico: ${uri.queryParameters['email']}');
+        // PERF: print('ðŸ” Todos los parámetros: ${uri.queryParameters}');
+        // PERF: print('ðŸ” Parámetro email específico: ${uri.queryParameters['email']}');
         
-        // ðŸš€ NUEVO DEBUG EXTRA - Agregar estas lÃ­neas:
+        // ðŸš€ NUEVO DEBUG EXTRA - Agregar estas líneas:
         // PERF: print('ðŸ” Location search: ${html.window.location.search}');
         // PERF: print('ðŸ” Location href: ${html.window.location.href}');
         // PERF: print('ðŸ” Hash: ${html.window.location.hash}');
         uri.queryParameters.forEach((key, value) {
-          // PERF: print('ðŸ” ParÃ¡metro encontrado: "$key" = "$value"');
+          // PERF: print('ðŸ” Parámetro encontrado: "$key" = "$value"');
         });
 
         final emailFromUrl = uri.queryParameters['email'];
         if (emailFromUrl != null && emailFromUrl.isNotEmpty) {
           _currentUserEmail = emailFromUrl; // Actualizar usuario actual
-          // PERF: print('âœ… Email obtenido de URL: $emailFromUrl');
+          // PERF: print('✅ Email obtenido de URL: $emailFromUrl');
           return emailFromUrl;
         }
       } catch (e) {
@@ -158,7 +158,7 @@ class UserService {
 
     // 2. Si hay usuario configurado manualmente, usarlo
     if (_currentUserEmail != null && _currentUserEmail!.isNotEmpty) {
-      // PERF: print('âœ… Email desde configuraciÃ³n manual: $_currentUserEmail');
+      // PERF: print('✅ Email desde configuración manual: $_currentUserEmail');
       return _currentUserEmail!;
     }
 
@@ -177,14 +177,14 @@ class UserService {
 
   /// Consulta Firebase Firestore para obtener displayName por email
   /// 
-  /// MÃ©todo auxiliar que realiza consulta directa a la colecciÃ³n 'users'
-  /// para obtener el displayName correspondiente a un email especÃ­fico.
+  /// Método auxiliar que realiza consulta directa a la colección 'users'
+  /// para obtener el displayName correspondiente a un email específico.
   /// Utilizado como fuente de datos secundaria cuando no hay URL parameters.
   /// 
   /// PROCESO:
-  /// 1. Query a colecciÃ³n 'users' con filtro por email exacto
+  /// 1. Query a colección 'users' con filtro por email exacto
   /// 2. Extrae campo 'displayName' del documento encontrado
-  /// 3. Valida que el displayName no estÃ© vacÃ­o
+  /// 3. Valida que el displayName no esté vacío
   /// 4. Retorna valor encontrado o mensaje de error apropiado
   /// 
   /// @param email Email para buscar en Firebase
@@ -204,7 +204,7 @@ class UserService {
         final displayName = data['displayName'] as String?;
         
         if (displayName != null && displayName.isNotEmpty) {
-          // PERF: print('âœ… DisplayName encontrado: $displayName');
+          // PERF: print('✅ DisplayName encontrado: $displayName');
           return displayName;
         }
       }
@@ -218,28 +218,28 @@ class UserService {
     }
   }
 
-  /// **MÃ‰TODO PRINCIPAL** - Obtiene nombre del usuario actual con fallbacks mÃºltiples
+  /// **MÃ‰TODO PRINCIPAL** - Obtiene nombre del usuario actual con fallbacks múltiples
   /// 
   /// Algoritmo similar a getCurrentUserEmail() pero para nombres, con fuentes adicionales:
-  /// 1. **ConfiguraciÃ³n Manual**: Nombre establecido con setCurrentUser()
+  /// 1. **Configuración Manual**: Nombre establecido con setCurrentUser()
   /// 2. **URL Parameters** (Web): Extrae 'name' desde query string y decodifica
   /// 3. **Firebase Firestore**: Consulta displayName por email como fallback
   /// 4. **Fallbacks por Plataforma**: Nombres apropiados para cada plataforma
   /// 
   /// PROCESAMIENTO DE URL:
-  /// - Extrae parÃ¡metro 'name' de URL
+  /// - Extrae parámetro 'name' de URL
   /// - Aplica Uri.decodeComponent() para manejar URL encoding
-  /// - Convierte a mayÃºsculas para consistencia con formato del sistema
+  /// - Convierte a mayúsculas para consistencia con formato del sistema
   /// - Cachea resultado para futuras llamadas
   /// 
   /// INTEGRACIÃ“N FIREBASE:
   /// - Usa email obtenido de getCurrentUserEmail()
   /// - Realiza consulta a Firestore si no hay nombre desde URL
   /// - Maneja casos de usuario no encontrado gracefully
-  /// - Valida que el displayName sea vÃ¡lido antes de retornar
+  /// - Valida que el displayName sea válido antes de retornar
   /// 
   /// @return Nombre formateado del usuario actual (nunca null)
-  /// @debug Incluye logs detallados del proceso de detecciÃ³n
+  /// @debug Incluye logs detallados del proceso de detección
   static Future<String> getCurrentUserName() async {
     // PERF: print('ðŸŽ¯ DEBUG getName: Iniciando getCurrentUserName()');
     
@@ -249,7 +249,7 @@ class UserService {
     
     // 2. Si hay usuario configurado manualmente, usarlo
     if (_currentUserName != null && _currentUserName!.isNotEmpty) {
-      // PERF: print('âœ… Nombre desde configuraciÃ³n manual: $_currentUserName');
+      // PERF: print('✅ Nombre desde configuración manual: $_currentUserName');
       return _currentUserName!;
     }
 
@@ -261,7 +261,7 @@ class UserService {
         if (nameFromUrl != null && nameFromUrl.isNotEmpty) {
           final decodedName = Uri.decodeComponent(nameFromUrl).toUpperCase();
           _currentUserName = decodedName;
-          // PERF: print('âœ… Nombre obtenido de URL: $decodedName');
+          // PERF: print('✅ Nombre obtenido de URL: $decodedName');
           return decodedName;
         }
       } catch (e) {
@@ -279,7 +279,7 @@ class UserService {
       }
     }
 
-    // 5. Fallback para mÃ³vil
+    // 5. Fallback para móvil
     if (!kIsWeb) {
       const fallbackName = 'USUARIO ANDROID';
       return fallbackName;
@@ -293,19 +293,19 @@ class UserService {
 
   /// Verifica si un usuario existe en la base de datos de Firebase
   /// 
-  /// MÃ©todo auxiliar para validaciones que requieren confirmar la existencia
+  /// Método auxiliar para validaciones que requieren confirmar la existencia
   /// de un usuario antes de realizar operaciones (ej: agregar a reservas).
   /// 
   /// PROCESO:
-  /// 1. Query a colecciÃ³n 'users' con filtro where por email
+  /// 1. Query a colección 'users' con filtro where por email
   /// 2. Limita resultado a 1 documento para eficiencia
   /// 3. Verifica si el QuerySnapshot contiene documentos
   /// 4. Retorna boolean indicando existencia
   /// 
   /// CASOS DE USO:
-  /// - ValidaciÃ³n antes de agregar usuarios a reservas
-  /// - VerificaciÃ³n de emails en formularios
-  /// - LÃ³gica de autorizaciÃ³n y permisos
+  /// - Validación antes de agregar usuarios a reservas
+  /// - Verificación de emails en formularios
+  /// - Lógica de autorización y permisos
   /// - Debugging de problemas de usuarios
   /// 
   /// @param email Email a verificar en la base de datos
@@ -328,23 +328,23 @@ class UserService {
 
   /// Obtiene datos completos de un usuario desde Firebase
   /// 
-  /// MÃ©todo auxiliar que retorna todos los campos disponibles de un usuario
-  /// especÃ­fico. Ãštil para operaciones que requieren informaciÃ³n detallada
-  /// mÃ¡s allÃ¡ del nombre y email bÃ¡sicos.
+  /// Método auxiliar que retorna todos los campos disponibles de un usuario
+  /// específico. Ãštil para operaciones que requieren información detallada
+  /// más allá del nombre y email básicos.
   /// 
   /// DATOS RETORNADOS:
   /// - Todos los campos disponibles en el documento Firebase
-  /// - Estructura completa incluyendo metadatos de sincronizaciÃ³n
-  /// - InformaciÃ³n de contacto (telÃ©fonos, direcciones)
-  /// - Datos demogrÃ¡ficos y de membresÃ­a del club
-  /// - Timestamps de Ãºltima actualizaciÃ³n
+  /// - Estructura completa incluyendo metadatos de sincronización
+  /// - Información de contacto (teléfonos, direcciones)
+  /// - Datos demográficos y de membresía del club
+  /// - Timestamps de última actualización
   /// 
   /// CASOS DE USO:
-  /// - Mapeo de telÃ©fonos para sistema de emails
-  /// - ValidaciÃ³n de roles y permisos
-  /// - InformaciÃ³n para reportes y analytics
-  /// - Debugging de problemas de datos especÃ­ficos
-  /// - AuditorÃ­a de informaciÃ³n de usuarios
+  /// - Mapeo de teléfonos para sistema de emails
+  /// - Validación de roles y permisos
+  /// - Información para reportes y analytics
+  /// - Debugging de problemas de datos específicos
+  /// - Auditoría de información de usuarios
   /// 
   /// @param email Email del usuario a consultar
   /// @return Map con todos los datos del usuario o null si no existe
@@ -370,38 +370,40 @@ class UserService {
 
 /// NOTAS TÃ‰CNICAS PARA MANTENIMIENTO FUTURO:
 /// 
-/// 1. **TransiciÃ³n Post-GAS**: Cuando se elimine el sistema GAS, reemplazar
-///    la lÃ³gica de URL parameters con Firebase Auth completo. Mantener la
-///    estructura de fallbacks para compatibilidad durante transiciÃ³n.
+/// 1. **Transición Post-GAS**: Cuando se elimine el sistema GAS, reemplazar
+///    la lógica de URL parameters con Firebase Auth completo. Mantener la
+///    estructura de fallbacks para compatibilidad durante transición.
 /// 
-/// 2. **CachÃ© Local**: Considerar implementar cachÃ© persistente local para
-///    datos de usuario frecuentemente accedidos, especialmente en mÃ³vil.
+/// 2. **Caché Local**: Considerar implementar caché persistente local para
+///    datos de usuario frecuentemente accedidos, especialmente en móvil.
 /// 
-/// 3. **ValidaciÃ³n de Datos**: Los mÃ©todos actuales asumen que los datos
-///    en Firebase son vÃ¡lidos. Considerar agregar validaciones adicionales
-///    segÃºn evolucionen los requisitos de calidad de datos.
+/// 3. **Validación de Datos**: Los métodos actuales asumen que los datos
+///    en Firebase son válidos. Considerar agregar validaciones adicionales
+///    según evolucionen los requisitos de calidad de datos.
 /// 
-/// 4. **Error Handling**: Los mÃ©todos nunca propagan excepciones hacia arriba,
+/// 4. **Error Handling**: Los métodos nunca propagan excepciones hacia arriba,
 ///    siempre usan fallbacks. Evaluar si esto es apropiado para todos los casos
 ///    de uso futuros del sistema.
 /// 
-/// 5. **Performance**: Las consultas a Firestore son sÃ­ncronas y pueden ser
-///    lentas en conexiones pobres. Considerar implementar timeouts y cachÃ©
-///    para mejor UX en mÃ³vil.
+/// 5. **Performance**: Las consultas a Firestore son síncronas y pueden ser
+///    lentas en conexiones pobres. Considerar implementar timeouts y caché
+///    para mejor UX en móvil.
 /// 
-/// 6. **Logging**: Los logs detallados son Ãºtiles para debugging pero pueden
-///    afectar performance en producciÃ³n. Considerar sistema de logging
+/// 6. **Logging**: Los logs detallados son útiles para debugging pero pueden
+///    afectar performance en producción. Considerar sistema de logging
 ///    configurable por environment.
 /// 
 /// 7. **Seguridad**: Los URL parameters pueden ser manipulados por usuarios.
-///    Cuando se migre a sistema completo Flutter, implementar validaciÃ³n
-///    y sanitizaciÃ³n apropiada de todos los inputs.
+///    Cuando se migre a sistema completo Flutter, implementar validación
+///    y sanitización apropiada de todos los inputs.
 /// 
 /// 8. **Testing**: Los fallbacks facilitan testing pero pueden enmascarar
-///    problemas reales. Implementar testing especÃ­fico para cada fuente
+///    problemas reales. Implementar testing específico para cada fuente
 ///    de datos y sus casos edge.
 /// 
 /// 9. **Multi-Deporte**: Al extender a Golf/Tenis, considerar si se necesitan
-///    parÃ¡metros adicionales en URL (sport, courtType) y cÃ³mo afectarÃ¡n
-///    la lÃ³gica de detecciÃ³n de usuario actual.
+///    parámetros adicionales en URL (sport, courtType) y cómo afectarán
+///    la lógica de detección de usuario actual.
+
+
 

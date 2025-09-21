@@ -1,4 +1,4 @@
-// lib/presentation/widgets/booking/time_slot_block.dart
+﻿// lib/presentation/widgets/booking/time_slot_block.dart
 import 'package:flutter/material.dart';
 import '../../../core/constants/app_constants.dart';
 import '../../../core/theme/app_theme.dart';
@@ -119,10 +119,10 @@ class _TimeSlotBlockState extends State<TimeSlotBlock>
     
     String previewText = displayPlayers
         .map((player) => player.name.split(' ').take(2).join(' '))
-        .join(' • ');
+        .join(' â€¢ ');
     
     if (remainingCount > 0) {
-      previewText += ' • +$remainingCount';
+      previewText += ' â€¢ +$remainingCount';
     }
 
     return Flexible(
@@ -296,3 +296,5 @@ class _TimeSlotBlockState extends State<TimeSlotBlock>
     );
   }
 }
+
+

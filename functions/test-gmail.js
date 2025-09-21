@@ -1,4 +1,4 @@
-// 🧪 PRUEBA SIMPLE DE GMAIL
+﻿// ðŸ§ª PRUEBA SIMPLE DE GMAIL
 // Crear un archivo test-gmail.js en la carpeta functions/
 
 const nodemailer = require('nodemailer');
@@ -19,34 +19,34 @@ const transporter = nodemailer.createTransport({
 
 // Función simple de prueba
 async function testGmail() {
-  console.log('🧪 Iniciando prueba de Gmail...');
+  console.log('ðŸ§ª Iniciando prueba de Gmail...');
   
   try {
     // 1. Verificar conexión
-    console.log('📡 Verificando conexión SMTP...');
+    console.log('ðŸ“¡ Verificando conexión SMTP...');
     await transporter.verify();
-    console.log('✅ Conexión SMTP exitosa');
+    console.log('âœ… Conexión SMTP exitosa');
     
     // 2. Enviar email de prueba
-    console.log('📧 Enviando email de prueba...');
+    console.log('ðŸ“§ Enviando email de prueba...');
     const info = await transporter.sendMail({
       from: 'paddlepapudo@gmail.com',
       to: 'paddlepapudo@gmail.com', // Enviar a sí mismo para prueba
-      subject: '🧪 Test de Gmail - Club Pádel Papudo',
+      subject: 'ðŸ§ª Test de Gmail - Club Pádel Papudo',
       html: `
-        <h2>✅ Test Exitoso</h2>
+        <h2>âœ… Test Exitoso</h2>
         <p>Este email confirma que Gmail está funcionando correctamente.</p>
         <p><strong>Fecha:</strong> ${new Date().toLocaleString()}</p>
-        <p><strong>App Password:</strong> Funcionando ✅</p>
+        <p><strong>App Password:</strong> Funcionando âœ…</p>
       `
     });
     
-    console.log('✅ Email enviado exitosamente!');
-    console.log('📧 Message ID:', info.messageId);
-    console.log('🎯 Response:', info.response);
+    console.log('âœ… Email enviado exitosamente!');
+    console.log('ðŸ“§ Message ID:', info.messageId);
+    console.log('ðŸŽ¯ Response:', info.response);
     
   } catch (error) {
-    console.error('❌ Error en la prueba:');
+    console.error('âŒ Error en la prueba:');
     console.error('Código de error:', error.code);
     console.error('Mensaje:', error.message);
     console.error('Error completo:', error);
@@ -62,5 +62,5 @@ testGmail();
 // 3. node test-gmail.js
 //
 // RESULTADOS ESPERADOS:
-// ✅ Si funciona: "Email enviado exitosamente" + Message ID
-// ❌ Si falla: Error específico con código y mensaje
+// âœ… Si funciona: "Email enviado exitosamente" + Message ID
+// âŒ Si falla: Error específico con código y mensaje

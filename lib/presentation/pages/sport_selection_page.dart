@@ -1,4 +1,4 @@
-// lib/presentation/pages/sport_selection_page.dart
+﻿// lib/presentation/pages/sport_selection_page.dart
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../providers/auth_provider.dart';
@@ -534,7 +534,7 @@ class _SportSelectionPageState extends State<SportSelectionPage>
     );
   }
 
-  // ===== MÉTODOS DE NAVEGACIÓN Y HANDLERS =====
+  // ===== MÃ‰TODOS DE NAVEGACIÃ“N Y HANDLERS =====
 
   void _handleSportSelection(String sportId) {
     setState(() {
@@ -706,9 +706,9 @@ class _SportSelectionPageState extends State<SportSelectionPage>
         content: const Text(
           'Selecciona el deporte que deseas reservar. Cada deporte tiene sus propias '
           'canchas y horarios disponibles.\n\n'
-          '• Golf: Campo completo y práctica\n'
-          '• Tenis: 4 canchas de tierra batida\n'
-          '• Pádel: 3 canchas profesionales',
+          'â€¢ Golf: Campo completo y práctica\n'
+          'â€¢ Tenis: 4 canchas de tierra batida\n'
+          'â€¢ Pádel: 3 canchas profesionales',
         ),
         actions: [
           TextButton(
@@ -729,11 +729,11 @@ class _SportSelectionPageState extends State<SportSelectionPage>
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text('📞 Teléfono: +56 33 XXX XXXX'),
+            Text('ðŸ“ž Teléfono: +56 33 XXX XXXX'),
             SizedBox(height: 8),
-            Text('📧 Email: reservas@clubgolfpapudo.cl'),
+            Text('ðŸ“§ Email: reservas@clubgolfpapudo.cl'),
             SizedBox(height: 8),
-            Text('🕒 Horario: Lunes a Domingo 8:00 - 20:00'),
+            Text('ðŸ•’ Horario: Lunes a Domingo 8:00 - 20:00'),
           ],
         ),
         actions: [
@@ -779,3 +779,4 @@ class _SportSelectionPageState extends State<SportSelectionPage>
     );
   }
 }
+

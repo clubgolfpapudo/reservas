@@ -1,6 +1,6 @@
-/// lib/data/repositories/booking_repository_impl.dart
+﻿/// lib/data/repositories/booking_repository_impl.dart
 /// 
-/// PROPÓSITO:
+/// PROPÃ“SITO:
 /// Implementación concreta del repositorio de reservas que utiliza Firebase Firestore
 /// como backend de persistencia. Esta clase es el corazón del sistema de reservas,
 /// manejando todas las operaciones CRUD, validaciones de negocio, consultas complejas,
@@ -18,11 +18,11 @@
 /// La implementación utiliza una estructura optimizada en Firestore:
 /// - **Colección**: 'bookings' (configurable via FirebaseConstants)
 /// - **Documentos**: ID único generado automáticamente por Firebase
-/// - **Índices**: Optimizados para consultas por fecha, cancha, usuario
+/// - **Ãndices**: Optimizados para consultas por fecha, cancha, usuario
 /// - **Transacciones**: Para operaciones atómicas críticas
 /// - **Batch Operations**: Para actualizaciones masivas eficientes
 /// 
-/// INTEGRACIÓN CON SISTEMA HÍBRIDO:
+/// INTEGRACIÃ“N CON SISTEMA HÃBRIDO:
 /// - Compatible con datos legacy del sistema GAS existente
 /// - Sincronización con Calendly para integración externa
 /// - Soporte para múltiples deportes (Pádel implementado, Golf/Tenis preparado)
@@ -56,7 +56,7 @@ import '../../core/constants/app_constants.dart';
 /// sistema de reservas. Maneja la complejidad de Firestore y expone una API
 /// limpia y consistente para las capas superiores de la aplicación.
 /// 
-/// CARACTERÍSTICAS PRINCIPALES:
+/// CARACTERÃSTICAS PRINCIPALES:
 /// - **38+ métodos especializados** para diferentes casos de uso
 /// - **Validaciones automáticas** de reglas de negocio del club
 /// - **Consultas optimizadas** con índices específicos de Firestore
@@ -83,9 +83,9 @@ class BookingRepositoryImpl implements BookingRepository {
   BookingRepositoryImpl({FirebaseFirestore? firestore})
       : _firestore = firestore ?? FirebaseFirestore.instance;
 
-  // ═══════════════════════════════════════════════════════════════════════════
-  // MÉTODOS DE CONSULTA BÁSICA
-  // ═══════════════════════════════════════════════════════════════════════════
+  // â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+  // MÃ‰TODOS DE CONSULTA BÃSICA
+  // â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
 
   /// Obtiene una reserva específica por su ID único
   /// 
@@ -133,7 +133,7 @@ class BookingRepositoryImpl implements BookingRepository {
   /// - **orderBy('dateTime.time')**: Ordenadas cronológicamente
   /// 
   /// OPTIMIZACIONES:
-  /// - Índice compuesto: [dateTime.date, visibleInCalendar, dateTime.time]
+  /// - Ãndice compuesto: [dateTime.date, visibleInCalendar, dateTime.time]
   /// - Formato de fecha normalizado: YYYY-MM-DD
   /// - Filtrado de reservas de prueba y canceladas
   /// 
@@ -178,7 +178,7 @@ class BookingRepositoryImpl implements BookingRepository {
   /// 3. **Visibles en calendario**: Excluye reservas de prueba/canceladas
   /// 4. **Orden cronológico**: Por hora para visualización secuencial
   /// 
-  /// ÍNDICE REQUERIDO:
+  /// ÃNDICE REQUERIDO:
   /// Firestore requiere índice compuesto: [dateTime.date, courtId, visibleInCalendar, dateTime.time]
   /// 
   /// CASOS DE USO:
@@ -313,9 +313,9 @@ class BookingRepositoryImpl implements BookingRepository {
     }
   }
 
-  // ═══════════════════════════════════════════════════════════════════════════
-  // MÉTODOS DE DISPONIBILIDAD
-  // ═══════════════════════════════════════════════════════════════════════════
+  // â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+  // MÃ‰TODOS DE DISPONIBILIDAD
+  // â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
 
   @override
   Future<bool> isTimeSlotAvailable(DateTime date, String time, String courtId) async {
@@ -417,9 +417,9 @@ class BookingRepositoryImpl implements BookingRepository {
     }
   }
 
-  // ═══════════════════════════════════════════════════════════════════════════
-  // MÉTODOS DE MODIFICACIÓN
-  // ═══════════════════════════════════════════════════════════════════════════
+  // â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+  // MÃ‰TODOS DE MODIFICACIÃ“N
+  // â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
 
   @override
   Future<String> createBooking(Booking booking) async {
@@ -578,9 +578,9 @@ class BookingRepositoryImpl implements BookingRepository {
     }
   }
 
-  // ═══════════════════════════════════════════════════════════════════════════
-  // MÉTODOS DE VALIDACIÓN Y REGLAS DE NEGOCIO
-  // ═══════════════════════════════════════════════════════════════════════════
+  // â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+  // MÃ‰TODOS DE VALIDACIÃ“N Y REGLAS DE NEGOCIO
+  // â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
 
   @override
   Future<List<String>> validateBooking(Booking booking) async {
@@ -699,9 +699,9 @@ class BookingRepositoryImpl implements BookingRepository {
     }
   }
 
-  // ═══════════════════════════════════════════════════════════════════════════
-  // MÉTODOS DE BÚSQUEDA Y FILTRADO
-  // ═══════════════════════════════════════════════════════════════════════════
+  // â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+  // MÃ‰TODOS DE BÃšSQUEDA Y FILTRADO
+  // â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
 
   @override
   Future<List<Booking>> searchBookingsByPlayerName(String playerName) async {
@@ -815,9 +815,9 @@ class BookingRepositoryImpl implements BookingRepository {
     }
   }
 
-  // ═══════════════════════════════════════════════════════════════════════════
-  // MÉTODOS DE ESTADÍSTICAS
-  // ═══════════════════════════════════════════════════════════════════════════
+  // â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+  // MÃ‰TODOS DE ESTADÃSTICAS
+  // â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
 
   @override
   Future<Map<String, int>> getBookingStatsByDate(DateTime date) async {
@@ -921,9 +921,9 @@ class BookingRepositoryImpl implements BookingRepository {
     }
   }
 
-  // ═══════════════════════════════════════════════════════════════════════════
-  // MÉTODOS DE STREAM (TIEMPO REAL)
-  // ═══════════════════════════════════════════════════════════════════════════
+  // â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+  // MÃ‰TODOS DE STREAM (TIEMPO REAL)
+  // â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
 
   @override
   Stream<Booking?> watchBooking(String bookingId) {
@@ -1012,9 +1012,9 @@ class BookingRepositoryImpl implements BookingRepository {
             .toList());
   }
 
-  // ═══════════════════════════════════════════════════════════════════════════
-  // MÉTODOS DE LIMPIEZA Y MANTENIMIENTO
-  // ═══════════════════════════════════════════════════════════════════════════
+  // â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+  // MÃ‰TODOS DE LIMPIEZA Y MANTENIMIENTO
+  // â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
 
   @override
   Future<void> deleteOldBookings([int daysOld = 365]) async {
@@ -1098,9 +1098,9 @@ class BookingRepositoryImpl implements BookingRepository {
     }
   }
 
-  // ═══════════════════════════════════════════════════════════════════════════
-  // MÉTODOS PRIVADOS AUXILIARES
-  // ═══════════════════════════════════════════════════════════════════════════
+  // â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+  // MÃ‰TODOS PRIVADOS AUXILIARES
+  // â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
 
   /// Formatea DateTime a string normalizado para Firestore
   /// 
@@ -1108,7 +1108,7 @@ class BookingRepositoryImpl implements BookingRepository {
   /// en todas las operaciones de base de datos. Esencial para consultas
   /// precisas y correctas en Firestore.
   /// 
-  /// FORMATO ESTÁNDAR:
+  /// FORMATO ESTÃNDAR:
   /// - **Patrón**: "YYYY-MM-DD" (ISO 8601 date only)
   /// - **Padding**: Ceros a la izquierda para mes y día
   /// - **Timezone neutral**: Solo fecha, sin información de hora
@@ -1116,7 +1116,7 @@ class BookingRepositoryImpl implements BookingRepository {
   /// 
   /// IMPORTANCIA:
   /// - **Consultas precisas**: Firestore requiere strings exactos para filtros
-  /// - **Índices eficientes**: Formato consistente optimiza índices
+  /// - **Ãndices eficientes**: Formato consistente optimiza índices
   /// - **Debugging**: Fechas legibles en console de Firebase
   /// - **Compatibilidad**: Estándar internacional ISO 8601
   /// 
@@ -1131,3 +1131,4 @@ class BookingRepositoryImpl implements BookingRepository {
     return "${date.year}-${date.month.toString().padLeft(2, '0')}-${date.day.toString().padLeft(2, '0')}";
   }
 }
+

@@ -55,7 +55,7 @@ class _ReservationsPageState extends State<PaddleReservationsPage> {
         builder: (context, bookingProvider, child) {
           return Column(
             children: [
-              // Header con navegaciÃ³n de fechas
+              // Header con navegación de fechas
               DateNavigationHeader(
                 title: 'Pádel',
                 selectedDate: bookingProvider.selectedDate,
@@ -119,7 +119,7 @@ class _ReservationsPageState extends State<PaddleReservationsPage> {
           },
         ),
 
-        // EstadÃ­sticas compactas
+        // Estadísticas compactas
         AnimatedCompactStats(
           bookings: provider.currentBookings,
         ),
@@ -255,7 +255,7 @@ class _ReservationsPageState extends State<PaddleReservationsPage> {
                   
                   const SizedBox(width: 16),
                   
-                  // Status/BotÃ³n en ancho fijo
+                  // Status/Botón en ancho fijo
                   SizedBox(
                     width: 110,
                     child: _buildActionWidget(status, timeSlot),
@@ -376,7 +376,7 @@ class _ReservationsPageState extends State<PaddleReservationsPage> {
       case BookingStatus.complete:
         return const Color(0xFF2E7AFF); // ðŸ”§ HARDCODE (AppColors.confirmed NO EXISTE)
       case BookingStatus.incomplete:
-        return AppColors.incomplete; // âœ… ESTE SÃ EXISTE
+        return AppColors.incomplete; // ✅ ESTE SÃ EXISTE
       default:
         return const Color(0xFFE8F4F9); // ðŸ”§ HARDCODE (AppColors.available NO EXISTE)
     }
@@ -387,7 +387,7 @@ class _ReservationsPageState extends State<PaddleReservationsPage> {
       case BookingStatus.complete:
         return const Color(0xFF1a5ce6); // ðŸ”§ HARDCODE (AppColors.confirmedBorder NO EXISTE)
       case BookingStatus.incomplete:
-        return AppColors.incompleteBorder; // âœ… ESTE SÃ EXISTE
+        return AppColors.incompleteBorder; // ✅ ESTE SÃ EXISTE
       default:
         return const Color(0xFF2E7AFF).withOpacity(0.2); // ðŸ”§ HARDCODE
     }
@@ -398,7 +398,7 @@ class _ReservationsPageState extends State<PaddleReservationsPage> {
       case BookingStatus.complete:
         return Colors.white; // ðŸ”§ HARDCODE (AppColors.confirmedText NO EXISTE)
       case BookingStatus.incomplete:
-        return AppColors.incompleteText; // âœ… ESTE SÃ EXISTE
+        return AppColors.incompleteText; // ✅ ESTE SÃ EXISTE
       default:
         return Colors.black87; // ðŸ”§ HARDCODE
     }
@@ -409,7 +409,7 @@ class _ReservationsPageState extends State<PaddleReservationsPage> {
       case BookingStatus.complete:
         return Colors.white.withOpacity(0.9); // ðŸ”§ HARDCODE
       case BookingStatus.incomplete:
-        return AppColors.incompleteText.withOpacity(0.7); // âœ… ESTE SÃ EXISTE
+        return AppColors.incompleteText.withOpacity(0.7); // ✅ ESTE SÃ EXISTE
       default:
         return Colors.grey[600]!; // Para disponible
     }
@@ -466,7 +466,7 @@ class _ReservationsPageState extends State<PaddleReservationsPage> {
                     mainAxisSize: MainAxisSize.min,
                     children: [
                       Text(
-                        'Ver reservas de maÃ±ana',
+                        'Ver reservas de mañana',
                         style: TextStyle(
                           color: Colors.white,
                           fontSize: 16,
@@ -536,20 +536,20 @@ class _ReservationsPageState extends State<PaddleReservationsPage> {
           height: 32,
           padding: const EdgeInsets.symmetric(horizontal: 8),
           decoration: BoxDecoration(
-            color: AppColors.incomplete, // âœ… ESTE SÃ EXISTE
+            color: AppColors.incomplete, // ✅ ESTE SÃ EXISTE
             borderRadius: BorderRadius.circular(6),
           ),
           child: Row(
             mainAxisSize: MainAxisSize.min,
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              Icon(Icons.group, color: AppColors.incompleteText, size: 14), // âœ… ESTE SÃ EXISTE
+              Icon(Icons.group, color: AppColors.incompleteText, size: 14), // ✅ ESTE SÃ EXISTE
               const SizedBox(width: 4),
               Flexible(
                 child: Text(
                   'Incompleta',
                   style: TextStyle(
-                    color: AppColors.incompleteText, // âœ… ESTE SÃ EXISTE
+                    color: AppColors.incompleteText, // ✅ ESTE SÃ EXISTE
                     fontSize: 11,
                     fontWeight: FontWeight.w600,
                   ),
@@ -601,7 +601,7 @@ class _ReservationsPageState extends State<PaddleReservationsPage> {
 
   String _getDayName(DateTime date) {
     const days = [
-      '', 'Lunes', 'Martes', 'MiÃ©rcoles', 'Jueves', 'Viernes', 'SÃ¡bado', 'Domingo'
+      '', 'Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado', 'Domingo'
     ];
     return days[date.weekday];
   }
@@ -613,7 +613,7 @@ class _ReservationsPageState extends State<PaddleReservationsPage> {
   void _handleAddReservation(BuildContext context) {
     ScaffoldMessenger.of(context).showSnackBar(
       const SnackBar(
-        content: Text('FunciÃ³n de agregar reserva prÃ³ximamente'),
+        content: Text('Función de agregar reserva próximamente'),
         backgroundColor: Color(0xFF2E7AFF),
       ),
     );
@@ -632,12 +632,12 @@ class _ReservationsPageState extends State<PaddleReservationsPage> {
         courtName: courtName,
         date: _formatDateForSystem(provider.selectedDate),
         timeSlot: timeSlot,
-        sport: 'PADEL', // ðŸ”§ Para pÃ¡ginas de Pádel
+        sport: 'PADEL', // ðŸ”§ Para páginas de Pádel
       ),
     );
   }
 
-  /// MÃ©todo original para WebView (backup - no se usa actualmente)
+  /// Método original para WebView (backup - no se usa actualmente)
   Future<void> _showGASWebView(
     BuildContext context,
     BookingProvider provider, 
@@ -701,4 +701,6 @@ class _ReservationsPageState extends State<PaddleReservationsPage> {
     }
   }
 }
+
+
 

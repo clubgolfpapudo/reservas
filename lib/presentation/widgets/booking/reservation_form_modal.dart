@@ -1,22 +1,22 @@
 ﻿/// lib/presentation/widgets/booking/reservation_form_modal.dart
 /// 
 /// PROPÃ“SITO:
-/// Modal complejo para crear y gestionar reservas de Pádel. Componente mÃ¡s crÃ­tico
-/// del sistema que maneja auto-completado del organizador, bÃºsqueda de usuarios,
-/// validaciÃ³n de conflictos en tiempo real, y creaciÃ³n de reservas con emails automÃ¡ticos.
+/// Modal complejo para crear y gestionar reservas de Pádel. Componente más crítico
+/// del sistema que maneja auto-completado del organizador, búsqueda de usuarios,
+/// validación de conflictos en tiempo real, y creación de reservas con emails automáticos.
 /// 
 /// CARACTERÃSTICAS PRINCIPALES:
-/// - Auto-completado del organizador desde URL/sesiÃ³n
-/// - BÃºsqueda y selecciÃ³n de hasta 4 jugadores
-/// - ValidaciÃ³n en tiempo real de conflictos de horarios
-/// - IntegraciÃ³n con Firebase para datos de usuarios y telÃ©fonos
-/// - UI responsive optimizada para mÃ³vil y desktop
-/// - Sistema completo de emails automÃ¡ticos
+/// - Auto-completado del organizador desde URL/sesión
+/// - Búsqueda y selección de hasta 4 jugadores
+/// - Validación en tiempo real de conflictos de horarios
+/// - Integración con Firebase para datos de usuarios y teléfonos
+/// - UI responsive optimizada para móvil y desktop
+/// - Sistema completo de emails automáticos
 /// 
 /// FLUJO PRINCIPAL:
-/// 1. InicializaciÃ³n â†’ Auto-completar organizador â†’ Cargar usuarios Firebase
-/// 2. BÃºsqueda â†’ Filtrar usuarios â†’ Seleccionar jugadores
-/// 3. ValidaciÃ³n â†’ Verificar conflictos â†’ Crear reserva â†’ Enviar emailsimport 'dart:convert';
+/// 1. Inicialización â†’ Auto-completar organizador â†’ Cargar usuarios Firebase
+/// 2. Búsqueda â†’ Filtrar usuarios â†’ Seleccionar jugadores
+/// 3. Validación â†’ Verificar conflictos â†’ Crear reserva â†’ Enviar emailsimport 'dart:convert';
 
 import 'dart:math';
 import 'package:flutter/material.dart';
@@ -31,7 +31,7 @@ import '../../../core/services/user_service.dart';
 import '../../../domain/entities/booking.dart';
 
 class ReservationFormModal extends StatefulWidget {
-  /// ID Ãºnico de la cancha (ej: "court_1", "court_2")
+  /// ID único de la cancha (ej: "court_1", "court_2")
   final String courtId;
   /// Nombre legible de la cancha (ej: "PITE", "LILEN")
   final String courtName;
@@ -59,7 +59,7 @@ class ReservationFormModal extends StatefulWidget {
 }
 
 class _ReservationFormModalState extends State<ReservationFormModal> {
-  // âœ… AGREGAR ESTA FUNCIÃ“N AQUÃ
+  // ✅ AGREGAR ESTA FUNCIÃ“N AQUÃ
   IconData _getSportIcon(String courtId) {
     if (courtId.startsWith('padel_')) {
       return Icons.sports_handball;
@@ -72,31 +72,31 @@ class _ReservationFormModalState extends State<ReservationFormModal> {
   }
   /// Form key para validaciones del formulario
   final _formKey = GlobalKey<FormState>();
-  /// Controlador para el campo de bÃºsqueda de usuarios
+  /// Controlador para el campo de búsqueda de usuarios
   final _searchController = TextEditingController();
   
-  /// Lista de jugadores seleccionados para la reserva (mÃ¡ximo 4)
+  /// Lista de jugadores seleccionados para la reserva (máximo 4)
   List<ReservationPlayer> _selectedPlayers = [];
   /// Lista completa de usuarios disponibles cargados desde Firebase
   List<ReservationPlayer> _availablePlayers = [];
-  /// Lista filtrada de usuarios segÃºn el texto de bÃºsqueda
+  /// Lista filtrada de usuarios según el texto de búsqueda
   List<ReservationPlayer> _filteredPlayers = [];
   
   /// Estado de carga para mostrar indicadores
   bool _isLoading = false;
   String? _errorMessage;
 
-  // LÃ­mites dinÃ¡micos por deporte
+  // Límites dinámicos por deporte
   int get _minPlayers => widget.sport == 'TENIS' ? 2 : 4;
   int get _maxPlayers => 4;
 
-  // Determina si se puede crear la reserva segÃºn las nuevas reglas  
+  // Determina si se puede crear la reserva según las nuevas reglas  
   bool get _canCreateReservation => 
       (widget.sport == 'GOLF' ? _selectedPlayers.length >= 1 : _selectedPlayers.length >= _minPlayers) &&
       _selectedPlayers.length <= _maxPlayers && 
       _errorMessage == null;
 
-  /// MÃ©todos helper para parametrizaciÃ³n por deporte
+  /// Métodos helper para parametrización por deporte
   String get _sportDisplayName => widget.sport == 'TENIS' ? 'tenis' : 
                                 widget.sport == 'GOLF' ? 'golf' : 'Pádel';
 
@@ -118,11 +118,11 @@ class _ReservationFormModalState extends State<ReservationFormModal> {
     });
   }
 
-  /// ValidaciÃ³n inicial al abrir el modal
+  /// Validación inicial al abrir el modal
   /// 
-  /// Verifica si el slot seleccionado estÃ¡ disponible antes de permitir
+  /// Verifica si el slot seleccionado está disponible antes de permitir
   /// que el usuario configure la reserva. Si hay conflictos, muestra error
-  /// y cierra el modal automÃ¡ticamente.
+  /// y cierra el modal automáticamente.
   void _checkInitialSlotAvailability() {
     final provider = context.read<BookingProvider>();
     final playerNames = _selectedPlayers.map((p) => p.name).toList();
@@ -150,21 +150,21 @@ class _ReservationFormModalState extends State<ReservationFormModal> {
 
   /// Inicializa el formulario y carga datos necesarios
   /// 
-  /// Secuencia de inicializaciÃ³n:
+  /// Secuencia de inicialización:
   /// 1. Limpia listas de jugadores
   /// 2. Configura usuario actual como organizador
   /// 3. Carga usuarios desde Firebase
   void _initializeForm() {
     // PERF: print('ðŸš€ MODAL: Inicializando formulario...');
     
-    // Inicializar listas vacÃ­as
+    // Inicializar listas vacías
     _availablePlayers = [];
     _filteredPlayers = [];
     
     // ðŸ”¥ USUARIO DINÃMICO: Configurar usuario actual primero
     _setCurrentUser().then((_) {
-      // PERF: print('âœ… MODAL: Usuario principal configurado, cargando desde Firebase...');
-      // DespuÃ©s cargar usuarios desde Firebase
+      // PERF: print('✅ MODAL: Usuario principal configurado, cargando desde Firebase...');
+      // Después cargar usuarios desde Firebase
       _loadUsersFromFirebase();
     });
   }
@@ -176,8 +176,8 @@ class _ReservationFormModalState extends State<ReservationFormModal> {
   /// si tiene conflictos en el horario seleccionado.
   /// 
   /// Si se detectan conflictos del organizador:
-  /// - Muestra Snackbar rojo con mensaje especÃ­fico
-  /// - Auto-cierra el modal despuÃ©s de 4 segundos
+  /// - Muestra Snackbar rojo con mensaje específico
+  /// - Auto-cierra el modal después de 4 segundos
   /// 
   /// En caso de error, usa fallback temporal para permitir testing
   Future<void> _setCurrentUser() async {
@@ -194,7 +194,7 @@ class _ReservationFormModalState extends State<ReservationFormModal> {
           authProvider.currentUserName != null) {
         currentEmail = authProvider.currentUserEmail!;
         currentName = authProvider.currentUserName!;
-        // PERF: print('âœ… MODAL: Usuario desde AuthProvider - $currentName ($currentEmail)');
+        // PERF: print('✅ MODAL: Usuario desde AuthProvider - $currentName ($currentEmail)');
       } else {
         // Fallback al UserService original
         currentEmail = await UserService.getCurrentUserEmail();
@@ -202,7 +202,7 @@ class _ReservationFormModalState extends State<ReservationFormModal> {
         // PERF: print('âš ï¸ MODAL: Usuario desde UserService fallback - $currentName ($currentEmail)');
       }
       
-      // PERF: print('âœ… MODAL: Usuario actual - $currentName ($currentEmail)');
+      // PERF: print('✅ MODAL: Usuario actual - $currentName ($currentEmail)');
       
       // SIEMPRE agregar el usuario primero (para que aparezca en UI)
       _selectedPlayers.add(ReservationPlayer(
@@ -234,7 +234,7 @@ class _ReservationFormModalState extends State<ReservationFormModal> {
             // ðŸ”¥ MOSTRAR DIÃLOGO DE CONFLICTO
             _showConflictDialog(validation.reason!);
           } else {
-            // PERF: print('âœ… MODAL: Sin conflictos detectados para organizador');
+            // PERF: print('✅ MODAL: Sin conflictos detectados para organizador');
           }
         }
       });
@@ -251,16 +251,16 @@ class _ReservationFormModalState extends State<ReservationFormModal> {
     }
   }
 
-  // ðŸ”¥ FUNCIÃ“N SIMPLIFICADA: DiÃ¡logo sin auto-cierre (UX mÃ¡s clara)
+  // ðŸ”¥ FUNCIÃ“N SIMPLIFICADA: Diálogo sin auto-cierre (UX más clara)
   void _showConflictDialog(String conflictMessage) {
     showDialog(
       context: context,
-      barrierDismissible: false, // Usuario DEBE presionar botÃ³n
+      barrierDismissible: false, // Usuario DEBE presionar botón
       builder: (context) => WillPopScope(
-        // Interceptar botÃ³n back del navegador/mÃ³vil
+        // Interceptar botón back del navegador/móvil
         onWillPop: () async {
-          // PERF: print('ðŸ”¥ DEBUG: WillPopScope ejecutÃ¡ndose');
-          Navigator.of(context).pop(); // Cerrar diÃ¡logo
+          // PERF: print('ðŸ”¥ DEBUG: WillPopScope ejecutándose');
+          Navigator.of(context).pop(); // Cerrar diálogo
           
           Future.delayed(const Duration(milliseconds: 100), () {
             if (mounted) {
@@ -330,8 +330,8 @@ class _ReservationFormModalState extends State<ReservationFormModal> {
             TextButton(
               onPressed: () {
                 // PERF: print('ðŸ”¥ DEBUG: Presionando Entendido');
-                // PERF: print('ðŸ”¥ DEBUG: Cerrando diÃ¡logo...');
-                Navigator.of(context).pop(); // Cerrar diÃ¡logo
+                // PERF: print('ðŸ”¥ DEBUG: Cerrando diálogo...');
+                Navigator.of(context).pop(); // Cerrar diálogo
                 
                 // PERF: print('ðŸ”¥ DEBUG: Esperando 100ms...');
                 Future.delayed(const Duration(milliseconds: 100), () {
@@ -339,7 +339,7 @@ class _ReservationFormModalState extends State<ReservationFormModal> {
                   try {
                     // ðŸ”¥ USAR ROOT NAVIGATOR
                     Navigator.of(context, rootNavigator: true).pop();
-                    // PERF: print('âœ… DEBUG: Modal cerrado con ROOT navigator');
+                    // PERF: print('✅ DEBUG: Modal cerrado con ROOT navigator');
                   } catch (e) {
                     // PERF: print('âŒ DEBUG: Error con root navigator: $e');
                   }
@@ -370,8 +370,8 @@ class _ReservationFormModalState extends State<ReservationFormModal> {
   /// Carga todos los usuarios desde Firebase Firestore
   /// 
   /// Utiliza FirebaseUserService para obtener la lista completa de usuarios
-  /// sincronizados desde Google Sheets. Incluye mapeo de telÃ©fonos y manejo
-  /// de la estructura hÃ­brida espaÃ±ol/inglÃ©s.
+  /// sincronizados desde Google Sheets. Incluye mapeo de teléfonos y manejo
+  /// de la estructura híbrida español/inglés.
   /// 
   /// En caso de error:
   /// - Usa fallback con usuarios de prueba expandido
@@ -417,7 +417,7 @@ class _ReservationFormModalState extends State<ReservationFormModal> {
         _isLoading = false;
       });
 
-      // PERF: print('âœ… MODAL: ${allUsers.length} usuarios cargados desde Firebase');
+      // PERF: print('✅ MODAL: ${allUsers.length} usuarios cargados desde Firebase');
       
       // Filtrar inmediatamente para mostrar usuarios
       _filterPlayers();
@@ -453,14 +453,14 @@ class _ReservationFormModalState extends State<ReservationFormModal> {
     }
   }
 
-  /// Filtra la lista de usuarios segÃºn el texto de bÃºsqueda
+  /// Filtra la lista de usuarios según el texto de búsqueda
   /// 
   /// Aplica filtros basados en:
-  /// - Texto de bÃºsqueda (nombre o email)
+  /// - Texto de búsqueda (nombre o email)
   /// - Excluye usuarios ya seleccionados
-  /// - BÃºsqueda case-insensitive
+  /// - Búsqueda case-insensitive
   /// 
-  /// Si no hay texto de bÃºsqueda, muestra todos los usuarios disponibles
+  /// Si no hay texto de búsqueda, muestra todos los usuarios disponibles
   void _filterPlayers() {
     final query = _searchController.text.toLowerCase().trim();
     setState(() {
@@ -480,13 +480,13 @@ class _ReservationFormModalState extends State<ReservationFormModal> {
     });
   }
 
-  /// Agrega un jugador a la reserva con validaciÃ³n de conflictos
+  /// Agrega un jugador a la reserva con validación de conflictos
   /// 
   /// Antes de agregar el jugador:
-  /// 1. Verifica que no se exceda el lÃ­mite de 4 jugadores
+  /// 1. Verifica que no se exceda el límite de 4 jugadores
   /// 2. Valida que el jugador no tenga conflictos de horario
   /// 3. Si hay conflictos, muestra mensaje de error sin agregar
-  /// 4. Si es vÃ¡lido, agrega el jugador y limpia el campo de bÃºsqueda
+  /// 4. Si es válido, agrega el jugador y limpia el campo de búsqueda
   /// 
   /// @param player Jugador a agregar a la reserva
   void _addPlayer(ReservationPlayer player) {
@@ -542,29 +542,29 @@ class _ReservationFormModalState extends State<ReservationFormModal> {
     }
   }
 
-  // ðŸ”§ AGREGAR ESTE MÃ‰TODO AQUÃ (despuÃ©s de los otros helpers)
+  // 🔧 AGREGAR ESTE MÃ‰TODO AQUÃ (después de los otros helpers)
   String _extractCourtNumber(String courtId) {
-    // Extraer nÃºmero del final del ID
+    // Extraer número del final del ID
     if (courtId.contains('_court_')) {
       return courtId.split('_court_').last;
     }
     return '1'; // Fallback
   }
 
-  /// Crea la reserva con validaciÃ³n final y envÃ­o de emails
+  /// Crea la reserva con validación final y envío de emails
   /// 
-  /// Proceso completo de creaciÃ³n:
-  /// 1. ValidaciÃ³n final de conflictos con todos los jugadores
-  /// 2. Mapeo de telÃ©fonos desde Firebase para cada jugador
-  /// 3. CreaciÃ³n de BookingPlayer objects con datos completos
+  /// Proceso completo de creación:
+  /// 1. Validación final de conflictos con todos los jugadores
+  /// 2. Mapeo de teléfonos desde Firebase para cada jugador
+  /// 3. Creación de BookingPlayer objects con datos completos
   /// 4. Llamada a createBookingWithEmails para crear y notificar
-  /// 5. ActualizaciÃ³n de UI y mostrar diÃ¡logo de confirmaciÃ³n
+  /// 5. Actualización de UI y mostrar diálogo de confirmación
   /// 
   /// En caso de error:
-  /// - Muestra mensaje especÃ­fico del error
+  /// - Muestra mensaje específico del error
   /// - Mantiene el modal abierto para correcciones
   /// 
-  /// @throws Exception Si la validaciÃ³n falla o hay errores de red/Firebase
+  /// @throws Exception Si la validación falla o hay errores de red/Firebase
   Future<void> _createReservation() async {
     if (!_canCreateReservation) return;
 
@@ -589,17 +589,17 @@ class _ReservationFormModalState extends State<ReservationFormModal> {
         throw Exception(validation.reason!);
       }
 
-      // Obtener usuarios de Firebase para mapear telÃ©fonos
+      // Obtener usuarios de Firebase para mapear teléfonos
       final usersData = await FirebaseUserService.getAllUsers();
 
-      // Crear booking players con telÃ©fonos
+      // Crear booking players con teléfonos
       final List<BookingPlayer> bookingPlayers = [];
 
       for (final selectedPlayer in _selectedPlayers) {
         String? userPhone;
         String? userId;
         try {
-          // Buscar los datos del usuario en la lista de Firebase para obtener el telÃ©fono y el ID
+          // Buscar los datos del usuario en la lista de Firebase para obtener el teléfono y el ID
           final userData = usersData.firstWhere(
             (user) => user['email']?.toString().toLowerCase() == selectedPlayer.email.toLowerCase(),
           );
@@ -607,7 +607,7 @@ class _ReservationFormModalState extends State<ReservationFormModal> {
           userId = userData['id']?.toString(); 
           userPhone = userData['phone']?.toString();
         } catch (e) {
-          // Usuario no encontrado en la base de datos, no tiene ID ni telÃ©fono
+          // Usuario no encontrado en la base de datos, no tiene ID ni teléfono
           userId = null; 
           userPhone = null; 
         }
@@ -621,17 +621,17 @@ class _ReservationFormModalState extends State<ReservationFormModal> {
         ));
       }
 
-      // En el mÃ©todo _createReservation, ANTES de createBookingWithEmails
+      // En el método _createReservation, ANTES de createBookingWithEmails
       // PERF: print('ðŸš¨ CREANDO RESERVA:');
-      // PERF: print('  ðŸ”§ widget.courtId: ${widget.courtId}');
-      // PERF: print('  ðŸ”§ widget.courtName: ${widget.courtName}');
-      // PERF: print('  ðŸ”§ widget.sport: ${widget.sport}');
+      // PERF: print('  🔧 widget.courtId: ${widget.courtId}');
+      // PERF: print('  🔧 widget.courtName: ${widget.courtName}');
+      // PERF: print('  🔧 widget.sport: ${widget.sport}');
       // PERF: print('ðŸ”¥ Creando reserva con emails: ${widget.courtId} ${widget.date} ${widget.timeSlot}');
       // PERF: print('ðŸ”¥ Jugadores: ${playerNames.join(", ")}');
 
-      // âœ… CRÃTICO: Crear reserva CON emails automÃ¡ticos
+      // ✅ CRÃTICO: Crear reserva CON emails automáticos
       final success = await provider.createBookingWithEmails(
-        courtId: widget.courtId,  // â† USAR courtId COMPLETO
+        courtId: widget.courtId,  // ↑ USAR courtId COMPLETO
         date: widget.date,
         timeSlot: widget.timeSlot,
         players: bookingPlayers,
@@ -642,9 +642,9 @@ class _ReservationFormModalState extends State<ReservationFormModal> {
         // Actualizar UI
         await provider.refresh();
 
-        // PERF: print('âœ… Reserva creada exitosamente con emails - UI actualizada');
+        // PERF: print('✅ Reserva creada exitosamente con emails - UI actualizada');
 
-        // Mostrar confirmaciÃ³n
+        // Mostrar confirmación
         if (mounted) {
           setState(() {
             _isLoading = false;
@@ -670,13 +670,13 @@ class _ReservationFormModalState extends State<ReservationFormModal> {
     }
   }
 
-  /// Muestra diÃ¡logo de confirmaciÃ³n de reserva exitosa
+  /// Muestra diálogo de confirmación de reserva exitosa
   /// 
   /// Incluye:
   /// - Detalles completos de la reserva (cancha, fecha, hora, jugadores)
   /// - Lista de participantes con indicador del organizador
-  /// - ConfirmaciÃ³n de envÃ­o de emails
-  /// - BotÃ³n para cerrar modal y diÃ¡logo
+  /// - Confirmación de envío de emails
+  /// - Botón para cerrar modal y diálogo
   void _showSuccessDialog() {
     final String deporte = _sportDisplayName.toLowerCase().trim();
     final int numJugadores = _selectedPlayers.length;
@@ -803,7 +803,7 @@ class _ReservationFormModalState extends State<ReservationFormModal> {
               Future.delayed(const Duration(milliseconds: 100), () {
                 try {
                   Navigator.of(context, rootNavigator: true).pop();
-                  // PERF: print('âœ… DEBUG: Modal cerrado con ROOT navigator');
+                  // PERF: print('✅ DEBUG: Modal cerrado con ROOT navigator');
                 } catch (e) {
                   // PERF: print('âŒ DEBUG: Error con root navigator: $e');
                 }
@@ -825,7 +825,7 @@ class _ReservationFormModalState extends State<ReservationFormModal> {
     );
   }
 
-  /// Construye una fila de detalle para el diÃ¡logo de confirmaciÃ³n
+  /// Construye una fila de detalle para el diálogo de confirmación
   /// 
   /// @param icon Icono para mostrar junto al detalle
   /// @param label Etiqueta del campo
@@ -850,7 +850,7 @@ class _ReservationFormModalState extends State<ReservationFormModal> {
   /// Formatea la fecha para mostrar de manera amigable
   /// 
   /// Convierte fecha de formato YYYY-MM-DD a formato legible
-  /// como "15 de Junio" en espaÃ±ol.
+  /// como "15 de Junio" en español.
   /// 
   /// @return String con fecha formateada o fecha original si hay error
   String _formatDisplayDate() {
@@ -869,7 +869,7 @@ class _ReservationFormModalState extends State<ReservationFormModal> {
 
   /// Convierte ID de cancha a nombre legible
   String _getDisplayCourtName(String courtId) {
-    // ðŸ”§ FIX SIMPLE: Auto-corrección para inconsistencias
+    // 🔧 FIX SIMPLE: Auto-corrección para inconsistencias
     if (widget.sport.toUpperCase() == 'PADEL' && courtId.startsWith('tennis_')) {
       courtId = 'padel_court_1'; // Corregir a PITE
     }
@@ -877,7 +877,7 @@ class _ReservationFormModalState extends State<ReservationFormModal> {
       courtId = 'tennis_court_1'; // Corregir a Cancha 1
     }
     
-    // PERF: print('ðŸ”§ MODAL DEBUG: _getDisplayCourtName recibiÃ³: "$courtId"');
+    // PERF: print('🔧 MODAL DEBUG: _getDisplayCourtName recibió: "$courtId"');
     
     switch (courtId) {
       // GOLF
@@ -896,7 +896,7 @@ class _ReservationFormModalState extends State<ReservationFormModal> {
       case 'tennis_court_4': return 'Cancha 4';
       
       default: 
-        // PERF: print('ðŸ”§ MODAL DEBUG: FALLBACK - courtId no reconocido: "$courtId"');
+        // PERF: print('🔧 MODAL DEBUG: FALLBACK - courtId no reconocido: "$courtId"');
         return courtId; // Fallback
     }
   }
@@ -919,8 +919,8 @@ class _ReservationFormModalState extends State<ReservationFormModal> {
       child: Container(
         width: MediaQuery.of(context).size.width * 0.95,
         constraints: BoxConstraints(
-          maxHeight: MediaQuery.of(context).size.height * 0.70, // ðŸ”§ Reducido de 0.75 a 0.70
-          minHeight: 300, // ðŸ”§ Reducido de 350 a 300
+          maxHeight: MediaQuery.of(context).size.height * 0.70, // 🔧 Reducido de 0.75 a 0.70
+          minHeight: 300, // 🔧 Reducido de 350 a 300
         ),
         child: Column(
           children: [
@@ -943,12 +943,12 @@ class _ReservationFormModalState extends State<ReservationFormModal> {
                             : widget.sport.toUpperCase() == 'TENIS' 
                               ? Icons.sports_baseball 
                               : Icons.golf_course,
-                          color: Colors.white,  // â† BLANCO para contraste con fondo azul
+                          color: Colors.white,  // ↑ BLANCO para contraste con fondo azul
                           size: 20,
                         ),
                         const SizedBox(width: 8),
                         Text(
-                          _getDisplayCourtName(widget.courtName),  // â† Convertir ID a nombre legible
+                          _getDisplayCourtName(widget.courtName),  // Convertir ID a nombre legible
                           style: const TextStyle(
                             color: Colors.white,
                             fontSize: 18,
@@ -981,19 +981,19 @@ class _ReservationFormModalState extends State<ReservationFormModal> {
               child: Form(
                 key: _formKey,
                 child: Padding(
-                  padding: const EdgeInsets.fromLTRB(16, 12, 16, 12), // ðŸ”§ Reducido padding
+                  padding: const EdgeInsets.fromLTRB(16, 12, 16, 12), // 🔧 Reducido padding
                   child: SingleChildScrollView(
                     child: Column(
                       mainAxisSize: MainAxisSize.min,
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        // ðŸ”§ Jugadores seleccionados SUPER COMPACTA
+                        // 🔧 Jugadores seleccionados SUPER COMPACTA
                         Container(
-                          padding: const EdgeInsets.all(12), // âœ… Aumentado de 8 a 12
-                          margin: const EdgeInsets.only(bottom: 12), // âœ… Aumentado de 8 a 12
+                          padding: const EdgeInsets.all(12), // ✅ Aumentado de 8 a 12
+                          margin: const EdgeInsets.only(bottom: 12), // ✅ Aumentado de 8 a 12
                           constraints: const BoxConstraints(
-                            minHeight: 60, // âœ… NUEVO: Altura mÃ­nima
-                            maxHeight: 80, // âœ… Aumentado de 45 a 80
+                            minHeight: 60, // ✅ NUEVO: Altura mínima
+                            maxHeight: 80, // ✅ Aumentado de 45 a 80
                           ),
                           decoration: BoxDecoration(
                             color: Colors.green.withOpacity(0.1),
@@ -1008,12 +1008,12 @@ class _ReservationFormModalState extends State<ReservationFormModal> {
                                 ? 'Jugadores (${_selectedPlayers.length}/$_minPlayers-$_maxPlayers)'
                                 : 'Jugadores (${_selectedPlayers.length}/$_maxPlayers)',
                                 style: const TextStyle(
-                                  fontSize: 15, // âœ… Aumentado de 14 a 15
+                                  fontSize: 15, // ✅ Aumentado de 14 a 15
                                   fontWeight: FontWeight.w600,
                                   color: Colors.black87,
                                 ),
                               ),
-                              const SizedBox(height: 8), // âœ… Aumentado de 4 a 8
+                              const SizedBox(height: 8), // ✅ Aumentado de 4 a 8
                               
                               // JUGADORES EN HORIZONTAL - CORREGIDO
                               Expanded(
@@ -1024,11 +1024,11 @@ class _ReservationFormModalState extends State<ReservationFormModal> {
                                       final index = entry.key;
                                       final player = entry.value;
                                       return Container(
-                                        margin: const EdgeInsets.only(right: 12), // âœ… Aumentado margen
+                                        margin: const EdgeInsets.only(right: 12), // ✅ Aumentado margen
                                         padding: const EdgeInsets.symmetric(
                                           horizontal: 8, 
                                           vertical: 4
-                                        ), // âœ… NUEVO: Padding interno
+                                        ), // ✅ NUEVO: Padding interno
                                         decoration: BoxDecoration(
                                           color: Colors.white,
                                           borderRadius: BorderRadius.circular(6),
@@ -1043,8 +1043,8 @@ class _ReservationFormModalState extends State<ReservationFormModal> {
                                           children: [
                                             // CÍRCULO CON NÚMERO - MÁS GRANDE
                                             Container(
-                                              width: 22, // âœ… Aumentado de 18 a 22
-                                              height: 22, // âœ… Aumentado de 18 a 22
+                                              width: 22, // ✅ Aumentado de 18 a 22
+                                              height: 22, // ✅ Aumentado de 18 a 22
                                               decoration: BoxDecoration(
                                                 color: player.isMainBooker ? Colors.blue : Colors.green,
                                                 shape: BoxShape.circle,
@@ -1054,48 +1054,48 @@ class _ReservationFormModalState extends State<ReservationFormModal> {
                                                   '${index + 1}',
                                                   style: const TextStyle(
                                                     color: Colors.white,
-                                                    fontSize: 12, // âœ… Aumentado de 10 a 12
+                                                    fontSize: 12, // ✅ Aumentado de 10 a 12
                                                     fontWeight: FontWeight.w600,
                                                   ),
                                                 ),
                                               ),
                                             ),
-                                            const SizedBox(width: 8), // âœ… Aumentado spacing
+                                            const SizedBox(width: 8), // ✅ Aumentado spacing
                                             
-                                            // ðŸ”§ NOMBRE DEL JUGADOR - MEJORADO
+                                            // 🔧 NOMBRE DEL JUGADOR - MEJORADO
                                             ConstrainedBox(
-                                              constraints: const BoxConstraints(maxWidth: 100), // âœ… NUEVO: Ancho mÃ¡ximo
+                                              constraints: const BoxConstraints(maxWidth: 100), // ✅ NUEVO: Ancho máximo
                                               child: Text(
                                                 player.name.length > 15 
-                                                    ? '${player.name.substring(0, 15)}...' // âœ… Aumentado de 12 a 15 caracteres
+                                                    ? '${player.name.substring(0, 15)}...' // ✅ Aumentado de 12 a 15 caracteres
                                                     : player.name,
                                                 style: TextStyle(
                                                   fontWeight: FontWeight.w500,
-                                                  fontSize: 12, // âœ… Aumentado de 11 a 12
+                                                  fontSize: 12, // ✅ Aumentado de 11 a 12
                                                   color: player.isMainBooker ? Colors.blue.shade700 : Colors.black87,
                                                 ),
                                                 overflow: TextOverflow.ellipsis,
                                               ),
                                             ),
                                             
-                                            // ðŸ”§ BOTÃ“N REMOVER - MÃS GRANDE Y VISIBLE
+                                            // 🔧 BOTÃ“N REMOVER - MÃS GRANDE Y VISIBLE
                                             if (!player.isMainBooker) ...[
                                               const SizedBox(width: 6),
                                               InkWell(
                                                 onTap: () => _removePlayer(player),
                                                 borderRadius: BorderRadius.circular(12),
                                                 child: Container(
-                                                  padding: const EdgeInsets.all(2), // âœ… NUEVO: Padding para Ã¡rea tÃ¡ctil
+                                                  padding: const EdgeInsets.all(2), // ✅ NUEVO: Padding para área táctil
                                                   child: const Icon(
                                                     Icons.remove_circle, 
                                                     color: Colors.red, 
-                                                    size: 18 // âœ… Aumentado de 14 a 18
+                                                    size: 18 // ✅ Aumentado de 14 a 18
                                                   ),
                                                 ),
                                               ),
                                             ],
                                             
-                                            // ðŸ”§ INDICADOR DE ORGANIZADOR
+                                            // 🔧 INDICADOR DE ORGANIZADOR
                                             if (player.isMainBooker) ...[
                                               const SizedBox(width: 4),
                                               const Icon(
@@ -1115,7 +1115,7 @@ class _ReservationFormModalState extends State<ReservationFormModal> {
                           ),
                         ),
 
-                        // ðŸ”§ OPCIONAL: Agregar indicador de scroll si hay muchos jugadores
+                        // 🔧 OPCIONAL: Agregar indicador de scroll si hay muchos jugadores
                         if (_selectedPlayers.length > 3)
                           Padding(
                             padding: const EdgeInsets.only(bottom: 8),
@@ -1140,20 +1140,20 @@ class _ReservationFormModalState extends State<ReservationFormModal> {
                             ),
                           ),                        
                         if (_selectedPlayers.length < 4) ...[
-                          // Campo de bÃºsqueda
+                          // Campo de búsqueda
                           Text(
                             widget.sport == 'TENIS'
                                 ? _selectedPlayers.length < _minPlayers
-                                    ? 'Buscar jugador ${_selectedPlayers.length + 1} (mÃ­nimo $_minPlayers para tenis):'
-                                    : 'Buscar jugador ${_selectedPlayers.length + 1} (opcional, mÃ¡ximo $_maxPlayers):'
+                                    ? 'Buscar jugador ${_selectedPlayers.length + 1} (mínimo $_minPlayers para tenis):'
+                                    : 'Buscar jugador ${_selectedPlayers.length + 1} (opcional, máximo $_maxPlayers):'
                                 : 'Buscar jugador ${_selectedPlayers.length + 1} de $_maxPlayers:',
                             style: const TextStyle(
-                              fontSize: 14, // ðŸ”§ Reducido de 16 a 14
+                              fontSize: 14, // 🔧 Reducido de 16 a 14
                               fontWeight: FontWeight.w600,
                               color: Colors.black87,
                             ),
                           ),
-                          const SizedBox(height: 6), // ðŸ”§ Reducido de 8 a 6
+                          const SizedBox(height: 6), // 🔧 Reducido de 8 a 6
                           TextField(
                             controller: _searchController,
                             decoration: InputDecoration(
@@ -1162,15 +1162,15 @@ class _ReservationFormModalState extends State<ReservationFormModal> {
                               border: OutlineInputBorder(
                                 borderRadius: BorderRadius.circular(8),
                               ),
-                              contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10), // ðŸ”§ Reducido padding
+                              contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10), // 🔧 Reducido padding
                             ),
                           ),
                           
-                          const SizedBox(height: 8), // ðŸ”§ Reducido de 12 a 8
+                          const SizedBox(height: 8), // 🔧 Reducido de 12 a 8
                           
-                          // ðŸ”§ Lista de jugadores disponibles MÃS COMPACTA
+                          // 🔧 Lista de jugadores disponibles MÁS COMPACTA
                           Container(
-                            height: 150, // ðŸ”§ Reducido de 200 a 150
+                            height: 150, // 🔧 Reducido de 200 a 150
                             decoration: BoxDecoration(
                               border: Border.all(color: Colors.grey[300]!),
                               borderRadius: BorderRadius.circular(8),
@@ -1185,13 +1185,13 @@ class _ReservationFormModalState extends State<ReservationFormModal> {
                                             : 'No se encontraron jugadores',
                                         style: TextStyle(
                                           color: Colors.grey[600],
-                                          fontSize: 14, // ðŸ”§ Reducido de 16 a 14
+                                          fontSize: 14, // 🔧 Reducido de 16 a 14
                                         ),
                                       ),
                                     ),
                                   )
                                 : ListView.builder(
-                                    padding: const EdgeInsets.symmetric(vertical: 2), // ðŸ”§ Reducido padding
+                                    padding: const EdgeInsets.symmetric(vertical: 2), // 🔧 Reducido padding
                                     itemCount: _filteredPlayers.length,
                                     itemBuilder: (context, index) {
                                       final player = _filteredPlayers[index];
@@ -1199,10 +1199,10 @@ class _ReservationFormModalState extends State<ReservationFormModal> {
                                           .contains(player.name.toUpperCase());
                                       
                                       return Container(
-                                        margin: const EdgeInsets.symmetric(horizontal: 6, vertical: 1), // ðŸ”§ Reducido margins
+                                        margin: const EdgeInsets.symmetric(horizontal: 6, vertical: 1), // 🔧 Reducido margins
                                         decoration: BoxDecoration(
                                           color: isSpecialVisit ? Colors.orange.withOpacity(0.1) : Colors.white,
-                                          borderRadius: BorderRadius.circular(6), // ðŸ”§ Reducido border radius
+                                          borderRadius: BorderRadius.circular(6), // 🔧 Reducido border radius
                                           border: Border.all(
                                             color: isSpecialVisit ? Colors.orange.withOpacity(0.3) : Colors.grey[200]!
                                           ),
@@ -1216,7 +1216,7 @@ class _ReservationFormModalState extends State<ReservationFormModal> {
                                           ),
                                           subtitle: isSpecialVisit 
                                               ? const Text(
-                                                  'Puede jugar en mÃºltiples canchas',
+                                                  'Puede jugar en múltiples canchas',
                                                   style: TextStyle(fontSize: 10, color: Colors.orange),
                                                 )
                                               : null,
@@ -1243,7 +1243,7 @@ class _ReservationFormModalState extends State<ReservationFormModal> {
                           ),
                         ],
                         
-                        const SizedBox(height: 8), // ðŸ”§ Reducido de 12 a 8
+                        const SizedBox(height: 8), // 🔧 Reducido de 12 a 8
                         
                         // ðŸ”¥ MENSAJE DE ERROR MEJORADO
                         // if (_errorMessage != null)
@@ -1292,8 +1292,8 @@ class _ReservationFormModalState extends State<ReservationFormModal> {
                           builder: (context, provider, child) {
                             if (provider.isSendingEmails) {
                               return Container(
-                                padding: const EdgeInsets.all(10), // ðŸ”§ Reducido padding
-                                margin: const EdgeInsets.only(bottom: 12), // ðŸ”§ Reducido margin
+                                padding: const EdgeInsets.all(10), // 🔧 Reducido padding
+                                margin: const EdgeInsets.only(bottom: 12), // 🔧 Reducido margin
                                 decoration: BoxDecoration(
                                   color: Colors.blue.withOpacity(0.1),
                                   borderRadius: BorderRadius.circular(8),
@@ -1302,16 +1302,16 @@ class _ReservationFormModalState extends State<ReservationFormModal> {
                                 child: Row(
                                   children: [
                                     const SizedBox(
-                                      width: 14, // ðŸ”§ Reducido tamaÃ±o
-                                      height: 14, // ðŸ”§ Reducido tamaÃ±o
+                                      width: 14, // 🔧 Reducido tamaño
+                                      height: 14, // 🔧 Reducido tamaño
                                       child: CircularProgressIndicator(strokeWidth: 2),
                                     ),
-                                    const SizedBox(width: 10), // ðŸ”§ Reducido spacing
+                                    const SizedBox(width: 10), // 🔧 Reducido spacing
                                     Text(
                                       '📧 Enviando confirmaciones por email...',
                                       style: TextStyle(
                                         color: Colors.blue.shade700,
-                                        fontSize: 13, // ðŸ”§ Reducido font
+                                        fontSize: 13, // 🔧 Reducido font
                                         fontWeight: FontWeight.w500,
                                       ),
                                     ),
@@ -1323,14 +1323,14 @@ class _ReservationFormModalState extends State<ReservationFormModal> {
                           },
                         ),
                         
-                        // Botones de acciÃ³n
+                        // Botones de acción
                         Row(
                           children: [
                             Expanded(
                               child: TextButton(
                                 onPressed: () => Navigator.of(context).pop(),
                                 style: TextButton.styleFrom(
-                                  padding: const EdgeInsets.symmetric(vertical: 8), // ðŸ”§ Reducido padding
+                                  padding: const EdgeInsets.symmetric(vertical: 8), // 🔧 Reducido padding
                                   shape: RoundedRectangleBorder(
                                     borderRadius: BorderRadius.circular(8),
                                     side: BorderSide(color: Colors.red[300]!, width: 1.5),
@@ -1338,11 +1338,11 @@ class _ReservationFormModalState extends State<ReservationFormModal> {
                                 ),
                                 child: Text(
                                   'Cancelar',
-                                  style: TextStyle(fontSize: 16, color: Colors.red[700], fontWeight: FontWeight.w600), // ðŸ”§ Mejorado contraste
+                                  style: TextStyle(fontSize: 16, color: Colors.red[700], fontWeight: FontWeight.w600), // 🔧 Mejorado contraste
                                 ),
                               ),
                             ),
-                            const SizedBox(width: 10), // ðŸ”§ Reducido spacing
+                            const SizedBox(width: 10), // 🔧 Reducido spacing
                             Expanded(
                               flex: 2,
                               child: ElevatedButton(
@@ -1376,7 +1376,7 @@ class _ReservationFormModalState extends State<ReservationFormModal> {
                                                 ? 'Resolver conflictos'
                                                 : widget.sport == 'TENIS'
                                                     ? _selectedPlayers.length < _minPlayers
-                                                        ? 'MÃ­nimo $_minPlayers jugadores'
+                                                        ? 'Mínimo $_minPlayers jugadores'
                                                         : 'Agregar jugador'
                                                     : 'Faltan ${_maxPlayers - _selectedPlayers.length} jugadores',
                                         style: TextStyle(
@@ -1407,7 +1407,7 @@ class _ReservationFormModalState extends State<ReservationFormModal> {
     super.dispose();
   }
 
-  // MÃ©todo para mostrar toast de conflicto
+  // Método para mostrar toast de conflicto
   void _showConflictToast(String playerName, String conflictReason) {
     // Usar el context del Scaffold padre, no del modal
     ScaffoldMessenger.of(context).showSnackBar(
@@ -1443,12 +1443,12 @@ class _ReservationFormModalState extends State<ReservationFormModal> {
 
 /// Clase auxiliar para representar jugadores en el formulario de reserva
 /// 
-/// Esta clase es especÃ­fica del modal y diferente de BookingPlayer (entidad de dominio).
-/// Se usa durante el proceso de selecciÃ³n antes de convertir a BookingPlayer final.
+/// Esta clase es específica del modal y diferente de BookingPlayer (entidad de dominio).
+/// Se usa durante el proceso de selección antes de convertir a BookingPlayer final.
 class ReservationPlayer {
   /// Nombre completo del jugador
   final String name;
-  /// Email Ãºnico del jugador para identificaciÃ³n  
+  /// Email único del jugador para identificación  
   final String email;
   /// Indica si este jugador es el organizador principal (no se puede remover)
   final bool isMainBooker;
@@ -1459,4 +1459,6 @@ class ReservationPlayer {
     this.isMainBooker = false,
   });
 }
+
+
 

@@ -1,4 +1,4 @@
-// lib/presentation/pages/common/sport_selector_page.dart
+﻿// lib/presentation/pages/common/sport_selector_page.dart
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../providers/auth_provider.dart';
@@ -291,3 +291,4 @@ class _SportSelectorPageState extends State<SportSelectorPage> {
     super.dispose();
   }
 }
+

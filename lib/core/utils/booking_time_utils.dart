@@ -1,4 +1,4 @@
-// lib/core/utils/booking_time_utils.dart
+﻿// lib/core/utils/booking_time_utils.dart
 class BookingTimeUtils {
   // Horarios predefinidos tennis/padel (invierno) - intervalos de 90 minutos
   static const List<String> winterTimeSlots = [
@@ -112,3 +112,5 @@ extension DateTimeExtension on DateTime {
     return year == other.year && month == other.month && day == other.day;
   }
 }
+
+

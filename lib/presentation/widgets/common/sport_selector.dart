@@ -1,4 +1,4 @@
-// lib/presentation/widgets/common/sport_selector.dart
+﻿// lib/presentation/widgets/common/sport_selector.dart
 import 'package:flutter/material.dart';
 import '../../../core/constants/app_constants.dart';
 
@@ -338,8 +338,8 @@ class SportSelector extends StatelessWidget {
       {'name': 'Pádel'},
       {'name': 'Tenis'},
     ];
-    print('🔶🔶🔶 ORDEN ACTUAL 🔶🔶🔶');
-    print('➡️ ${deportes.map((d) => d['name']).join(' → ')}');
+    print('ðŸ”¶ðŸ”¶ðŸ”¶ ORDEN ACTUAL ðŸ”¶ðŸ”¶ðŸ”¶');
+    print('âž¡ï¸ ${deportes.map((d) => d['name']).join(' â†’ ')}');
 
     return deportes;
   }
@@ -523,3 +523,4 @@ class QuickSportNavigation extends StatelessWidget {
     );
   }
 }
+

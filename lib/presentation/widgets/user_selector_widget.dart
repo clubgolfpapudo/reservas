@@ -1,4 +1,4 @@
-// lib/presentation/widgets/user_selector_widget.dart
+﻿// lib/presentation/widgets/user_selector_widget.dart
 // Widget temporal para seleccionar usuario actual
 
 import 'package:flutter/material.dart';
@@ -166,3 +166,4 @@ class _UserSelectorWidgetState extends State<UserSelectorWidget> {
     );
   }
 }
+

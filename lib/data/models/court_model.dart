@@ -1,4 +1,4 @@
-// lib/data/models/court_model.dart - ACTUALIZAR para usar tu estructura
+﻿// lib/data/models/court_model.dart - ACTUALIZAR para usar tu estructura
 import 'package:cloud_firestore/cloud_firestore.dart';
 import '../../domain/entities/court.dart';
 
@@ -84,3 +84,4 @@ class CourtModel {
     );
   }
 }
+

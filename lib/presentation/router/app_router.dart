@@ -1,4 +1,4 @@
-// lib/presentation/router/app_router.dart
+﻿// lib/presentation/router/app_router.dart
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
@@ -91,9 +91,9 @@ class AppRouter {
   }
 }
 
-// ═══════════════════════════════════════════════════════════════════════════════
-// PÁGINAS PLACEHOLDER (para implementar en el futuro)
-// ═══════════════════════════════════════════════════════════════════════════════
+// â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+// PÃGINAS PLACEHOLDER (para implementar en el futuro)
+// â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
 
 /// Página de selección de fecha (placeholder)
 class DateSelectionPage extends StatelessWidget {
@@ -309,3 +309,4 @@ class ErrorPage extends StatelessWidget {
     );
   }
 }
+

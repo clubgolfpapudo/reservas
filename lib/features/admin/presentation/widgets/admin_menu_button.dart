@@ -39,7 +39,7 @@ class AdminMenuButton extends StatelessWidget {
             ),
             child: Stack(
               children: [
-                // Contenido principal del botÃ³n
+                // Contenido principal del botón
                 Row(
                   mainAxisSize: MainAxisSize.min,
                   children: [
@@ -60,7 +60,7 @@ class AdminMenuButton extends StatelessWidget {
                   ],
                 ),
                 
-                // Badge de notificaciones no leÃ­das
+                // Badge de notificaciones no leídas
                 if (false && adminProvider.unreadNotifications > 0)
                   Positioned(
                     right: -4,
@@ -104,7 +104,7 @@ class AdminMenuButton extends StatelessWidget {
   }
 }
 
-// ðŸŽ¨ Variante del botÃ³n para usar en diferentes contextos
+// ðŸŽ¨ Variante del botón para usar en diferentes contextos
 class AdminMenuButtonVariant extends StatelessWidget {
   final AdminMenuStyle style;
   final VoidCallback? onTap;
@@ -329,7 +329,7 @@ class AdminMenuButtonVariant extends StatelessWidget {
   }
 }
 
-// ðŸŽ¨ Enum para estilos del botÃ³n admin
+// ðŸŽ¨ Enum para estilos del botón admin
 enum AdminMenuStyle {
   default_,
   compact,
@@ -337,3 +337,5 @@ enum AdminMenuStyle {
   iconOnly,
   outlined,
 }
+
+

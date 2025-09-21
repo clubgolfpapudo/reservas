@@ -1,4 +1,4 @@
-// lib/presentation/widgets/booking/animated_compact_stats.dart
+﻿// lib/presentation/widgets/booking/animated_compact_stats.dart
 
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
@@ -80,7 +80,7 @@ class AnimatedCompactStats extends StatelessWidget {
                     // Alternativas de color:
                     // color: const Color(0xFFE65100), // Naranja profundo
                     // color: const Color(0xFFFF9800), // Naranja material
-                    // color: const Color(0xFFF57C00), // Ámbar oscuro
+                    // color: const Color(0xFFF57C00), // Ãmbar oscuro
                   ),
                   
                   const SizedBox(width: 16),
@@ -156,3 +156,4 @@ class AnimatedCompactStats extends StatelessWidget {
     );
   }
 }
+

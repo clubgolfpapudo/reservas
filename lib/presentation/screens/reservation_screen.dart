@@ -1,5 +1,5 @@
-// lib/presentation/screens/reservation_screen.dart
-// INTEGRACIÓN GOLF - Vista condicional 3 columnas vs carrusel
+﻿// lib/presentation/screens/reservation_screen.dart
+// INTEGRACIÃ“N GOLF - Vista condicional 3 columnas vs carrusel
 
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
@@ -30,7 +30,7 @@ class _ReservationScreenState extends State<ReservationScreen> {
     _initializeForSport();
   }
 
-  // ✅ INICIALIZACIÓN ESPECÍFICA POR DEPORTE
+  // ✅ INICIALIZACIÃ“N ESPECÃFICA POR DEPORTE
   void _initializeForSport() {
     final provider = context.read<ReservationProvider>();
     
@@ -53,7 +53,7 @@ class _ReservationScreenState extends State<ReservationScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      // ✅ HEADER DINÁMICO POR DEPORTE
+      // ✅ HEADER DINÃMICO POR DEPORTE
       appBar: AppBar(
         title: Text(_getSportTitle()),
         backgroundColor: _getSportColor(),
@@ -69,7 +69,7 @@ class _ReservationScreenState extends State<ReservationScreen> {
             icon: Icon(Icons.info_outline),
             onPressed: () => _showBookingWindowInfo(),
           ),
-          // ✅ NAVEGACIÓN FECHAS GOLF - Botones compactos en header
+          // ✅ NAVEGACIÃ“N FECHAS GOLF - Botones compactos en header
           if (widget.sportType == SportType.golf) ...[
             IconButton(
               icon: Icon(Icons.arrow_back_ios, size: 18),
@@ -88,7 +88,7 @@ class _ReservationScreenState extends State<ReservationScreen> {
           // ✅ SELECTOR DE FECHAS - Solo para Pádel/Tenis, Golf integrado en header
           if (widget.sportType != SportType.golf) _buildDateSelector(),
           
-          // ✅ VISTA ESPECÍFICA POR DEPORTE
+          // ✅ VISTA ESPECÃFICA POR DEPORTE
           Expanded(
             child: _buildSportSpecificView(),
           ),
@@ -100,7 +100,7 @@ class _ReservationScreenState extends State<ReservationScreen> {
     );
   }
 
-  // ✅ VISTA ESPECÍFICA POR DEPORTE
+  // ✅ VISTA ESPECÃFICA POR DEPORTE
   Widget _buildSportSpecificView() {
     switch (widget.sportType) {
       case SportType.golf:
@@ -112,7 +112,7 @@ class _ReservationScreenState extends State<ReservationScreen> {
         
       case SportType.padel:
       case SportType.tennis:
-        // ✅ PÁDEL/TENIS: Vista carrusel existente
+        // ✅ PÃDEL/TENIS: Vista carrusel existente
         return CourtCarousel(
           sportType: widget.sportType,
           selectedDate: _selectedDate,
@@ -252,13 +252,13 @@ class _ReservationScreenState extends State<ReservationScreen> {
                 'Horarios estacionales:',
                 style: TextStyle(fontWeight: FontWeight.bold),
               ),
-              Text('• Invierno: hasta 16:00'),
-              Text('• Verano: hasta 17:00'),
+              Text('â€¢ Invierno: hasta 16:00'),
+              Text('â€¢ Verano: hasta 17:00'),
               SizedBox(height: 8),
               Text('Salidas cada 12 minutos desde 08:00'),
               SizedBox(height: 8),
               Text(
-                '⚠️ No puedes tener reservas simultáneas en Hoyo 1 y Hoyo 10',
+                'âš ï¸ No puedes tener reservas simultáneas en Hoyo 1 y Hoyo 10',
                 style: TextStyle(
                   color: Colors.orange[700],
                   fontStyle: FontStyle.italic,
@@ -277,7 +277,7 @@ class _ReservationScreenState extends State<ReservationScreen> {
     );
   }
 
-  // ✅ HELPERS DEPORTE-ESPECÍFICOS
+  // ✅ HELPERS DEPORTE-ESPECÃFICOS
   String _getSportTitle() {
     switch (widget.sportType) {
       case SportType.golf:
@@ -328,7 +328,7 @@ class _ReservationScreenState extends State<ReservationScreen> {
     }
   }
 
-  // ✅ NAVEGACIÓN FECHAS GOLF - Métodos helper
+  // ✅ NAVEGACIÃ“N FECHAS GOLF - Métodos helper
   bool _canGoToPreviousDate() {
     if (widget.sportType != SportType.golf) return false;
     final availableDates = BookingWindowService.getAvailableBookingDates(widget.sportType);
@@ -367,3 +367,4 @@ class _ReservationScreenState extends State<ReservationScreen> {
     }
   }
 }
+

@@ -1,11 +1,11 @@
 ﻿/// lib/presentation/providers/booking_provider.dart
 /// 
 /// CAMBIOS IMPLEMENTADOS:
-/// âœ… Estados dinÃ¡micos segÃºn deporte y nÃºmero de jugadores
-/// âœ… Pádel: Siempre BookingStatus.complete (4 jugadores obligatorio)
-/// âœ… Tenis: BookingStatus.incomplete para 2-3 jugadores, complete para 4
-/// âœ… ParÃ¡metro initialStatus en createBookingWithEmails
-/// âœ… ValidaciÃ³n flexible por deporte
+/// ✅ Estados dinámicos según deporte y número de jugadores
+/// ✅ Pádel: Siempre BookingStatus.complete (4 jugadores obligatorio)
+/// ✅ Tenis: BookingStatus.incomplete para 2-3 jugadores, complete para 4
+/// ✅ Parámetro initialStatus en createBookingWithEmails
+/// ✅ Validación flexible por deporte
 
 import 'dart:async';
 import 'dart:convert';
@@ -32,7 +32,7 @@ import '../../core/constants/app_constants.dart';
 // Utils
 import '../../../core/utils/booking_time_utils.dart';
 
-/// Provider principal para gestiÃ³n de estado de reservas
+/// Provider principal para gestión de estado de reservas
 class BookingProvider extends ChangeNotifier {
   // ============================================================================
   // ESTADO PRIVADO
@@ -61,13 +61,13 @@ class BookingProvider extends ChangeNotifier {
   // GETTERS PÃšBLICOS
   // ============================================================================
   
-  // AGREGAR estos mÃ©todos despuÃ©s de las propiedades privadas
+  // AGREGAR estos métodos después de las propiedades privadas
   DateTime _getSmartInitialDate() {
     final now = DateTime.now();
     final currentHour = now.hour;
     final currentMinute = now.minute;
     
-    // DespuÃ©s de 4:01 PM - mostrar desde maÃ±ana
+    // Después de 4:01 PM - mostrar desde mañana
     if (currentHour > 16 || (currentHour == 16 && currentMinute >= 1)) {
       return now.add(Duration(days: 1));
     }
@@ -86,18 +86,18 @@ class BookingProvider extends ChangeNotifier {
     final currentHour = now.hour;
     final currentMinute = now.minute;
     
-    // Entre 8:01 AM y 4:00 PM - 3 dÃ­as disponibles
+    // Entre 8:01 AM y 4:00 PM - 3 días disponibles
     if ((currentHour == 8 && currentMinute >= 1) || 
         (currentHour > 8 && currentHour < 16) || 
         (currentHour == 16 && currentMinute == 0)) {
       return 3;
     }
     
-    // Resto del tiempo - 2 dÃ­as disponibles
+    // Resto del tiempo - 2 días disponibles
     return 2;
   }
 
-  // MÃ©todo pÃºblico para inicializar fechas inteligentes de golf
+  // Método público para inicializar fechas inteligentes de golf
   void initializeGolfDates() {
     final smartDate = _getSmartInitialDate();
     final daysCount = _getAvailableDaysCount();
@@ -172,7 +172,7 @@ class BookingProvider extends ChangeNotifier {
     
     // DEBUG: print('ðŸ” getAllBookingsForDate para $dateStr:');
     // DEBUG: print('   Total en _bookings: ${_bookings.length}');
-    // DEBUG: print('   Para fecha especÃ­fica: ${bookingsForDate.length}');
+    // DEBUG: print('   Para fecha específica: ${bookingsForDate.length}');
     
     for (var booking in bookingsForDate) {
 
@@ -182,18 +182,18 @@ class BookingProvider extends ChangeNotifier {
   }
   
   // ============================================================================
-  // âœ… NUEVO: DETERMINACIÃ“N DE ESTADO INICIAL POR DEPORTE
+  // ✅ NUEVO: DETERMINACIÃ“N DE ESTADO INICIAL POR DEPORTE
   // ============================================================================
 
-  /// Determina el estado inicial de una reserva segÃºn el deporte y nÃºmero de jugadores
+  /// Determina el estado inicial de una reserva según el deporte y número de jugadores
   /// 
   /// REGLAS:
   /// - PÃDEL: Siempre BookingStatus.complete (requiere exactamente 4 jugadores)
   /// - TENIS: BookingStatus.incomplete para 2-3 jugadores, complete para 4+
   /// 
   /// @param courtId ID de la cancha para identificar el deporte
-  /// @param playerCount NÃºmero de jugadores en la reserva
-  /// @return BookingStatus apropiado segÃºn las reglas de negocio
+  /// @param playerCount Número de jugadores en la reserva
+  /// @return BookingStatus apropiado según las reglas de negocio
   BookingStatus determineInitialBookingStatus(String courtId, int playerCount) {
     // DEBUG: print('ðŸŽ¯ DETERMINANDO ESTADO INICIAL:');
     // DEBUG: print('   Court ID: $courtId');
@@ -221,7 +221,7 @@ class BookingProvider extends ChangeNotifier {
   // VALIDACIÃ“N DE CONFLICTOS - CON VALIDACIÃ“N POR DEPORTE
   // ============================================================================
 
-  /// âœ… MEJORADO: Valida si se puede crear una reserva con reglas especÃ­ficas por deporte
+  /// ✅ MEJORADO: Valida si se puede crear una reserva con reglas específicas por deporte
   ValidationResult canCreateBooking(String courtId, String date, String timeSlot, List<String> playerNames) {
     // PERFORMANCE: print('\nðŸ” VALIDACIÃ“N COMPLETA - INICIO');
     // PERFORMANCE: print('   Court: $courtId');
@@ -230,7 +230,7 @@ class BookingProvider extends ChangeNotifier {
     // PERFORMANCE: print('   Jugadores: ${playerNames.join(", ")}');
     // PERFORMANCE: print('   Total reservas en memoria: ${_bookings.length}');
 
-    // âœ… NUEVO: ValidaciÃ³n especÃ­fica por deporte ANTES de conflictos
+    // ✅ NUEVO: Validación específica por deporte ANTES de conflictos
     final sport = _getSportFromCourtId(courtId);
     final playerCount = playerNames.length;
     
@@ -239,7 +239,7 @@ class BookingProvider extends ChangeNotifier {
     // PERFORMANCE: print('   Jugadores proporcionados: $playerCount');
     
     if (sport == 'PADEL') {
-      // âœ… FIX: Solo validar lÃ­mites al crear la reserva, no al abrir modal
+      // ✅ FIX: Solo validar límites al crear la reserva, no al abrir modal
       if (playerCount < 1) {
         // PERFORMANCE: print('âŒ VALIDACIÃ“N: Pádel requiere al menos el organizador');
         return ValidationResult(
@@ -247,13 +247,13 @@ class BookingProvider extends ChangeNotifier {
           reason: 'Se requiere al menos un jugador.'
         );
       } else if (playerCount > 4) {
-        // PERFORMANCE: print('âŒ VALIDACIÃ“N: Pádel permite mÃ¡ximo 4 jugadores');
+        // PERFORMANCE: print('âŒ VALIDACIÃ“N: Pádel permite máximo 4 jugadores');
         return ValidationResult(
           isValid: false,
-          reason: 'Pádel permite mÃ¡ximo 4 jugadores. Tienes $playerCount.'
+          reason: 'Pádel permite máximo 4 jugadores. Tienes $playerCount.'
         );
       }
-      // PERFORMANCE: print('âœ… VALIDACIÃ“N: Pádel con $playerCount jugador(es) - validaciÃ³n inicial OK');
+      // PERFORMANCE: print('✅ VALIDACIÃ“N: Pádel con $playerCount jugador(es) - validación inicial OK');
     } else if (sport == 'TENIS') {
       if (playerCount < 1) {
         // PERFORMANCE: print('âŒ VALIDACIÃ“N: Tenis requiere al menos el organizador');
@@ -262,18 +262,18 @@ class BookingProvider extends ChangeNotifier {
           reason: 'Se requiere al menos un jugador.'
         );
       } else if (playerCount > 4) {
-        // PERFORMANCE: print('âŒ VALIDACIÃ“N: Tenis permite mÃ¡ximo 4 jugadores');
+        // PERFORMANCE: print('âŒ VALIDACIÃ“N: Tenis permite máximo 4 jugadores');
         return ValidationResult(
           isValid: false,
-          reason: 'Tenis permite mÃ¡ximo 4 jugadores. Tienes $playerCount.'
+          reason: 'Tenis permite máximo 4 jugadores. Tienes $playerCount.'
         );
       }
-      // PERFORMANCE: print('âœ… VALIDACIÃ“N: Tenis con $playerCount jugador(es) - validaciÃ³n inicial OK');
+      // PERFORMANCE: print('✅ VALIDACIÃ“N: Tenis con $playerCount jugador(es) - validación inicial OK');
     }
 
-    // PERFORMANCE: print('âœ… LÃMITES POR DEPORTE: ValidaciÃ³n exitosa');
+    // PERFORMANCE: print('✅ LÃMITES POR DEPORTE: Validación exitosa');
 
-    // El resto del mÃ©todo sigue igual...
+    // El resto del método sigue igual...
     // 1. Verificar reserva duplicada exacta (mismo slot, misma cancha)
     final exactDuplicates = _bookings.where(
       (booking) => 
@@ -294,7 +294,7 @@ class BookingProvider extends ChangeNotifier {
       );
     }
 
-    // PERFORMANCE: print('âœ… Sin duplicados exactos, verificando conflictos de jugadores...');
+    // PERFORMANCE: print('✅ Sin duplicados exactos, verificando conflictos de jugadores...');
 
     // 2. Verificar conflictos de jugadores en otras canchas
     final allBookingsForDate = getAllBookingsForDate(DateTime.parse(date));
@@ -311,7 +311,7 @@ class BookingProvider extends ChangeNotifier {
         for (final newPlayerName in playerNames) {
           // Ignorar jugadores especiales VISITA
           if (_isSpecialVisitPlayer(newPlayerName) || _isSpecialVisitPlayer(existingPlayer.name)) {
-            // PERFORMANCE: print('   âš ï¸ Jugador VISITA detectado, omitiendo validaciÃ³n: $newPlayerName o ${existingPlayer.name}');
+            // PERFORMANCE: print('   âš ï¸ Jugador VISITA detectado, omitiendo validación: $newPlayerName o ${existingPlayer.name}');
             continue;
           }
 
@@ -329,7 +329,7 @@ class BookingProvider extends ChangeNotifier {
       }
     }
 
-    // PERFORMANCE: print('âœ… VALIDACIÃ“N: Sin conflictos detectados - reserva permitida');
+    // PERFORMANCE: print('✅ VALIDACIÃ“N: Sin conflictos detectados - reserva permitida');
     // PERFORMANCE: print('ðŸ” VALIDACIÃ“N COMPLETA - FIN\n');
     return ValidationResult(isValid: true, reason: null);
   }
@@ -390,7 +390,7 @@ class BookingProvider extends ChangeNotifier {
         for (final b in bookings) {
           }
 
-        // Buscar reserva especÃ­fica para esta cancha y horario
+        // Buscar reserva específica para esta cancha y horario
         final bookingsForCourtAndTime = bookings.where(
           (b) => b.timeSlot == timeSlot && b.date == dateOnly && b.courtId == court,
         ).toList();
@@ -434,7 +434,7 @@ class BookingProvider extends ChangeNotifier {
     return result;
   }
 
-  // MÃ©todos de conveniencia que mantienen la API existente
+  // Métodos de conveniencia que mantienen la API existente
   int getCompleteBookingsCount(List<String> visibleTimeSlots) {
     return getStatsForVisibleTimeSlots(visibleTimeSlots)['complete'] ?? 0;
   }
@@ -472,7 +472,7 @@ class BookingProvider extends ChangeNotifier {
       }
     }
     
-    // PERFORMANCE: print('  -> No se encontrÃ³ booking para $timeSlot en $courtId');
+    // PERFORMANCE: print('  -> No se encontró booking para $timeSlot en $courtId');
     return null;
   }
 
@@ -531,7 +531,7 @@ class BookingProvider extends ChangeNotifier {
   String? _currentUserEmail;
   String? _currentUserName;
 
-  // Getters pÃºblicos para usuario actual
+  // Getters públicos para usuario actual
   String? get currentUserEmail => _currentUserEmail;
   String? get currentUserName => _currentUserName;
   bool get hasCurrentUser => _currentUserEmail != null && _currentUserName != null;
@@ -541,7 +541,7 @@ class BookingProvider extends ChangeNotifier {
     
     final now = DateTime.now();
     
-    // Para golf: mantener lÃ³gica actual (48 horas exactas)
+    // Para golf: mantener lógica actual (48 horas exactas)
     final bool isGolf = _selectedCourtId?.startsWith('golf_') ?? false;
     
     if (isGolf) {
@@ -553,32 +553,32 @@ class BookingProvider extends ChangeNotifier {
         current = current.add(Duration(days: 1));
       }
     } else {
-      // âœ… CORRECCIÃ“N: Tennis/Paddle empezar desde HOY, no maÃ±ana
+      // CORRECCIÓN: Tennis/Paddle empezar desde HOY, no mañana
       DateTime today = DateTime(now.year, now.month, now.day);
       
       // TEMPORAL: Siempre empezar desde HOY (simplificado)
-      bool hasSlotsToday = now.hour < 16; // â† LÃ³gica simple temporal
+      bool hasSlotsToday = now.hour < 16; // Lógica simple temporal
       
       DateTime startDate = hasSlotsToday ? today : today.add(Duration(days: 1));
       
       // DEBUG: Imprimir para verificar
       // PERFORMANCE: print('DEBUG: Hora actual: $now');
-      // PERFORMANCE: print('DEBUG: Â¿Empezar desde hoy?: $hasSlotsToday (hora: ${now.hour})');
+      // PERFORMANCE: print('DEBUG: ¿Empezar desde hoy?: $hasSlotsToday (hora: ${now.hour})');
       // PERFORMANCE: print('DEBUG: Fecha de inicio: $startDate');
       
       DateTime current = startDate;
       
-      // Generar 3 dÃ­as desde la fecha de inicio
+      // Generar 3 dí­as desde la fecha de inicio
       for (int i = 0; i < 3; i++) {
         _availableDates.add(current);
         // PERFORMANCE: print('DEBUG: Agregando fecha: $current');
         current = current.add(Duration(days: 1));
       }
       
-      // Si no incluimos hoy, agregar un dÃ­a mÃ¡s para mantener 3 dÃ­as de ventana
+      // Si no incluimos hoy, agregar un dí­a más para mantener 3 dí­as de ventana
       if (!hasSlotsToday) {
         _availableDates.add(current);
-        // PERFORMANCE: print('DEBUG: Agregando dÃ­a extra: $current');
+        // PERFORMANCE: print('DEBUG: Agregando dí­a extra: $current');
       }
     }
     
@@ -590,9 +590,9 @@ class BookingProvider extends ChangeNotifier {
     // PERFORMANCE: print('DEBUG: Fecha seleccionada: $_selectedDate');
   }
 
-  // âœ… Verificar slots disponibles hoy  
+  // ✅ Verificar slots disponibles hoy  
   bool _hasAvailableSlotsToday(DateTime now) {
-    // Slots estÃ¡ndar para Tennis/Paddle
+    // Slots estándar para Tennis/Paddle
     List<String> allSlots = [
       '9:00', '10:30', '12:00', '13:30', '15:00', '16:30'
     ];
@@ -602,22 +602,22 @@ class BookingProvider extends ChangeNotifier {
       allSlots.addAll(['18:00', '19:30']);
     }
     
-    // Verificar si algÃºn slot es posterior a ahora + 1 hora (margen mÃ­nimo)
+    // Verificar si algún slot es posterior a ahora + 1 hora (margen mínimo)
     DateTime minimumTime = now.add(Duration(hours: 1));
     
     for (String slotStr in allSlots) {
       DateTime slotTime = _parseSlotToDateTime(now, slotStr);
       if (slotTime.isAfter(minimumTime)) {
-        // PERFORMANCE: print('DEBUG: Slot vÃ¡lido encontrado: $slotStr ($slotTime)');
+        // PERFORMANCE: print('DEBUG: Slot válido encontrado: $slotStr ($slotTime)');
         return true;
       }
     }
     
-    // PERFORMANCE: print('DEBUG: No hay slots vÃ¡lidos restantes hoy');
+    // PERFORMANCE: print('DEBUG: No hay slots válidos restantes hoy');
     return false;
   }
 
-  // âœ… Convertir slot string a DateTime
+  // ✅ Convertir slot string a DateTime
   DateTime _parseSlotToDateTime(DateTime baseDate, String timeSlot) {
     List<String> parts = timeSlot.split(':');
     int hour = int.parse(parts[0]);
@@ -666,7 +666,7 @@ class BookingProvider extends ChangeNotifier {
           updatedAt: data['updatedAt']?.toDate(),
         );
         
-        // Verificar si el usuario estÃ¡ en la reserva
+        // Verificar si el usuario está en la reserva
         final isUserInBooking = booking.players.any((player) => 
           (player.email?.toLowerCase() ?? '') == userEmail.toLowerCase()
         );
@@ -676,13 +676,13 @@ class BookingProvider extends ChangeNotifier {
         }
       }
       
-      // Verificar conflictos de tiempo segÃºn deporte
+      // Verificar conflictos de tiempo según deporte
       for (final existingBooking in userBookings) {
         String existingSport = AppConstants.getSportFromCourtId(existingBooking.courtId);
         
         // Solo verificar conflictos dentro del mismo deporte
         if (existingSport == sport) {
-          // Verificar si estÃ¡n dentro de la ventana de 4 horas
+          // Verificar si están dentro de la ventana de 4 horas
           if (BookingTimeUtils.isWithin4Hours(
             existingBooking.timeSlot, 
             timeSlot
@@ -700,7 +700,7 @@ class BookingProvider extends ChangeNotifier {
     }
   }
 
-  // âœ… NUEVO MÃ‰TODO: Determinar si es temporada de verano
+  // ✅ NUEVO MÃ‰TODO: Determinar si es temporada de verano
   bool _isSummerSeason(DateTime date) {
     int month = date.month;
     // Verano en Chile: Octubre a Marzo
@@ -749,7 +749,7 @@ class BookingProvider extends ChangeNotifier {
   List<String> _getGolfTimeSlots() {
     final bool isSummer = _isSummerSeason(DateTime.now());
     
-    // Valores de golf desde configuraciÃ³n
+    // Valores de golf desde configuración
     const startTime = '08:00';
     final endTime = isSummer ? '17:00' : '16:00';
     const intervalMinutes = 12;
@@ -824,7 +824,7 @@ class BookingProvider extends ChangeNotifier {
           createdAt: now,
           updatedAt: now,
         ),
-        // TENIS - Nuevos IDs Ãºnicos
+        // TENIS - Nuevos IDs únicos
         Court(
           id: 'tennis_court_1',
           name: 'CANCHA_1',
@@ -914,7 +914,7 @@ class BookingProvider extends ChangeNotifier {
   // ============================================================================
   
   void selectCourt(String courtId) {
-    // PERFORMANCE: print('ðŸ”§ LLAMANDO: selectCourt recibiÃ³ = $courtId');
+    // PERFORMANCE: print('ðŸ”§ LLAMANDO: selectCourt recibió = $courtId');
     // PERFORMANCE: print('ðŸ”§ ESTADO ANTES: _selectedCourtId = $_selectedCourtId');
     
     if (_selectedCourtId != courtId) {
@@ -981,7 +981,7 @@ class BookingProvider extends ChangeNotifier {
     final currentMinute = now.minute;
     final currentTimeInMinutes = currentHour * 60 + currentMinute;
     
-    // Usar los nuevos mÃ©todos centralizados
+    // Usar los nuevos métodos centralizados
     final sport = _selectedCourtId?.startsWith('tennis_') == true ? 'tennis' : 
                 _selectedCourtId?.startsWith('golf_') == true ? 'golf' : 'padel';
     final allTimeSlots = AppConstants.getTimeSlotsForSport(sport, date);
@@ -1008,17 +1008,17 @@ class BookingProvider extends ChangeNotifier {
     // PERFORMANCE: print('ðŸ”„ Refrescando datos...');
     await _loadBookings();
     
-    // Forzar una segunda notificaciÃ³n despuÃ©s de un pequeÃ±o delay
+    // Forzar una segunda notificación después de un pequeño delay
     await Future.delayed(const Duration(milliseconds: 100));
     notifyListeners();
     // PERFORMANCE: print('ðŸ”„ Refresh completado - UI actualizada');
   }
 
   // ============================================================================
-  // âœ… OPERACIONES CRUD - CON ESTADOS DINÃMICOS
+  // ✅ OPERACIONES CRUD - CON ESTADOS DINÃMICOS
   // ============================================================================
   
-  /// Crea una reserva bÃ¡sica con validaciÃ³n completa
+  /// Crea una reserva básica con validación completa
   Future<void> createBooking(Booking booking, BuildContext context) async {
     try {
       // NUEVA VALIDACIÃ“N: Verificar ventana 4 horas
@@ -1038,7 +1038,7 @@ class BookingProvider extends ChangeNotifier {
       _setLoading(true);
       // PERFORMANCE: print('âž• Creando nueva reserva...');
       
-      // ValidaciÃ³n completa
+      // Validación completa
       final playerNames = booking.players.map((p) => p.name).toList();
       final validation = canCreateBooking(
         booking.courtId, 
@@ -1052,7 +1052,7 @@ class BookingProvider extends ChangeNotifier {
       }
       
       final bookingId = await FirestoreService.createBooking(booking);
-      // PERFORMANCE: print('âœ… Reserva creada con ID: $bookingId');
+      // PERFORMANCE: print('✅ Reserva creada con ID: $bookingId');
 
       if (bookingId.isEmpty) {
         throw Exception('Error al crear reserva en Firebase');
@@ -1061,7 +1061,7 @@ class BookingProvider extends ChangeNotifier {
       // Actualizar booking con ID real y agregar a lista local
       final finalBooking = booking.copyWith(id: bookingId);
       _bookings.add(finalBooking);
-      notifyListeners(); // Esto forzarÃ¡ que las estadÃ­sticas se recalculen
+      notifyListeners(); // Esto forzará que las estadísticas se recalculen
       
       _setLoading(false);
     } catch (e) {
@@ -1071,7 +1071,7 @@ class BookingProvider extends ChangeNotifier {
     }
   }
 
-  /// âœ… MÃ‰TODO PRINCIPAL MEJORADO - Crea reserva con estado dinÃ¡mico y emails
+  /// ✅ MÃ‰TODO PRINCIPAL MEJORADO - Crea reserva con estado dinámico y emails
   Future<bool> createBookingWithEmails({
     required String courtId,
     required String date,
@@ -1087,7 +1087,7 @@ class BookingProvider extends ChangeNotifier {
       for (final player in players) {
         // PERFORMANCE: print('  - ${player.name}: ${player.email}');
         
-        // ExcepciÃ³n: Jugadores VISITA no tienen restricciones
+        // Excepción: Jugadores VISITA no tienen restricciones
         if (player.name?.toUpperCase().contains('VISITA') == true) {
           // PERFORMANCE: print('  âšª ${player.name} es VISITA - sin restricciones');
           continue;
@@ -1113,9 +1113,9 @@ class BookingProvider extends ChangeNotifier {
       // PERFORMANCE: print('ðŸ” SPORT: $sport');
       
       _setLoading(true);
-      // PERFORMANCE: print('ðŸ“ Creando reserva con emails automÃ¡ticos...');
+      // PERFORMANCE: print('ðŸ“ Creando reserva con emails automáticos...');
       
-      // 1. ValidaciÃ³n completa
+      // 1. Validación completa
       final playerNames = players.map((p) => p.name).toList();
       final validation = canCreateBooking(courtId, date, timeSlot, playerNames);
       
@@ -1154,8 +1154,8 @@ class BookingProvider extends ChangeNotifier {
       // 4. Actualizar booking con ID para emails
       final savedBooking = booking.copyWith(id: bookingId);
       
-      // 5. Enviar emails de confirmaciÃ³n
-      // PERFORMANCE: print('ðŸ“§ Enviando emails de confirmaciÃ³n...');
+      // 5. Enviar emails de confirmación
+      // PERFORMANCE: print('ðŸ“§ Enviando emails de confirmación...');
       _isSendingEmails = true;
       notifyListeners();
       
@@ -1165,7 +1165,7 @@ class BookingProvider extends ChangeNotifier {
       _setLoading(false);
       
       if (emailsSent) {
-        // PERFORMANCE: print('âœ… Reserva creada y emails enviados exitosamente');
+        // PERFORMANCE: print('✅ Reserva creada y emails enviados exitosamente');
         return true;
       } else {
         // PERFORMANCE: print('âš ï¸ Reserva creada pero algunos emails fallaron');
@@ -1180,7 +1180,7 @@ class BookingProvider extends ChangeNotifier {
     }
   }
 
-  /// Cancela reserva con notificaciones automÃ¡ticas a participantes
+  /// Cancela reserva con notificaciones automáticas a participantes
   Future<bool> cancelBookingWithNotifications({
     required String bookingId,
     required BookingPlayer cancelingPlayer,
@@ -1196,7 +1196,7 @@ class BookingProvider extends ChangeNotifier {
       }
       
       // 2. Enviar notificaciones a otros jugadores
-      // PERFORMANCE: print('ðŸ“§ Enviando notificaciones de cancelaciÃ³n...');
+      // PERFORMANCE: print('ðŸ“§ Enviando notificaciones de cancelación...');
       _isSendingEmails = true;
       notifyListeners();
       
@@ -1212,7 +1212,7 @@ class BookingProvider extends ChangeNotifier {
       _setLoading(false);
       
       if (notificationsSent) {
-        // PERFORMANCE: print('âœ… Reserva cancelada y notificaciones enviadas');
+        // PERFORMANCE: print('✅ Reserva cancelada y notificaciones enviadas');
       } else {
         // PERFORMANCE: print('âš ï¸ Reserva cancelada pero algunas notificaciones fallaron');
       }
@@ -1227,7 +1227,7 @@ class BookingProvider extends ChangeNotifier {
     }
   }
 
-  /// âœ… NUEVO: Edita una reserva existente
+  /// ✅ NUEVO: Edita una reserva existente
   /// El administrador puede agregar o remover jugadores
   Future<void> editBooking({
     required Booking updatedBooking,
@@ -1279,7 +1279,7 @@ class BookingProvider extends ChangeNotifier {
     }
   }
 
-  /// âœ… CORRECCIÃ“N CRÃTICA: Editar solo la lista de jugadores de una reserva
+  /// ✅ CORRECCIÃ“N CRÃTICA: Editar solo la lista de jugadores de una reserva
   Future<void> editBookingPlayers({
     required String bookingId,
     required List<BookingPlayer> updatedPlayers,
@@ -1296,7 +1296,7 @@ class BookingProvider extends ChangeNotifier {
       final originalPlayers = List<BookingPlayer>.from(originalBooking.players);
       // PERFORMANCE: print('ðŸ”¥ DEBUG: Jugadores originales = ${originalPlayers.map((p) => p.name).toList()}');
       
-      // Llamada atÃ³mica al servicio especÃ­fico (CÃ“DIGO EXISTENTE)
+      // Llamada atómica al servicio específico (CÃ“DIGO EXISTENTE)
       await FirestoreService.updateBookingPlayers(bookingId, updatedPlayers);
       // PERFORMANCE: print('ðŸ”¥ DEBUG BookingProvider: FirestoreService.updateBookingPlayers completado');
       
@@ -1309,7 +1309,7 @@ class BookingProvider extends ChangeNotifier {
         // PERFORMANCE: print('ðŸ”¥ DEBUG BookingProvider: Estado local actualizado');
       }
       
-      // ðŸ†• 2. DETECTAR cambios y enviar emails de notificaciÃ³n
+      // ðŸ†• 2. DETECTAR cambios y enviar emails de notificación
       await _handleAdminPlayerChangesNotification(
         originalBooking,
         originalPlayers,
@@ -1335,14 +1335,14 @@ class BookingProvider extends ChangeNotifier {
   ) async {
     // PERFORMANCE: print('ðŸ”¥ DEBUG: Analizando cambios en jugadores...');
     
-    // Detectar jugadores AGREGADOS (estÃ¡n en updated pero no en original)
+    // Detectar jugadores AGREGADOS (están en updated pero no en original)
     final addedPlayers = updatedPlayers.where((updated) {
       return !originalPlayers.any((original) => 
         (original.email?.toLowerCase() ?? '') == (updated.email?.toLowerCase() ?? '')
       );
     }).toList();
     
-    // Detectar jugadores REMOVIDOS (estÃ¡n en original pero no en updated)
+    // Detectar jugadores REMOVIDOS (están en original pero no en updated)
     final removedPlayers = originalPlayers.where((original) {
       return !updatedPlayers.any((updated) => 
         (original.email?.toLowerCase() ?? '') == (updated.email?.toLowerCase() ?? '')
@@ -1367,7 +1367,7 @@ class BookingProvider extends ChangeNotifier {
     }
   }
 
-  /// âœ… NUEVO: Elimina una reserva completa
+  /// ✅ NUEVO: Elimina una reserva completa
   Future<void> deleteBooking({required String bookingId}) async {
     try {
       _setLoading(true);
@@ -1382,7 +1382,7 @@ class BookingProvider extends ChangeNotifier {
       // 2. Eliminar la reserva de Firestore
       await FirestoreService.deleteBooking(bookingId);
       
-      // 3. Enviar notificaciÃ³n de eliminaciÃ³n a todos los jugadores
+      // 3. Enviar notificación de eliminación a todos los jugadores
       for (final player in bookingToDelete.players) {
         await EmailService.sendCancellationNotification(
           booking: bookingToDelete.copyWith(players: bookingToDelete.players.where((p) => p.id != player.id).toList()),
@@ -1416,7 +1416,7 @@ class BookingProvider extends ChangeNotifier {
   }
 
   /// Carga la lista de usuarios desde Firebase y la asigna a _users.
-  /// Llama a notifyListeners() para actualizar la UI cuando los datos estÃ¡n listos.
+  /// Llama a notifyListeners() para actualizar la UI cuando los datos están listos.
   Future<void> fetchUsers() async {
     try {
       _setLoading(true);
@@ -1451,7 +1451,7 @@ class BookingProvider extends ChangeNotifier {
       final bookingsStream = FirestoreService.getBookingsByDate(date);
       _bookings = await bookingsStream.first;
       
-      // Debug para ver cuÃ¡ntas reservas se cargaron
+      // Debug para ver cuántas reservas se cargaron
       // PERFORMANCE: print('DEBUG: Reservas cargadas para ${date}: ${_bookings.length}');
       
       // IMPORTANTE: Notificar a la UI que hay nuevos datos
@@ -1503,12 +1503,14 @@ class BookingProvider extends ChangeNotifier {
   }
 }
 
-/// Clase para encapsular resultados de validaciÃ³n de reservas
+/// Clase para encapsular resultados de validación de reservas
 class ValidationResult {
   final bool isValid;
   final String? reason;
 
   ValidationResult({required this.isValid, this.reason});
 }
+
+
 
 

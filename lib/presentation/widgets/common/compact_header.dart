@@ -1,4 +1,4 @@
-// lib/presentation/widgets/common/compact_header.dart
+﻿// lib/presentation/widgets/common/compact_header.dart
 import 'package:flutter/material.dart';
 import '../../../core/constants/app_constants.dart';
 
@@ -91,3 +91,4 @@ class CompactHeader extends StatelessWidget {
     );
   }
 }
+

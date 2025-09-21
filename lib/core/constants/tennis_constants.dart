@@ -1,4 +1,4 @@
-// Tennis-specific constants for Club de Golf Papudo
+﻿// Tennis-specific constants for Club de Golf Papudo
 class TennisConstants {
   // Sport identification
   static const String SPORT_NAME = 'Tenis';
@@ -60,3 +60,4 @@ class TennisConstants {
   static const String BOOKINGS_COLLECTION = 'tennis_bookings';
   static const String COURTS_COLLECTION = 'tennis_courts';
 }
+

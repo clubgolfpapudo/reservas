@@ -1,4 +1,4 @@
-// lib/presentation/widgets/booking/reservation_webview.dart - COMPLETO SWEETALERT2
+﻿// lib/presentation/widgets/booking/reservation_webview.dart - COMPLETO SWEETALERT2
 import 'package:flutter/material.dart';
 import 'package:webview_flutter/webview_flutter.dart';
 import 'package:provider/provider.dart';
@@ -45,7 +45,7 @@ class _ReservationWebViewState extends State<ReservationWebView> {
   void _initializeWebView() {
     final gasUrl = _buildDirectReservationUrl();
     
-    _addDebugLog('🌐 Iniciando WebView SWEETALERT2 para: ${_getCourtName()} ${widget.timeSlot}');
+    _addDebugLog('ðŸŒ Iniciando WebView SWEETALERT2 para: ${_getCourtName()} ${widget.timeSlot}');
     
     _controller = WebViewController()
       ..setJavaScriptMode(JavaScriptMode.unrestricted)
@@ -53,7 +53,7 @@ class _ReservationWebViewState extends State<ReservationWebView> {
         NavigationDelegate(
           onPageStarted: (String url) {
             _currentUrl = url;
-            _addDebugLog('📄 Página iniciada: $url');
+            _addDebugLog('ðŸ“„ Página iniciada: $url');
             setState(() {
               _isLoading = true;
             });
@@ -65,27 +65,27 @@ class _ReservationWebViewState extends State<ReservationWebView> {
               _isLoading = false;
             });
             
-            // ✨ NUEVA ESTRATEGIA: SweetAlert2 específico
+            // ❌¨ NUEVA ESTRATEGIA: SweetAlert2 específico
             _startSweetAlert2Automation();
             _updatePageTitle(url);
             _checkForCompletion(url);
           },
           onWebResourceError: (WebResourceError error) {
-            _addDebugLog('❌ Error: ${error.description}');
+            _addDebugLog('âŒ Error: ${error.description}');
           },
         ),
       )
       ..setOnConsoleMessage((JavaScriptConsoleMessage message) {
-        final logMsg = '🔍 JS Console: ${message.message}';
-        print('🔍 WEBVIEW JS: ${message.message}');
+        final logMsg = 'ðŸ” JS Console: ${message.message}';
+        print('ðŸ” WEBVIEW JS: ${message.message}');
         _addDebugLog(logMsg);
         
-        // ✨ Detección específica SweetAlert2
-        if (message.message.contains('BOTÓN CONTINUAR SWEETALERT2 CLICKEADO') || 
+        // ❌¨ Detección específica SweetAlert2
+        if (message.message.contains('BOTÃ“N CONTINUAR SWEETALERT2 CLICKEADO') || 
             message.message.contains('SWEETALERT2 EXITOSAMENTE')) {
           _continueClicked = true;
           _automationCompleted = true;
-          _addDebugLog('🎉 SWEETALERT2 CLICKEADO CONFIRMADO!');
+          _addDebugLog('ðŸŽ‰ SWEETALERT2 CLICKEADO CONFIRMADO!');
         }
       })
       ..setUserAgent('CGP_Reservas_App/1.0 SweetAlert2')
@@ -93,27 +93,27 @@ class _ReservationWebViewState extends State<ReservationWebView> {
   }
 
   void _addDebugLog(String message) {
-    print('🔍 WEBVIEW DEBUG: $message');
+    print('ðŸ” WEBVIEW DEBUG: $message');
     setState(() {
       _debugLogs.add('${DateTime.now().toString().substring(11, 19)} - $message');
       if (_debugLogs.length > 200) _debugLogs.removeAt(0);
     });
   }
 
-  /// 🍭 AUTOMATIZACIÓN ESPECÍFICA SWEETALERT2
+  /// ðŸ­ AUTOMATIZACIÃ“N ESPECÃFICA SWEETALERT2
   void _startSweetAlert2Automation() async {
     if (_automationCompleted || _automationAttempts >= _maxAttempts) return;
     
     _automationAttempts++;
-    _addDebugLog('🍭 INTENTO $_automationAttempts/$_maxAttempts - SweetAlert2 específico...');
-    print('🚨🚨🚨 SWEETALERT2 INTENTO $_automationAttempts 🚨🚨🚨');
+    _addDebugLog('ðŸ­ INTENTO $_automationAttempts/$_maxAttempts - SweetAlert2 específico...');
+    print('ðŸš¨ðŸš¨ðŸš¨ SWEETALERT2 INTENTO $_automationAttempts ðŸš¨ðŸš¨ðŸš¨');
     
     // Delays: 1s, 2s, 3s, 4s, 5s, 6s
     final waitTime = _automationAttempts * 1000;
     await Future.delayed(Duration(milliseconds: waitTime));
     
     _automationStep = 1;
-    _addDebugLog('⏳ Buscando SweetAlert2 ($_automationAttempts/$_maxAttempts - ${waitTime}ms)...');
+    _addDebugLog('â³ Buscando SweetAlert2 ($_automationAttempts/$_maxAttempts - ${waitTime}ms)...');
     
     // Configurar búsqueda SweetAlert2
     await _setupSweetAlert2Search();
@@ -122,28 +122,28 @@ class _ReservationWebViewState extends State<ReservationWebView> {
     await _verifySweetAlert2Success();
     
     if (!_automationCompleted && _automationAttempts < _maxAttempts) {
-      _addDebugLog('🔄 SweetAlert2 no clickeado, reintentando...');
+      _addDebugLog('ðŸ”„ SweetAlert2 no clickeado, reintentando...');
       Future.delayed(const Duration(milliseconds: 1000), () {
         _startSweetAlert2Automation();
       });
     }
   }
 
-  /// 🍭 Configurar búsqueda específica SweetAlert2
+  /// ðŸ­ Configurar búsqueda específica SweetAlert2
   Future<void> _setupSweetAlert2Search() async {
     _automationStep = 2;
-    _addDebugLog('🍭 Configurando búsqueda SweetAlert2...');
+    _addDebugLog('ðŸ­ Configurando búsqueda SweetAlert2...');
     
     final searchScript = '''
       (function() {
-        console.log('🍭 === BÚSQUEDA ESPECÍFICA SWEETALERT2 ===');
+        console.log('ðŸ­ === BÃšSQUEDA ESPECÃFICA SWEETALERT2 ===');
         
         var courtName = '${_getCourtName()}';
         var timeSlot = '${widget.timeSlot}';
         
-        // ✨ ESTRATEGIA 1: BÚSQUEDA ESPECÍFICA SWEETALERT2
+        // ❌¨ ESTRATEGIA 1: BÃšSQUEDA ESPECÃFICA SWEETALERT2
         function findSweetAlert2Button() {
-          console.log('🍭 ESTRATEGIA 1: Búsqueda específica SweetAlert2...');
+          console.log('ðŸ­ ESTRATEGIA 1: Búsqueda específica SweetAlert2...');
           
           // Selectores específicos para SweetAlert2
           var swal2Selectors = [
@@ -163,13 +163,13 @@ class _ReservationWebViewState extends State<ReservationWebView> {
             
             try {
               var elements = document.querySelectorAll(selector);
-              console.log('🍭 Selector "' + selector + '" encontró:', elements.length, 'elementos');
+              console.log('ðŸ­ Selector "' + selector + '" encontró:', elements.length, 'elementos');
               
               for (var i = 0; i < elements.length; i++) {
                 var el = elements[i];
                 var text = (el.textContent || '').trim();
                 
-                console.log('🍭 SweetAlert2 elemento:', el.tagName, '"' + text + '"', 
+                console.log('ðŸ­ SweetAlert2 elemento:', el.tagName, '"' + text + '"', 
                            'clases:', el.className, 'visible:', el.style.display !== 'none');
                 
                 if (text.includes('Continuar') && el.style.display !== 'none') {
@@ -178,45 +178,45 @@ class _ReservationWebViewState extends State<ReservationWebView> {
                     text: text,
                     selector: selector
                   });
-                  console.log('✅ BOTÓN SWEETALERT2 CONTINUAR ENCONTRADO!');
+                  console.log('✅ BOTÃ“N SWEETALERT2 CONTINUAR ENCONTRADO!');
                 }
               }
             } catch (e) {
-              console.log('❌ Error selector SweetAlert2:', selector, e.message);
+              console.log('âŒ Error selector SweetAlert2:', selector, e.message);
             }
           }
           
           return swal2Buttons;
         }
         
-        // ✨ ESTRATEGIA 2: CLICK ESPECÍFICO SWEETALERT2
+        // ❌¨ ESTRATEGIA 2: CLICK ESPECÃFICO SWEETALERT2
         function clickSweetAlert2Buttons(buttons) {
-          console.log('🚀 ESTRATEGIA 2: Click específico SweetAlert2...');
+          console.log('ðŸš€ ESTRATEGIA 2: Click específico SweetAlert2...');
           
           var clicksSuccessful = 0;
           
           for (var i = 0; i < buttons.length; i++) {
             var btn = buttons[i];
             
-            console.log('🎯 Clickeando botón SweetAlert2 #' + (i+1) + ':', btn.text);
+            console.log('ðŸŽ¯ Clickeando botón SweetAlert2 #' + (i+1) + ':', btn.text);
             
             try {
-              // MÉTODO 1: Click directo en SweetAlert2
+              // MÃ‰TODO 1: Click directo en SweetAlert2
               btn.element.click();
               console.log('✅ Click SweetAlert2 directo exitoso #' + (i+1));
               clicksSuccessful++;
               
-              // MÉTODO 2: Forzar click con timeout (SweetAlert2 a veces necesita delay)
+              // MÃ‰TODO 2: Forzar click con timeout (SweetAlert2 a veces necesita delay)
               setTimeout(function() {
                 try {
                   btn.element.click();
                   console.log('✅ Click SweetAlert2 con delay exitoso');
                 } catch (delayError) {
-                  console.log('⚠️ Click con delay falló');
+                  console.log('âš ï¸ Click con delay falló');
                 }
               }, 100);
               
-              // MÉTODO 3: Evento específico SweetAlert2
+              // MÃ‰TODO 3: Evento específico SweetAlert2
               var swalEvent = new MouseEvent('click', {
                 view: window,
                 bubbles: true,
@@ -226,7 +226,7 @@ class _ReservationWebViewState extends State<ReservationWebView> {
               btn.element.dispatchEvent(swalEvent);
               console.log('✅ Evento SweetAlert2 exitoso #' + (i+1));
               
-              // MÉTODO 4: Focus + Space (SweetAlert2 acepta Space)
+              // MÃ‰TODO 4: Focus + Space (SweetAlert2 acepta Space)
               try {
                 btn.element.focus();
                 var spaceEvent = new KeyboardEvent('keydown', {
@@ -237,26 +237,26 @@ class _ReservationWebViewState extends State<ReservationWebView> {
                 btn.element.dispatchEvent(spaceEvent);
                 console.log('✅ Focus+Space SweetAlert2 exitoso #' + (i+1));
               } catch (spaceError) {
-                console.log('⚠️ Focus+Space falló');
+                console.log('âš ï¸ Focus+Space falló');
               }
               
             } catch (e) {
-              console.log('❌ Error click SweetAlert2 #' + (i+1) + ':', e.message);
+              console.log('âŒ Error click SweetAlert2 #' + (i+1) + ':', e.message);
             }
           }
           
-          console.log('📊 Clicks SweetAlert2: ' + clicksSuccessful + '/' + buttons.length + ' exitosos');
+          console.log('ðŸ“Š Clicks SweetAlert2: ' + clicksSuccessful + '/' + buttons.length + ' exitosos');
           return clicksSuccessful > 0;
         }
         
-        // ✨ ESTRATEGIA 3: BÚSQUEDA GENÉRICA CON FILTRO SWEETALERT2
+        // ❌¨ ESTRATEGIA 3: BÃšSQUEDA GENÃ‰RICA CON FILTRO SWEETALERT2
         function findGenericButtonsInSweetAlert() {
-          console.log('🔍 ESTRATEGIA 3: Búsqueda genérica con filtro SweetAlert2...');
+          console.log('ðŸ” ESTRATEGIA 3: Búsqueda genérica con filtro SweetAlert2...');
           
           var allButtons = document.querySelectorAll('button, input[type="button"], input[type="submit"]');
           var continueButtons = [];
           
-          console.log('📋 Analizando', allButtons.length, 'botones...');
+          console.log('ðŸ“‹ Analizando', allButtons.length, 'botones...');
           
           for (var i = 0; i < allButtons.length; i++) {
             var btn = allButtons[i];
@@ -274,7 +274,7 @@ class _ReservationWebViewState extends State<ReservationWebView> {
                 className: btn.className
               });
               
-              console.log('🎯 Botón Continuar encontrado:', 
+              console.log('ðŸŽ¯ Botón Continuar encontrado:', 
                          'texto="' + text + '"', 
                          'SweetAlert=' + isSweetAlert,
                          'clases=' + btn.className);
@@ -284,16 +284,16 @@ class _ReservationWebViewState extends State<ReservationWebView> {
           return continueButtons;
         }
         
-        // ✨ ESTRATEGIA 4: FUERZA BRUTA TODOS LOS BOTONES
+        // ❌¨ ESTRATEGIA 4: FUERZA BRUTA TODOS LOS BOTONES
         function bruteForceContinueButtons(buttons) {
-          console.log('💪 ESTRATEGIA 4: Fuerza bruta en todos los botones...');
+          console.log('ðŸ’ª ESTRATEGIA 4: Fuerza bruta en todos los botones...');
           
           var bruteClickCount = 0;
           
           for (var i = 0; i < buttons.length; i++) {
             var btn = buttons[i];
             
-            console.log('💪 Fuerza bruta en botón #' + (i+1) + ':', btn.text);
+            console.log('ðŸ’ª Fuerza bruta en botón #' + (i+1) + ':', btn.text);
             
             try {
               // Array de métodos de click
@@ -321,21 +321,21 @@ class _ReservationWebViewState extends State<ReservationWebView> {
                   bruteClickCount++;
                   console.log('✅ Método fuerza bruta #' + (m+1) + ' exitoso');
                 } catch (methodError) {
-                  console.log('❌ Método fuerza bruta #' + (m+1) + ' falló');
+                  console.log('âŒ Método fuerza bruta #' + (m+1) + ' falló');
                 }
               }
               
             } catch (e) {
-              console.log('❌ Error fuerza bruta en botón #' + (i+1) + ':', e.message);
+              console.log('âŒ Error fuerza bruta en botón #' + (i+1) + ':', e.message);
             }
           }
           
-          console.log('📊 Total métodos fuerza bruta ejecutados:', bruteClickCount);
+          console.log('ðŸ“Š Total métodos fuerza bruta ejecutados:', bruteClickCount);
           return bruteClickCount > 0;
         }
         
         // EJECUTAR TODAS LAS ESTRATEGIAS SECUENCIALMENTE
-        console.log('🚀 Ejecutando estrategias SweetAlert2...');
+        console.log('ðŸš€ Ejecutando estrategias SweetAlert2...');
         
         // Estrategia 1: SweetAlert2 específico
         var swal2Buttons = findSweetAlert2Button();
@@ -348,7 +348,7 @@ class _ReservationWebViewState extends State<ReservationWebView> {
           
           // Estrategia 3: Después de otros 300ms
           setTimeout(function() {
-            // Último intento: buscar CUALQUIER elemento con "Continuar"
+            // Ãšltimo intento: buscar CUALQUIER elemento con "Continuar"
             var allElements = document.querySelectorAll('*');
             var finalAttemptCount = 0;
             
@@ -362,7 +362,7 @@ class _ReservationWebViewState extends State<ReservationWebView> {
                   finalAttemptCount++;
                   console.log('✅ Click final exitoso en:', el.tagName, el.className);
                 } catch (finalError) {
-                  console.log('❌ Click final falló');
+                  console.log('âŒ Click final falló');
                 }
               }
             }
@@ -370,12 +370,12 @@ class _ReservationWebViewState extends State<ReservationWebView> {
             var overallSuccess = success1 || success2 || finalAttemptCount > 0;
             
             if (overallSuccess) {
-              console.log('🎉 BOTÓN CONTINUAR SWEETALERT2 CLICKEADO EXITOSAMENTE');
+              console.log('ðŸŽ‰ BOTÃ“N CONTINUAR SWEETALERT2 CLICKEADO EXITOSAMENTE');
             } else {
-              console.log('❌ TODAS LAS ESTRATEGIAS SWEETALERT2 FALLARON');
+              console.log('âŒ TODAS LAS ESTRATEGIAS SWEETALERT2 FALLARON');
               
               // Debug: mostrar estructura SweetAlert2
-              console.log('🔍 DEBUG: Estructura SweetAlert2 actual:');
+              console.log('ðŸ” DEBUG: Estructura SweetAlert2 actual:');
               var swalContainer = document.querySelector('.swal2-container');
               var swalPopup = document.querySelector('.swal2-popup');
               var swalActions = document.querySelector('.swal2-actions');
@@ -405,9 +405,9 @@ class _ReservationWebViewState extends State<ReservationWebView> {
     
     try {
       await _controller.runJavaScript(searchScript);
-      _addDebugLog('📊 Búsqueda SweetAlert2 configurada');
+      _addDebugLog('ðŸ“Š Búsqueda SweetAlert2 configurada');
     } catch (e) {
-      _addDebugLog('❌ Error configurando SweetAlert2: $e');
+      _addDebugLog('âŒ Error configurando SweetAlert2: $e');
     }
   }
 
@@ -417,7 +417,7 @@ class _ReservationWebViewState extends State<ReservationWebView> {
     
     final verifyScript = '''
       (function() {
-        console.log('✅ === VERIFICACIÓN ÉXITO SWEETALERT2 ===');
+        console.log('✅ === VERIFICACIÃ“N Ã‰XITO SWEETALERT2 ===');
         
         var bodyText = document.body.textContent || '';
         
@@ -425,7 +425,7 @@ class _ReservationWebViewState extends State<ReservationWebView> {
         var swalContainer = document.querySelector('.swal2-container');
         var swalVisible = swalContainer && swalContainer.style.display !== 'none';
         
-        console.log('📊 Estado SweetAlert2:');
+        console.log('ðŸ“Š Estado SweetAlert2:');
         console.log('  - Container existe:', !!swalContainer);
         console.log('  - Container visible:', swalVisible);
         console.log('  - Longitud contenido:', bodyText.length);
@@ -440,15 +440,15 @@ class _ReservationWebViewState extends State<ReservationWebView> {
         
         var success = modalDisappeared || hasNewContent;
         
-        console.log('🔍 ¿SweetAlert2 exitoso?:', success);
+        console.log('ðŸ” Â¿SweetAlert2 exitoso?:', success);
         console.log('  - Modal desapareció:', modalDisappeared);
         console.log('  - Nuevo contenido:', hasNewContent);
         
         if (success) {
-          console.log('🎉 SWEETALERT2 PROCESADO EXITOSAMENTE');
+          console.log('ðŸŽ‰ SWEETALERT2 PROCESADO EXITOSAMENTE');
           return true;
         } else {
-          console.log('⚠️ SweetAlert2 aún presente o sin cambios');
+          console.log('âš ï¸ SweetAlert2 aún presente o sin cambios');
           return false;
         }
       })();
@@ -456,18 +456,18 @@ class _ReservationWebViewState extends State<ReservationWebView> {
     
     try {
       await _controller.runJavaScript(verifyScript);
-      _addDebugLog('📋 Verificación SweetAlert2 ejecutada');
+      _addDebugLog('ðŸ“‹ Verificación SweetAlert2 ejecutada');
       
       // Marcar como completado después de varios intentos
       if (_automationAttempts >= 3) {
         _modalDetected = true;
         _automationCompleted = true;
-        _addDebugLog('🎉 AUTOMATIZACIÓN SWEETALERT2 COMPLETADA');
-        print('🎉🎉🎉 AUTOMATIZACIÓN SWEETALERT2 COMPLETADA 🎉🎉🎉');
+        _addDebugLog('ðŸŽ‰ AUTOMATIZACIÃ“N SWEETALERT2 COMPLETADA');
+        print('ðŸŽ‰ðŸŽ‰ðŸŽ‰ AUTOMATIZACIÃ“N SWEETALERT2 COMPLETADA ðŸŽ‰ðŸŽ‰ðŸŽ‰');
       }
       
     } catch (e) {
-      _addDebugLog('❌ Error verificando SweetAlert2: $e');
+      _addDebugLog('âŒ Error verificando SweetAlert2: $e');
     }
   }
 
@@ -478,7 +478,7 @@ class _ReservationWebViewState extends State<ReservationWebView> {
       'page': 'Padel2',
       'name': 'FELIPE GARCIA',
       'email': widget.userEmail,
-      // ✨ Parámetros para SweetAlert2
+      // ❌¨ Parámetros para SweetAlert2
       'autoselect_court': _getCourtName(),
       'autoselect_time': widget.timeSlot,
       'sweetalert2_mode': 'true',
@@ -519,7 +519,7 @@ class _ReservationWebViewState extends State<ReservationWebView> {
   }
 
   void _handleReservationCompleted() {
-    _addDebugLog('🎉 Reserva completada exitosamente');
+    _addDebugLog('ðŸŽ‰ Reserva completada exitosamente');
     
     showDialog(
       context: context,
@@ -532,7 +532,7 @@ class _ReservationWebViewState extends State<ReservationWebView> {
             SizedBox(width: 12),
             Expanded(
               child: Text(
-                '¡Reserva Confirmada!',
+                'Â¡Reserva Confirmada!',
                 style: TextStyle(fontSize: 20, fontWeight: FontWeight.w600),
               ),
             ),
@@ -607,7 +607,7 @@ class _ReservationWebViewState extends State<ReservationWebView> {
   void _triggerDataRefresh() {
     final provider = context.read<BookingProvider>();
     provider.refresh();
-    _addDebugLog('🔄 Datos actualizados después de reserva');
+    _addDebugLog('ðŸ”„ Datos actualizados después de reserva');
   }
 
   String _getCourtName() {
@@ -628,7 +628,7 @@ class _ReservationWebViewState extends State<ReservationWebView> {
         return '${parts[2]} de ${months[int.parse(parts[1])]}';
       }
     } catch (e) {
-      _addDebugLog('⚠️ Error formateando fecha: $e');
+      _addDebugLog('âš ï¸ Error formateando fecha: $e');
     }
     return widget.date;
   }
@@ -640,7 +640,7 @@ class _ReservationWebViewState extends State<ReservationWebView> {
       case 2: return 'Ejecutando clicks específicos SweetAlert2...';
       default: 
         if (_automationCompleted) {
-          return '¡SweetAlert2 procesado exitosamente!';
+          return 'Â¡SweetAlert2 procesado exitosamente!';
         } else if (_continueClicked) {
           return 'Botón SweetAlert2 clickeado!';
         } else if (_modalDetected) {
@@ -727,7 +727,7 @@ class _ReservationWebViewState extends State<ReservationWebView> {
                         mainAxisSize: MainAxisSize.min,
                         children: [
                           Text(
-                            '${_getCourtName()} • ${widget.timeSlot} • ${_formatDisplayDate()}',
+                            '${_getCourtName()} â€¢ ${widget.timeSlot} â€¢ ${_formatDisplayDate()}',
                             style: const TextStyle(
                               color: Colors.white,
                               fontSize: 14,
@@ -851,7 +851,7 @@ class _ReservationWebViewState extends State<ReservationWebView> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      'Estado: ${_automationCompleted ? "✅ Completado" : _continueClicked ? "🎉 SweetAlert2 clickeado" : _modalDetected ? "🍭 Modal detectado" : _automationAttempts >= _maxAttempts ? "⚠️ Máximo intentos" : "🔍 Buscando SweetAlert2"}',
+                      'Estado: ${_automationCompleted ? "✅ Completado" : _continueClicked ? "ðŸŽ‰ SweetAlert2 clickeado" : _modalDetected ? "ðŸ­ Modal detectado" : _automationAttempts >= _maxAttempts ? "âš ï¸ Máximo intentos" : "ðŸ” Buscando SweetAlert2"}',
                       style: TextStyle(
                         fontWeight: FontWeight.w600,
                         color: _automationCompleted ? Colors.green[700] : 
@@ -862,7 +862,7 @@ class _ReservationWebViewState extends State<ReservationWebView> {
                       ),
                     ),
                     Text(
-                      'Paso: $_automationStep • Intentos: $_automationAttempts/$_maxAttempts',
+                      'Paso: $_automationStep â€¢ Intentos: $_automationAttempts/$_maxAttempts',
                       style: const TextStyle(fontSize: 12, color: Colors.grey),
                     ),
                     if (_currentUrl != null)
@@ -873,7 +873,7 @@ class _ReservationWebViewState extends State<ReservationWebView> {
                     Row(
                       children: [
                         Text(
-                          'Modal: ${_modalDetected ? "SÍ" : "No"}',
+                          'Modal: ${_modalDetected ? "SÃ" : "No"}',
                           style: TextStyle(
                             fontSize: 11, 
                             color: _modalDetected ? Colors.amber : Colors.grey,
@@ -882,7 +882,7 @@ class _ReservationWebViewState extends State<ReservationWebView> {
                         ),
                         const SizedBox(width: 12),
                         Text(
-                          'SweetAlert2: ${_continueClicked ? "SÍ" : "No"}',
+                          'SweetAlert2: ${_continueClicked ? "SÃ" : "No"}',
                           style: TextStyle(
                             fontSize: 11, 
                             color: _continueClicked ? Colors.green : Colors.grey,
@@ -909,11 +909,11 @@ class _ReservationWebViewState extends State<ReservationWebView> {
                   itemCount: _debugLogs.length,
                   itemBuilder: (context, index) {
                     final log = _debugLogs[index];
-                    final isError = log.contains('❌');
+                    final isError = log.contains('âŒ');
                     final isSuccess = log.contains('✅');
-                    final isCompleted = log.contains('🎉') || log.contains('COMPLETADA');
-                    final isSweetAlert = log.contains('🍭') || log.contains('SweetAlert2');
-                    final isClick = log.contains('🚀') || log.contains('Click');
+                    final isCompleted = log.contains('ðŸŽ‰') || log.contains('COMPLETADA');
+                    final isSweetAlert = log.contains('ðŸ­') || log.contains('SweetAlert2');
+                    final isClick = log.contains('ðŸš€') || log.contains('Click');
                     
                     return Padding(
                       padding: const EdgeInsets.symmetric(vertical: 1),
@@ -954,7 +954,7 @@ class _ReservationWebViewState extends State<ReservationWebView> {
                 // Forzar click específico SweetAlert2
                 _controller.runJavaScript('''
                   (function() {
-                    console.log('🍭 FORZANDO CLICK SWEETALERT2...');
+                    console.log('ðŸ­ FORZANDO CLICK SWEETALERT2...');
                     
                     // Buscar y hacer click en .swal2-confirm
                     var confirmBtn = document.querySelector('.swal2-confirm');
@@ -975,7 +975,7 @@ class _ReservationWebViewState extends State<ReservationWebView> {
                       }
                     }
                     
-                    console.log('❌ FORZADO: No se encontró botón');
+                    console.log('âŒ FORZADO: No se encontró botón');
                     return false;
                   })();
                 ''');
@@ -984,7 +984,7 @@ class _ReservationWebViewState extends State<ReservationWebView> {
                   _continueClicked = true;
                   _automationCompleted = true;
                 });
-                _addDebugLog('🍭 FORZADO: Click SweetAlert2 manual');
+                _addDebugLog('ðŸ­ FORZADO: Click SweetAlert2 manual');
                 _handleReservationCompleted();
               },
               style: TextButton.styleFrom(
@@ -1013,11 +1013,11 @@ class _ReservationWebViewState extends State<ReservationWebView> {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('¿Cancelar reserva?'),
+        title: const Text('Â¿Cancelar reserva?'),
         content: Text(
           _automationCompleted || _continueClicked
-            ? '¿Estás seguro que deseas salir? La automatización SweetAlert2 se completó.'
-            : '¿Estás seguro que deseas salir? Se perderá el progreso de la reserva actual.'
+            ? 'Â¿Estás seguro que deseas salir? La automatización SweetAlert2 se completó.'
+            : 'Â¿Estás seguro que deseas salir? Se perderá el progreso de la reserva actual.'
         ),
         actions: [
           TextButton(
@@ -1037,3 +1037,4 @@ class _ReservationWebViewState extends State<ReservationWebView> {
     );
   }
 }
+

@@ -4,7 +4,7 @@ import 'package:flutter/material.dart';
 import '../../../core/constants/admin_constants.dart';
 
 class AdminProvider extends ChangeNotifier {
-  // ðŸ” Estado de autenticaciÃ³n admin
+  // ðŸ” Estado de autenticación admin
   bool _isAdmin = false;
   String? _currentAdminEmail;
   List<String> _currentPermissions = [];
@@ -19,7 +19,7 @@ class AdminProvider extends ChangeNotifier {
   // ðŸ”” Estado de notificaciones
   int _unreadNotifications = 0; // Always 0 - notifications disabled
   
-  // Getters pÃºblicos
+  // Getters públicos
   bool get isAdmin => _isAdmin;
   String? get currentAdminEmail => _currentAdminEmail;
   List<String> get currentPermissions => List.unmodifiable(_currentPermissions);
@@ -72,7 +72,7 @@ class AdminProvider extends ChangeNotifier {
     ]);
   }
   
-  // ðŸ§¹ Limpiar datos admin al cerrar sesiÃ³n
+  // ðŸ§¹ Limpiar datos admin al cerrar sesión
   void _clearAdminData() {
     _currentPermissions.clear();
     _metrics.clear();
@@ -81,14 +81,14 @@ class AdminProvider extends ChangeNotifier {
     _permissionLevel = AdminPermissionLevel.readOnly;
   }
   
-  // ðŸ”‘ Verificar permisos especÃ­ficos
+  // ðŸ”‘ Verificar permisos específicos
   bool hasPermission(String permission) {
     if (!_isAdmin) return false;
     return _currentPermissions.contains('full_access') || 
            _currentPermissions.contains(permission);
   }
   
-  // ðŸ“Š Verificar nivel mÃ­nimo de permisos
+  // ðŸ“Š Verificar nivel mínimo de permisos
   bool hasMinimumPermissionLevel(AdminPermissionLevel requiredLevel) {
     return _permissionLevel.index >= requiredLevel.index;
   }
@@ -102,7 +102,7 @@ class AdminProvider extends ChangeNotifier {
     }).toList();
   }
   
-  // ðŸ“Š Cargar mÃ©tricas del dashboard
+  // ðŸ“Š Cargar métricas del dashboard
   Future<void> _loadMetrics() async {
     if (!_isAdmin) return;
     
@@ -110,7 +110,7 @@ class AdminProvider extends ChangeNotifier {
     notifyListeners();
     
     try {
-      // Simular carga de mÃ©tricas (reemplazar con servicio real)
+      // Simular carga de métricas (reemplazar con servicio real)
       await Future.delayed(const Duration(seconds: 1));
       
       _metrics = [
@@ -136,7 +136,7 @@ class AdminProvider extends ChangeNotifier {
         ),
         AdminMetric(
           id: 'court_occupation',
-          title: 'OcupaciÃ³n Canchas',
+          title: 'Ocupación Canchas',
           value: '84%',
           subtitle: 'Promedio semanal',
           icon: Icons.sports_tennis,
@@ -156,7 +156,7 @@ class AdminProvider extends ChangeNotifier {
         ),
       ];
     } catch (e) {
-      debugPrint('Error cargando mÃ©tricas: $e');
+      debugPrint('Error cargando métricas: $e');
     } finally {
       _isLoadingMetrics = false;
       notifyListeners();
@@ -178,14 +178,14 @@ class AdminProvider extends ChangeNotifier {
         AdminNotification(
           id: '1',
           title: 'Nueva reserva',
-          message: 'Juan PÃ©rez reservÃ³ Cancha 1 de Tenis',
+          message: 'Juan Pérez reservó Cancha 1 de Tenis',
           timestamp: DateTime.now().subtract(const Duration(minutes: 5)),
           type: AdminNotificationType.info,
         ),
         AdminNotification(
           id: '2',
-          title: 'CancelaciÃ³n',
-          message: 'MarÃ­a GonzÃ¡lez cancelÃ³ reserva de PÃ¡del',
+          title: 'Cancelación',
+          message: 'María González canceló reserva de Pádel',
           timestamp: DateTime.now().subtract(const Duration(minutes: 15)),
           type: AdminNotificationType.warning,
         ),
@@ -200,7 +200,7 @@ class AdminProvider extends ChangeNotifier {
         AdminNotification(
           id: '4',
           title: 'Mantenimiento programado',
-          message: 'Mantenimiento del servidor programado para maÃ±ana',
+          message: 'Mantenimiento del servidor programado para mañana',
           timestamp: DateTime.now().subtract(const Duration(hours: 6)),
           type: AdminNotificationType.urgent,
         ),
@@ -225,7 +225,7 @@ class AdminProvider extends ChangeNotifier {
     ]);
   }
   
-  // ðŸ”” Marcar notificaciÃ³n como leÃ­da
+  // ðŸ”” Marcar notificación como leída
   void markNotificationAsRead(String notificationId) {
     final index = _notifications.indexWhere((n) => n.id == notificationId);
     if (index != -1 && !_notifications[index].isRead) {
@@ -244,7 +244,7 @@ class AdminProvider extends ChangeNotifier {
     }
   }
   
-  // ðŸ”” Marcar todas las notificaciones como leÃ­das
+  // ðŸ”” Marcar todas las notificaciones como leídas
   void markAllNotificationsAsRead() {
     _notifications = _notifications.map((notification) => 
       AdminNotification(
@@ -262,7 +262,7 @@ class AdminProvider extends ChangeNotifier {
     notifyListeners();
   }
   
-  // ðŸ“Š Obtener mÃ©trica especÃ­fica
+  // ðŸ“Š Obtener métrica específica
   AdminMetric? getMetricById(String metricId) {
     try {
       return _metrics.firstWhere((metric) => metric.id == metricId);
@@ -271,7 +271,7 @@ class AdminProvider extends ChangeNotifier {
     }
   }
   
-  // ðŸ”” Agregar nueva notificaciÃ³n (para testing o desarrollo)
+  // ðŸ”” Agregar nueva notificación (para testing o desarrollo)
   void addNotification(AdminNotification notification) {
     _notifications.insert(0, notification);
     if (!notification.isRead) {
@@ -291,7 +291,7 @@ class AdminProvider extends ChangeNotifier {
     };
   }
   
-  // ðŸ“± Verificar si puede acceder a una funciÃ³n especÃ­fica
+  // ðŸ“± Verificar si puede acceder a una función específica
   bool canAccessFunction(String functionId) {
     final function = AdminConstants.adminFunctions
         .where((f) => f.id == functionId)
@@ -301,7 +301,7 @@ class AdminProvider extends ChangeNotifier {
     return hasPermission(function.permission);
   }
   
-  // ðŸ”§ Debug: Obtener informaciÃ³n del estado actual
+  // ðŸ”§ Debug: Obtener información del estado actual
   void debugPrintAdminStatus() {
     if (kDebugMode) {
       print('=== ADMIN STATUS DEBUG ===');
@@ -315,3 +315,5 @@ class AdminProvider extends ChangeNotifier {
     }
   }
 }
+
+

@@ -101,10 +101,10 @@ class BookingModel {
       bookingStatus = BookingStatus.incomplete;
     }
 
-    // âœ… CÃ“DIGO CORREGIDO
+    // ✅ CÃ“DIGO CORREGIDO
     // Asegurarse de que el 'id' no sea nulo
     return Booking(
-      id: id ?? '', // Si el id es nulo, usa una cadena vacÃ­a para evitar errores
+      id: id ?? '', // Si el id es nulo, usa una cadena vacía para evitar errores
       courtId: courtId,
       date: date,
       timeSlot: timeSlot,
@@ -178,3 +178,5 @@ class BookingPlayerModel extends Equatable {
     );
   }
 }
+
+

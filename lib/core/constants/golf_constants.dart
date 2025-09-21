@@ -1,4 +1,4 @@
-// lib/core/constants/golf_constants.dart
+﻿// lib/core/constants/golf_constants.dart
 // Golf-specific constants for Club de Golf Papudo
 // REFACTORIZADO: Los horarios ahora se obtienen de AppConstants
 
@@ -33,9 +33,9 @@ class GolfConstants {
   // Booking horizon (48 hours vs 72 for tennis/paddle)
   static const int BOOKING_HORIZON_HOURS = 48;
 
-  // ═══════════════════════════════════════════════════════════════════════════
-  // ⏰ HORARIOS: DELEGADOS A AppConstants (REFACTORIZADO)
-  // ═══════════════════════════════════════════════════════════════════════════
+  // â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+  // â° HORARIOS: DELEGADOS A AppConstants (REFACTORIZADO)
+  // â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
 
   /// Obtiene horarios de golf usando AppConstants centralizado
   static List<String> getTimeSlots({bool? isSummer}) {
@@ -96,9 +96,9 @@ class GolfConstants {
   // Horarios por defecto usando temporada actual
   static List<String> get DEFAULT_TIME_SLOTS => getTimeSlots();
 
-  // ═══════════════════════════════════════════════════════════════════════════
-  // 🏌️ LÓGICA ESPECÍFICA DE GOLF (MANTENIDA)
-  // ═══════════════════════════════════════════════════════════════════════════
+  // â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+  // ðŸŒï¸ LÃ“GICA ESPECÃFICA DE GOLF (MANTENIDA)
+  // â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
 
   /// Verifica si Hoyo 10 está suspendido (delegado a AppConstants)
   static bool isHoyo10Suspended(String timeSlot) {
@@ -113,12 +113,13 @@ class GolfConstants {
   static const String BOOKINGS_COLLECTION = 'golf_bookings';
   static const String COURTS_COLLECTION = 'golf_tees';
 
-  // ═══════════════════════════════════════════════════════════════════════════
-  // 🔧 MÉTODOS DE CONVENIENCIA (COMPATIBILIDAD)
-  // ═══════════════════════════════════════════════════════════════════════════
+  // â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+  // ðŸ”§ MÃ‰TODOS DE CONVENIENCIA (COMPATIBILIDAD)
+  // â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
 
   /// Método de conveniencia para obtener configuración de Golf desde AppConstants
   static int get maxPlayers => AppConstants.golfMaxPlayersPerBooking;
   static int get minPlayers => AppConstants.golfMinPlayersPerBooking;
   static int get bookingHorizonHours => AppConstants.golfBookingHorizonHours;
 }
+

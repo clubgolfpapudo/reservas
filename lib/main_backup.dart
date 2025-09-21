@@ -1,4 +1,4 @@
-// lib/main.dart - COMPATIBLE CON AUTHPROVIDER REAL
+﻿// lib/main.dart - COMPATIBLE CON AUTHPROVIDER REAL
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:firebase_core/firebase_core.dart';
@@ -16,7 +16,7 @@ import 'presentation/providers/user_provider.dart';
 
 // Pages
 import 'presentation/pages/auth/login_page.dart';
-import 'presentation/pages/home/home_page.dart';  // ← RUTA CORREGIDA
+import 'presentation/pages/home/home_page.dart';  // â† RUTA CORREGIDA
 import 'presentation/pages/reservations_page.dart';
 import 'presentation/pages/tennis_reservations_page.dart';
 
@@ -102,7 +102,7 @@ class CGPReservasApp extends StatelessWidget {
   }
 }
 
-// ✅ WRAPPER DE AUTENTICACIÓN - USANDO MÉTODOS REALES DE AUTHPROVIDER
+// ✅ WRAPPER DE AUTENTICACIÃ“N - USANDO MÃ‰TODOS REALES DE AUTHPROVIDER
 class AuthWrapper extends StatefulWidget {
   const AuthWrapper({super.key});
 
@@ -129,7 +129,7 @@ class _AuthWrapperState extends State<AuthWrapper> {
           return const CorporateSplashScreen();
         }
         
-        // ✅ USANDO MÉTODO REAL: isUserValidated
+        // ✅ USANDO MÃ‰TODO REAL: isUserValidated
         if (authProvider.isUserValidated) {
           return const HomePage();
         }
@@ -311,3 +311,4 @@ class _CorporateSplashScreenState extends State<CorporateSplashScreen>
     );
   }
 }
+

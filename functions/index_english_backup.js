@@ -1,4 +1,4 @@
-// Deploy Fix 2025-06-05 14:35 - Individual cancellation URLs
+﻿// Deploy Fix 2025-06-05 14:35 - Individual cancellation URLs
 // Google Sheets Integration - 2025-06-05 15:30
 
 const {onDocumentCreated} = require("firebase-functions/v2/firestore");
@@ -20,7 +20,7 @@ const createTransporter = () => {
   // Usar directamente la App Password (más simple y confiable)
   const gmailPassword = 'myuh svqx djyn kfby';
   
-  console.log('📧 Configurando Gmail transporter...');
+  console.log('ðŸ“§ Configurando Gmail transporter...');
   
   return nodemailer.createTransport({
     service: 'gmail',
@@ -32,13 +32,13 @@ const createTransporter = () => {
 };
 
 // ============================================================================
-// NUEVA FUNCIÓN: VERIFICAR GOOGLE SHEETS API
+// NUEVA FUNCIÃ“N: VERIFICAR GOOGLE SHEETS API
 // ============================================================================
 exports.verifyGoogleSheetsAPI = onRequest({
   cors: true,
 }, async (req, res) => {
   try {
-    console.log('🔍 Verificando configuración de Google Sheets API...');
+    console.log('ðŸ” Verificando configuración de Google Sheets API...');
     
     const SHEET_ID = '1A-8RvvgkHXUP-985So8CBJvDAj50w58EFML1CJEq2c4';
     const SHEET_NAME = 'Maestro';
@@ -74,8 +74,8 @@ exports.verifyGoogleSheetsAPI = onRequest({
     XZTXYEu54CkpfjQSs3dMAgY=
     -----END PRIVATE KEY-----`;
     
-    console.log('📧 Service Account Email:', serviceAccountEmail ? 'CONFIGURADO' : '❌ FALTANTE');
-    console.log('🔑 Private Key:', privateKey ? 'CONFIGURADO' : '❌ FALTANTE');
+    console.log('ðŸ“§ Service Account Email:', serviceAccountEmail ? 'CONFIGURADO' : 'âŒ FALTANTE');
+    console.log('ðŸ”‘ Private Key:', privateKey ? 'CONFIGURADO' : 'âŒ FALTANTE');
     
     if (!serviceAccountEmail || !privateKey) {
       return res.status(500).json({
@@ -100,11 +100,11 @@ exports.verifyGoogleSheetsAPI = onRequest({
       private_key: privateKey.replace(/\n    /g, '\n'),
     });
     
-    console.log('✅ Autenticación exitosa');
+    console.log('âœ… Autenticación exitosa');
     
     // Cargar información del documento
     await doc.loadInfo();
-    console.log('📊 Documento cargado:', doc.title);
+    console.log('ðŸ“Š Documento cargado:', doc.title);
     
     // Verificar que existe la hoja 'Maestro'
     const sheet = doc.sheetsByTitle[SHEET_NAME];
@@ -117,13 +117,13 @@ exports.verifyGoogleSheetsAPI = onRequest({
       });
     }
     
-    console.log('📋 Hoja encontrada:', sheet.title);
+    console.log('ðŸ“‹ Hoja encontrada:', sheet.title);
     
     // Cargar las primeras filas para verificar estructura
     await sheet.loadHeaderRow();
     const headers = sheet.headerValues;
     
-    console.log('📝 Headers encontrados:', headers);
+    console.log('ðŸ“ Headers encontrados:', headers);
     
     // Verificar headers esperados
     const expectedHeaders = ['EMAIL', 'NOMBRE(S)', 'APELLIDO_PATERNO', 'APELLIDO_MATERNO', 'RUT/PASAPORTE', 'FECHA NACIMIENTO', 'RELACION', 'CELULAR'];
@@ -146,11 +146,11 @@ exports.verifyGoogleSheetsAPI = onRequest({
       )
     }));
     
-    console.log('📊 Datos de muestra:', sampleData);
+    console.log('ðŸ“Š Datos de muestra:', sampleData);
     
     res.json({
       success: true,
-      message: '✅ Google Sheets API configurado correctamente',
+      message: 'âœ… Google Sheets API configurado correctamente',
       document: {
         title: doc.title,
         sheetName: sheet.title,
@@ -168,7 +168,7 @@ exports.verifyGoogleSheetsAPI = onRequest({
     });
     
   } catch (error) {
-    console.error('❌ Error verificando Google Sheets API:', error);
+    console.error('âŒ Error verificando Google Sheets API:', error);
     
     res.status(500).json({
       error: 'Error al verificar Google Sheets API',
@@ -185,13 +185,13 @@ exports.verifyGoogleSheetsAPI = onRequest({
 });
 
 // ============================================================================
-// NUEVA FUNCIÓN: SINCRONIZAR USUARIOS DESDE GOOGLE SHEETS
+// NUEVA FUNCIÃ“N: SINCRONIZAR USUARIOS DESDE GOOGLE SHEETS
 // ============================================================================
 exports.syncUsersFromSheets = onRequest({
   cors: true,
 }, async (req, res) => {
   try {
-    console.log('🔄 === SINCRONIZANDO USUARIOS DESDE GOOGLE SHEETS ===');
+    console.log('ðŸ”„ === SINCRONIZANDO USUARIOS DESDE GOOGLE SHEETS ===');
     
     const SHEET_ID = '1A-8RvvgkHXUP-985So8CBJvDAj50w58EFML1CJEq2c4';
     const SHEET_NAME = 'Maestro';
@@ -252,8 +252,8 @@ exports.syncUsersFromSheets = onRequest({
     // Leer todas las filas
     const rows = await sheet.getRows();
     const rowsToProcess = rows.slice(0, 50); // Procesar solo 50 por vez
-    console.log(`📊 Procesando ${rowsToProcess.length} de ${rows.length} usuarios`);
-    console.log(`📊 Procesando ${rows.length} usuarios desde Google Sheets`);
+    console.log(`ðŸ“Š Procesando ${rowsToProcess.length} de ${rows.length} usuarios`);
+    console.log(`ðŸ“Š Procesando ${rows.length} usuarios desde Google Sheets`);
     
     const db = admin.firestore();
     const usersRef = db.collection('users');
@@ -283,7 +283,7 @@ exports.syncUsersFromSheets = onRequest({
         
         // Validar email
         if (!email || !email.includes('@')) {
-          console.log(`⚠️ Email inválido o vacío para: ${nombres} ${apellidoPaterno}`);
+          console.log(`âš ï¸ Email inválido o vacío para: ${nombres} ${apellidoPaterno}`);
           stats.filtered++;
           continue;
         }
@@ -314,7 +314,7 @@ exports.syncUsersFromSheets = onRequest({
           // Actualizar usuario existente
           await usersRef.doc(email).update(userData);
           stats.updated++;
-          console.log(`🔄 Usuario actualizado: ${formattedName} (${email})`);
+          console.log(`ðŸ”„ Usuario actualizado: ${formattedName} (${email})`);
         } else {
           // Crear nuevo usuario
           await usersRef.doc(email).set({
@@ -322,12 +322,12 @@ exports.syncUsersFromSheets = onRequest({
             createdAt: admin.firestore.FieldValue.serverTimestamp()
           });
           stats.created++;
-          console.log(`✅ Usuario creado: ${formattedName} (${email})`);
+          console.log(`âœ… Usuario creado: ${formattedName} (${email})`);
         }
         
       } catch (error) {
         stats.errors++;
-        console.error(`❌ Error procesando usuario: ${error.message}`);
+        console.error(`âŒ Error procesando usuario: ${error.message}`);
       }
     }
     
@@ -340,12 +340,12 @@ exports.syncUsersFromSheets = onRequest({
       sheetName: SHEET_NAME
     }, { merge: true });
     
-    console.log('📊 === RESUMEN DE SINCRONIZACIÓN ===');
-    console.log(`📋 Procesados: ${stats.processed}`);
-    console.log(`✅ Creados: ${stats.created}`);
-    console.log(`🔄 Actualizados: ${stats.updated}`);
-    console.log(`⚠️ Filtrados: ${stats.filtered}`);
-    console.log(`❌ Errores: ${stats.errors}`);
+    console.log('ðŸ“Š === RESUMEN DE SINCRONIZACIÃ“N ===');
+    console.log(`ðŸ“‹ Procesados: ${stats.processed}`);
+    console.log(`âœ… Creados: ${stats.created}`);
+    console.log(`ðŸ”„ Actualizados: ${stats.updated}`);
+    console.log(`âš ï¸ Filtrados: ${stats.filtered}`);
+    console.log(`âŒ Errores: ${stats.errors}`);
     
     res.json({
       success: true,
@@ -355,7 +355,7 @@ exports.syncUsersFromSheets = onRequest({
     });
     
   } catch (error) {
-    console.error('❌ Error en sincronización:', error);
+    console.error('âŒ Error en sincronización:', error);
     res.status(500).json({
       error: 'Error sincronizando usuarios',
       message: error.message
@@ -364,13 +364,13 @@ exports.syncUsersFromSheets = onRequest({
 });
 
 // ============================================================================
-// NUEVA FUNCIÓN: OBTENER USUARIOS PARA EL FRONTEND
+// NUEVA FUNCIÃ“N: OBTENER USUARIOS PARA EL FRONTEND
 // ============================================================================
 exports.getUsers = onRequest({
   cors: true,
 }, async (req, res) => {
   try {
-    console.log('👥 Obteniendo usuarios desde Firebase...');
+    console.log('ðŸ‘¥ Obteniendo usuarios desde Firebase...');
     
     const db = admin.firestore();
     const usersSnapshot = await db.collection('users')
@@ -390,7 +390,7 @@ exports.getUsers = onRequest({
       });
     });
     
-    console.log(`👥 Enviando ${users.length} usuarios al frontend`);
+    console.log(`ðŸ‘¥ Enviando ${users.length} usuarios al frontend`);
     
     res.json({
       success: true,
@@ -400,7 +400,7 @@ exports.getUsers = onRequest({
     });
     
   } catch (error) {
-    console.error('❌ Error obteniendo usuarios:', error);
+    console.error('âŒ Error obteniendo usuarios:', error);
     res.status(500).json({
       error: 'Error obteniendo usuarios',
       message: error.message
@@ -409,7 +409,7 @@ exports.getUsers = onRequest({
 });
 
 // ============================================================================
-// ENVÍO DE EMAILS DE CONFIRMACIÓN
+// ENVÃO DE EMAILS DE CONFIRMACIÃ“N
 // ============================================================================
 
 // Esta versión incluye las funciones auxiliares seguras
@@ -417,8 +417,8 @@ exports.sendBookingEmailHTTP = onRequest({
   region: 'us-central1',
   cors: true
 }, async (req, res) => {
-  console.log('📧 === ENVIANDO EMAILS CON GMAIL APP PASSWORD ===');
-  console.log('📧 Body:', JSON.stringify(req.body, null, 2));
+  console.log('ðŸ“§ === ENVIANDO EMAILS CON GMAIL APP PASSWORD ===');
+  console.log('ðŸ“§ Body:', JSON.stringify(req.body, null, 2));
   
   try {
     const bookingData = req.body;
@@ -432,15 +432,15 @@ exports.sendBookingEmailHTTP = onRequest({
       players: booking.players || []
     };
     
-    console.log(`📧 Procesando reserva: ${normalizedBooking.courtId} ${normalizedBooking.date} ${normalizedBooking.time}`);
-    console.log(`📧 Jugadores: ${normalizedBooking.players.length}`);
+    console.log(`ðŸ“§ Procesando reserva: ${normalizedBooking.courtId} ${normalizedBooking.date} ${normalizedBooking.time}`);
+    console.log(`ðŸ“§ Jugadores: ${normalizedBooking.players.length}`);
     
     if (!normalizedBooking.players || normalizedBooking.players.length === 0) {
       throw new Error('No hay jugadores en la reserva');
     }
     
     // Configurar Gmail transporter
-    console.log('📧 Configurando Gmail transporter...');
+    console.log('ðŸ“§ Configurando Gmail transporter...');
     const transporter = nodemailer.createTransport({
       host: 'smtp.gmail.com',
       port: 587,
@@ -469,15 +469,15 @@ exports.sendBookingEmailHTTP = onRequest({
       const playerEmail = typeof player === 'string' ? null : player.email;
       
       if (!playerEmail) {
-        console.log(`⏭️ Saltando ${playerName} - no tiene email`);
+        console.log(`â­ï¸ Saltando ${playerName} - no tiene email`);
         continue;
       }
       
-      console.log(`📧 Enviando email ${i + 1}/${normalizedBooking.players.length} a: ${playerName} (${playerEmail})`);
+      console.log(`ðŸ“§ Enviando email ${i + 1}/${normalizedBooking.players.length} a: ${playerName} (${playerEmail})`);
       
       // Generar ID único para este email
       const emailId = `${normalizedBooking.courtId.replace('_', '')}-${normalizedBooking.date}-${normalizedBooking.time.replace(':', '')}`;
-      console.log(`📧 ID generado para ${playerName}: ${emailId}`);
+      console.log(`ðŸ“§ ID generado para ${playerName}: ${emailId}`);
       
       try {
         // Es organizador si es el primer jugador con email válido
@@ -497,11 +497,11 @@ exports.sendBookingEmailHTTP = onRequest({
         };
         
         await transporter.sendMail(mailOptions);
-        console.log(`✅ Email enviado exitosamente a: ${playerName} (${playerEmail})`);
+        console.log(`âœ… Email enviado exitosamente a: ${playerName} (${playerEmail})`);
         emailResults.push({ success: true, player: playerName, email: playerEmail });
         
       } catch (emailError) {
-        console.error(`❌ Error enviando email a ${playerName}:`, emailError);
+        console.error(`âŒ Error enviando email a ${playerName}:`, emailError);
         emailResults.push({ success: false, player: playerName, email: playerEmail, error: emailError.message });
       }
     }
@@ -509,9 +509,9 @@ exports.sendBookingEmailHTTP = onRequest({
     const successCount = emailResults.filter(r => r.success).length;
     const failCount = emailResults.filter(r => !r.success).length;
     
-    console.log('📧 === RESUMEN ===');
-    console.log(`✅ Exitosos: ${successCount}/${emailResults.length}`);
-    console.log(`❌ Fallidos: ${failCount}/${emailResults.length}`);
+    console.log('ðŸ“§ === RESUMEN ===');
+    console.log(`âœ… Exitosos: ${successCount}/${emailResults.length}`);
+    console.log(`âŒ Fallidos: ${failCount}/${emailResults.length}`);
     
     res.status(200).json({
       success: true,
@@ -522,7 +522,7 @@ exports.sendBookingEmailHTTP = onRequest({
     });
     
   } catch (error) {
-    console.error('❌ Error general:', error);
+    console.error('âŒ Error general:', error);
     res.status(500).json({
       success: false,
       message: error.message,
@@ -532,7 +532,7 @@ exports.sendBookingEmailHTTP = onRequest({
 });
 
 // ============================================================================
-// CANCELACIÓN DE RESERVAS CON NOTIFICACIONES AUTOMÁTICAS
+// CANCELACIÃ“N DE RESERVAS CON NOTIFICACIONES AUTOMÃTICAS
 // ============================================================================
 exports.cancelBooking = onRequest({
   cors: true,
@@ -545,9 +545,9 @@ exports.cancelBooking = onRequest({
   }
 
   try {
-    console.log('🗑️ === CANCELACIÓN DE RESERVA ===');
-    console.log('🗑️ Method:', req.method);
-    console.log('🗑️ Query:', req.query);
+    console.log('ðŸ—‘ï¸ === CANCELACIÃ“N DE RESERVA ===');
+    console.log('ðŸ—‘ï¸ Method:', req.method);
+    console.log('ðŸ—‘ï¸ Query:', req.query);
 
     const bookingId = req.query.id || req.body.bookingId;
     const playerEmail = req.query.email || req.body.playerEmail;
@@ -566,21 +566,21 @@ exports.cancelBooking = onRequest({
       });
     }
 
-    console.log(`🗑️ Cancelando jugador ${decodeURIComponent(playerEmail)} de reserva: ${bookingId}`);
+    console.log(`ðŸ—‘ï¸ Cancelando jugador ${decodeURIComponent(playerEmail)} de reserva: ${bookingId}`);
 
     // Primero, vamos a ver qué hay en la base de datos
     const db = admin.firestore();
     const bookingsRef = db.collection('bookings');
     
-    console.log('🔍 === DEBUGGING FIRESTORE ===');
+    console.log('ðŸ” === DEBUGGING FIRESTORE ===');
     
     // Listar todas las reservas para debugging
     const allBookings = await bookingsRef.limit(10).get();
-    console.log(`📋 Total reservas en DB: ${allBookings.size}`);
+    console.log(`ðŸ“‹ Total reservas en DB: ${allBookings.size}`);
     
     allBookings.forEach(doc => {
       const data = doc.data();
-      console.log(`📋 Reserva encontrada:`, {
+      console.log(`ðŸ“‹ Reserva encontrada:`, {
         docId: doc.id,
         id: data.id,
         courtNumber: data.courtNumber,
@@ -596,14 +596,14 @@ exports.cancelBooking = onRequest({
     let docRef = null;
 
     // Buscar la reserva por el ID generado
-    console.log(`🔍 Buscando por ID: ${bookingId}`);
+    console.log(`ðŸ” Buscando por ID: ${bookingId}`);
     const snapshot = await bookingsRef.where('id', '==', bookingId).get();
-    console.log(`🔍 Búsqueda por ID resultado: ${snapshot.size} documentos`);
+    console.log(`ðŸ” Búsqueda por ID resultado: ${snapshot.size} documentos`);
     
     if (snapshot.empty) {
       // Decodificar el ID para buscar por campos individuales
       const idParts = bookingId.split('-');
-      console.log(`🔍 ID parts:`, idParts);
+      console.log(`ðŸ” ID parts:`, idParts);
       
       if (idParts.length >= 5) {
         // ID formato: court1-2025-06-05-1200
@@ -613,7 +613,7 @@ exports.cancelBooking = onRequest({
         const timeRaw = idParts[4]; // 1200
         const timeSlot = `${timeRaw.substring(0,2)}:${timeRaw.substring(2,4)}`; // 12:00
         
-        console.log(`🔍 Buscando por: court=${courtNumber}, date=${date}, time=${timeSlot}`);
+        console.log(`ðŸ” Buscando por: court=${courtNumber}, date=${date}, time=${timeSlot}`);
         
         const alternativeSnapshot = await bookingsRef
           .where('courtNumber', '==', courtNumber)
@@ -621,7 +621,7 @@ exports.cancelBooking = onRequest({
           .where('timeSlot', '==', timeSlot)
           .get();
           
-        console.log(`🔍 Búsqueda alternativa resultado: ${alternativeSnapshot.size} documentos`);
+        console.log(`ðŸ” Búsqueda alternativa resultado: ${alternativeSnapshot.size} documentos`);
           
         if (!alternativeSnapshot.empty) {
           // Encontramos la reserva
@@ -630,12 +630,12 @@ exports.cancelBooking = onRequest({
           originalPlayers = [...(bookingData.players || [])];
           docRef = doc.ref;
           
-          console.log('✅ Reserva encontrada por búsqueda alternativa');
+          console.log('âœ… Reserva encontrada por búsqueda alternativa');
         } else {
-          console.log('❌ No se encontró la reserva para cancelar en búsqueda alternativa');
+          console.log('âŒ No se encontró la reserva para cancelar en búsqueda alternativa');
         }
       } else {
-        console.log('❌ Formato de ID inválido para búsqueda alternativa');
+        console.log('âŒ Formato de ID inválido para búsqueda alternativa');
       }
     } else {
       // Encontramos la reserva por ID directo
@@ -644,12 +644,12 @@ exports.cancelBooking = onRequest({
       originalPlayers = [...(bookingData.players || [])];
       docRef = doc.ref;
       
-      console.log('✅ Reserva encontrada por ID directo');
+      console.log('âœ… Reserva encontrada por ID directo');
     }
 
     // Procesar cancelación si encontramos la reserva
     if (bookingData && docRef) {
-      console.log('👥 Jugadores originales:', originalPlayers.map(p => p.email));
+      console.log('ðŸ‘¥ Jugadores originales:', originalPlayers.map(p => p.email));
       
       // Filtrar el jugador que cancela
       const decodedPlayerEmail = decodeURIComponent(playerEmail);
@@ -657,9 +657,9 @@ exports.cancelBooking = onRequest({
         player.email !== decodedPlayerEmail
       );
       
-      console.log('👥 Jugadores después de cancelación:', updatedPlayers.map(p => p.email));
+      console.log('ðŸ‘¥ Jugadores después de cancelación:', updatedPlayers.map(p => p.email));
       
-      // 🔥 NUEVO: IDENTIFICAR JUGADOR QUE CANCELA
+      // ðŸ”¥ NUEVO: IDENTIFICAR JUGADOR QUE CANCELA
       const cancelingPlayer = originalPlayers.find(player => 
         player.email === decodedPlayerEmail
       );
@@ -667,18 +667,18 @@ exports.cancelBooking = onRequest({
         (cancelingPlayer.name || cancelingPlayer.displayName || 'Un compañero') : 
         'Un compañero';
       
-      console.log(`👤 Jugador que cancela: ${cancelingPlayerName} (${decodedPlayerEmail})`);
+      console.log(`ðŸ‘¤ Jugador que cancela: ${cancelingPlayerName} (${decodedPlayerEmail})`);
 
       if (updatedPlayers.length === 0) {
         // Si no quedan jugadores, eliminar toda la reserva
-        console.log('🗑️ No quedan jugadores, eliminando reserva completa...');
+        console.log('ðŸ—‘ï¸ No quedan jugadores, eliminando reserva completa...');
         await docRef.delete();
-        console.log('✅ Reserva eliminada completamente (sin jugadores)');
+        console.log('âœ… Reserva eliminada completamente (sin jugadores)');
         
         // No hay nadie más para notificar
       } else {
-        // 🔥 NUEVO: ENVIAR NOTIFICACIONES ANTES DE ACTUALIZAR
-        console.log('📧 === ENVIANDO NOTIFICACIONES DE CANCELACIÓN ===');
+        // ðŸ”¥ NUEVO: ENVIAR NOTIFICACIONES ANTES DE ACTUALIZAR
+        console.log('ðŸ“§ === ENVIANDO NOTIFICACIONES DE CANCELACIÃ“N ===');
         
         try {
           // Preparar información de la reserva para el email
@@ -707,27 +707,27 @@ exports.cancelBooking = onRequest({
           notificationResults.forEach((result, index) => {
             if (result.status === 'fulfilled') {
               successCount++;
-              console.log(`✅ Notificación enviada a: ${updatedPlayers[index].email}`);
+              console.log(`âœ… Notificación enviada a: ${updatedPlayers[index].email}`);
             } else {
               failureCount++;
-              console.log(`❌ Error notificando a ${updatedPlayers[index].email}:`, result.reason);
+              console.log(`âŒ Error notificando a ${updatedPlayers[index].email}:`, result.reason);
             }
           });
           
-          console.log(`📧 Notificaciones completadas: ${successCount} exitosas, ${failureCount} fallos`);
+          console.log(`ðŸ“§ Notificaciones completadas: ${successCount} exitosas, ${failureCount} fallos`);
           
         } catch (notificationError) {
-          console.error('❌ Error general en notificaciones:', notificationError);
+          console.error('âŒ Error general en notificaciones:', notificationError);
           // Continuar con la cancelación aunque fallen las notificaciones
         }
 
         // Actualizar la reserva con los jugadores restantes
-        console.log('🔄 Actualizando reserva con jugadores restantes...');
+        console.log('ðŸ”„ Actualizando reserva con jugadores restantes...');
         await docRef.update({
           players: updatedPlayers,
           lastModified: new Date()
         });
-        console.log(`✅ Jugador removido. Quedan ${updatedPlayers.length} jugadores`);
+        console.log(`âœ… Jugador removido. Quedan ${updatedPlayers.length} jugadores`);
       }
     }
 
@@ -776,7 +776,7 @@ exports.cancelBooking = onRequest({
                     <p>Sistema de Reservas de Pádel</p>
                 </div>
                 
-                <div class="success">✅</div>
+                <div class="success">âœ…</div>
                 
                 <div class="message">
                     <strong>Cancelación Individual Exitosa</strong><br><br>
@@ -801,7 +801,7 @@ exports.cancelBooking = onRequest({
                         // Obtener nombre amigable de la cancha
                         const courtName = courtNames[courtId] || courtId;
                         
-                        // Formatear hora (1930 → 19:30)
+                        // Formatear hora (1930 â†’ 19:30)
                         const formattedTime = timeRaw.slice(0,2) + ':' + timeRaw.slice(2);
                         
                         return `Reserva: ${courtName} - ${date} - ${formattedTime}`;
@@ -810,16 +810,16 @@ exports.cancelBooking = onRequest({
                 </div>
                 
                 <div class="note">
-                    📧 <strong>Notificaciones Enviadas</strong><br>
+                    ðŸ“§ <strong>Notificaciones Enviadas</strong><br>
                     Los otros jugadores han sido notificados automáticamente de tu cancelación.
                 </div>
                 
                 <a href="https://cgpreservas.web.app" class="button">
-                    🏓 Ir a Reservas
+                    ðŸ“ Ir a Reservas
                 </a>
                 
                 <a href="#" onclick="window.close(); return false;" class="button">
-                    🔙 Volver al Correo
+                    ðŸ”™ Volver al Correo
                 </a>
                 
             </div>
@@ -839,7 +839,7 @@ exports.cancelBooking = onRequest({
     });
 
   } catch (error) {
-    console.error('❌ Error cancelando:', error);
+    console.error('âŒ Error cancelando:', error);
     
     // Aún mostrar página de éxito aunque haya error interno
     if (req.method === 'GET') {
@@ -848,10 +848,10 @@ exports.cancelBooking = onRequest({
         <html>
         <head><title>Error - Club de Golf Papudo</title></head>
         <body style="font-family: Arial; text-align: center; padding: 50px;">
-          <h1>⚠️ Error al Cancelar</h1>
+          <h1>âš ï¸ Error al Cancelar</h1>
           <p>Hubo un problema al cancelar la reserva.</p>
           <p>Por favor contacta al club directamente.</p>
-          <a href="mailto:paddlepapudo@gmail.com">📧 Contactar Club</a>
+          <a href="mailto:paddlepapudo@gmail.com">ðŸ“§ Contactar Club</a>
         </body>
         </html>
       `;
@@ -866,7 +866,7 @@ exports.cancelBooking = onRequest({
   }
 });
 
-// 🔥 NUEVA FUNCIÓN: ENVIAR NOTIFICACIÓN DE CANCELACIÓN
+// ðŸ”¥ NUEVA FUNCIÃ“N: ENVIAR NOTIFICACIÃ“N DE CANCELACIÃ“N
 async function sendCancellationNotification(remainingPlayer, reservationInfo) {
   try {
     const {
@@ -904,20 +904,20 @@ async function sendCancellationNotification(remainingPlayer, reservationInfo) {
         email: 'paddlepapudo@gmail.com',
         name: 'Club de Golf Papudo'
       },
-      subject: `⚠️ Jugador se retiró de reserva - ${formattedDate}`,
+      subject: `âš ï¸ Jugador se retiró de reserva - ${formattedDate}`,
       html: emailHtml
     };
 
     await sgMail.send(msg);
-    console.log(`📧 Notificación de cancelación enviada a: ${remainingPlayer.email}`);
+    console.log(`ðŸ“§ Notificación de cancelación enviada a: ${remainingPlayer.email}`);
     
   } catch (error) {
-    console.error(`❌ Error enviando notificación a ${remainingPlayer.email}:`, error);
+    console.error(`âŒ Error enviando notificación a ${remainingPlayer.email}:`, error);
     throw error; // Re-throw para el Promise.allSettled
   }
 }
 
-// 🔥 NUEVA FUNCIÓN: TEMPLATE HTML PARA NOTIFICACIÓN DE CANCELACIÓN
+// ðŸ”¥ NUEVA FUNCIÃ“N: TEMPLATE HTML PARA NOTIFICACIÃ“N DE CANCELACIÃ“N
 function generateCancellationEmailHtml({
   playerName,
   cancelingPlayerName,
@@ -954,7 +954,7 @@ function generateCancellationEmailHtml({
                         </div>
                         <div style="margin-left: 70px;">
                           <h1 style="color: white; margin: 0; font-size: 24px; font-weight: bold;">
-                            ⚠️ Cambio en Reserva
+                            âš ï¸ Cambio en Reserva
                           </h1>
                           <p style="color: #bfdbfe; margin: 5px 0 0 0; font-size: 16px;">
                             Club de Golf Papudo
@@ -988,13 +988,13 @@ function generateCancellationEmailHtml({
                     <tr>
                       <td style="padding: 20px;">
                         <h3 style="color: #1e40af; margin: 0 0 16px 0; font-size: 18px; font-weight: bold;">
-                          📅 Detalles de la Reserva:
+                          ðŸ“… Detalles de la Reserva:
                         </h3>
                         <div style="color: #1e3a8a; font-size: 16px; line-height: 1.8;">
-                          <div><strong>📅 Fecha:</strong> ${date}</div>
-                          <div><strong>⏰ Horario:</strong> ${timeSlot} - ${endTime}</div>
-                          <div><strong>🏓 Cancha:</strong> ${court}</div>
-                          <div><strong>👤 Se retiró:</strong> ${cancelingPlayerName}</div>
+                          <div><strong>ðŸ“… Fecha:</strong> ${date}</div>
+                          <div><strong>â° Horario:</strong> ${timeSlot} - ${endTime}</div>
+                          <div><strong>ðŸ“ Cancha:</strong> ${court}</div>
+                          <div><strong>ðŸ‘¤ Se retiró:</strong> ${cancelingPlayerName}</div>
                         </div>
                       </td>
                     </tr>
@@ -1009,13 +1009,13 @@ function generateCancellationEmailHtml({
                     <tr>
                       <td style="padding: 20px;">
                         <h3 style="color: #065f46; margin: 0 0 16px 0; font-size: 18px; font-weight: bold;">
-                          👥 Jugadores Actuales (${remainingPlayers.length}/4):
+                          ðŸ‘¥ Jugadores Actuales (${remainingPlayers.length}/4):
                         </h3>
                         ${remainingPlayers.map((player, index) => {
                           const playerName = player.name || player.displayName || 'Jugador';
                           return `
                             <div style="padding: 8px 0; color: #047857; font-size: 16px; display: flex; align-items: center;">
-                              <span style="margin-right: 8px; font-size: 18px;">•</span>
+                              <span style="margin-right: 8px; font-size: 18px;">â€¢</span>
                               <span><strong>${playerName}</strong></span>
                             </div>
                           `;
@@ -1023,7 +1023,7 @@ function generateCancellationEmailHtml({
                         
                         ${remainingPlayers.length < 4 ? `
                           <div style="margin-top: 16px; padding: 12px; background-color: #dcfce7; border-radius: 6px; color: #166534;">
-                            <strong>💡 Tip:</strong> Pueden buscar un nuevo jugador para completar los 4.
+                            <strong>ðŸ’¡ Tip:</strong> Pueden buscar un nuevo jugador para completar los 4.
                           </div>
                         ` : ''}
                       </td>
@@ -1032,14 +1032,14 @@ function generateCancellationEmailHtml({
                 </td>
               </tr>
 
-              <!-- INFORMACIÓN DE CONTACTO -->
+              <!-- INFORMACIÃ“N DE CONTACTO -->
               <tr>
                 <td style="padding: 0 40px 40px 40px;">
                   <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%" style="border-left: 4px solid #f59e0b; background-color: #fffbeb; border-radius: 8px;">
                     <tr>
                       <td style="padding: 20px;">
                         <h3 style="color: #92400e; margin: 0 0 16px 0; font-size: 18px; font-weight: bold;">
-                          📞 Contacto del jugador que se retiró:
+                          ðŸ“ž Contacto del jugador que se retiró:
                         </h3>
                         <p style="color: #a16207; font-size: 16px; line-height: 1.6; margin: 0;">
                           <strong>${cancelingPlayerName}</strong><br>
@@ -1071,24 +1071,24 @@ function generateCancellationEmailHtml({
 }
 
 // ============================================================================
-// SINCRONIZACIÓN PROGRAMADA DIARIA - NUEVA FUNCIÓN
+// SINCRONIZACIÃ“N PROGRAMADA DIARIA - NUEVA FUNCIÃ“N
 // ============================================================================
 
 exports.dailyUserSync = onSchedule({
   schedule: "0 6 * * *", // Todos los días a las 6:00 AM (UTC-3 = 3:00 AM Chile)
   timeZone: "America/Santiago", // Timezone de Chile
-  memory: "1GiB", // ← MÁS MEMORIA
-  timeoutSeconds: 540, // ← 9 MINUTOS (máximo permitido)
+  memory: "1GiB", // â† MÃS MEMORIA
+  timeoutSeconds: 540, // â† 9 MINUTOS (máximo permitido)
 }, async (context) => {
   try {
-    console.log('🔄 === SINCRONIZACIÓN AUTOMÁTICA DIARIA INICIADA ===');
-    console.log('⏰ Timestamp:', new Date().toISOString());
-    console.log('🌍 Timezone: America/Santiago');
+    console.log('ðŸ”„ === SINCRONIZACIÃ“N AUTOMÃTICA DIARIA INICIADA ===');
+    console.log('â° Timestamp:', new Date().toISOString());
+    console.log('ðŸŒ Timezone: America/Santiago');
     
     const startTime = Date.now();
     
     // ========================================================================
-    // REUTILIZAR LÓGICA DE SINCRONIZACIÓN EXISTENTE
+    // REUTILIZAR LÃ“GICA DE SINCRONIZACIÃ“N EXISTENTE
     // ========================================================================
     
     const SHEET_ID = '1A-8RvvgkHXUP-985So8CBJvDAj50w58EFML1CJEq2c4';
@@ -1137,7 +1137,7 @@ exports.dailyUserSync = onSchedule({
     });
     
     await doc.loadInfo();
-    console.log('📊 Documento Google Sheets cargado:', doc.title);
+    console.log('ðŸ“Š Documento Google Sheets cargado:', doc.title);
     
     const sheet = doc.sheetsByTitle[SHEET_NAME];
     if (!sheet) {
@@ -1146,11 +1146,11 @@ exports.dailyUserSync = onSchedule({
     
     // Leer todas las filas
     const rows = await sheet.getRows();
-    console.log(`📊 Filas encontradas en Sheets: ${rows.length}`);
+    console.log(`ðŸ“Š Filas encontradas en Sheets: ${rows.length}`);
     
     // Procesar TODOS los usuarios de una vez
-    const rowsToProcess = rows; // ← CAMBIO: procesar todos
-    console.log(`🔄 Procesando TODOS los ${rowsToProcess.length} usuarios...`);
+    const rowsToProcess = rows; // â† CAMBIO: procesar todos
+    console.log(`ðŸ”„ Procesando TODOS los ${rowsToProcess.length} usuarios...`);
     
     const db = admin.firestore();
     const usersRef = db.collection('users');
@@ -1219,7 +1219,7 @@ exports.dailyUserSync = onSchedule({
         
       } catch (error) {
         stats.errors++;
-        console.error(`❌ Error procesando usuario:`, error.message);
+        console.error(`âŒ Error procesando usuario:`, error.message);
       }
     }
     
@@ -1237,17 +1237,17 @@ exports.dailyUserSync = onSchedule({
     // ========================================================================
     const executionTime = Date.now() - startTime;
     
-    console.log('🎉 === SINCRONIZACIÓN AUTOMÁTICA COMPLETADA ===');
-    console.log(`⏱️  Tiempo de ejecución: ${executionTime}ms`);
-    console.log(`📋 Procesados: ${stats.processed}`);
-    console.log(`✅ Creados: ${stats.created}`);
-    console.log(`🔄 Actualizados: ${stats.updated}`);
-    console.log(`⚠️  Filtrados: ${stats.filtered}`);
-    console.log(`❌ Errores: ${stats.errors}`);
-    console.log(`🎯 Éxito: ${((stats.created + stats.updated) / stats.processed * 100).toFixed(1)}%`);
+    console.log('ðŸŽ‰ === SINCRONIZACIÃ“N AUTOMÃTICA COMPLETADA ===');
+    console.log(`â±ï¸  Tiempo de ejecución: ${executionTime}ms`);
+    console.log(`ðŸ“‹ Procesados: ${stats.processed}`);
+    console.log(`âœ… Creados: ${stats.created}`);
+    console.log(`ðŸ”„ Actualizados: ${stats.updated}`);
+    console.log(`âš ï¸  Filtrados: ${stats.filtered}`);
+    console.log(`âŒ Errores: ${stats.errors}`);
+    console.log(`ðŸŽ¯ Ã‰xito: ${((stats.created + stats.updated) / stats.processed * 100).toFixed(1)}%`);
     
     // ========================================================================
-    // OPCIONAL: NOTIFICACIÓN POR EMAIL (comentado por ahora)
+    // OPCIONAL: NOTIFICACIÃ“N POR EMAIL (comentado por ahora)
     // ========================================================================
     /*
     if (stats.errors > 5) {
@@ -1259,10 +1259,10 @@ exports.dailyUserSync = onSchedule({
     }
     */
     
-    console.log('✅ Sincronización programada completada exitosamente');
+    console.log('âœ… Sincronización programada completada exitosamente');
     
   } catch (error) {
-    console.error('❌ ERROR CRÍTICO en sincronización programada:', error);
+    console.error('âŒ ERROR CRÃTICO en sincronización programada:', error);
     
     // Guardar error en Firestore para debugging
     try {
@@ -1273,17 +1273,17 @@ exports.dailyUserSync = onSchedule({
         source: 'scheduled_sync'
       }, { merge: true });
     } catch (e) {
-      console.error('❌ Error guardando log de error:', e);
+      console.error('âŒ Error guardando log de error:', e);
     }
     
     // ========================================================================
-    // OPCIONAL: NOTIFICACIÓN DE ERROR (comentado por ahora)
+    // OPCIONAL: NOTIFICACIÃ“N DE ERROR (comentado por ahora)
     // ========================================================================
     /*
     try {
       await sendAdminAlert(`Error en sincronización automática: ${error.message}`);
     } catch (e) {
-      console.error('❌ Error enviando alerta:', e);
+      console.error('âŒ Error enviando alerta:', e);
     }
     */
     
@@ -1427,7 +1427,7 @@ function generateBookingEmailHtml(booking, organizerName, isVisitorBooking = fal
               <tr>
                 <td style="padding: 40px 40px 20px 40px;">
                   <h2 style="color: #2d3748; font-size: 24px; margin: 0 0 20px 0; font-weight: bold;">
-                    ¡Hola ${organizerName.toUpperCase()}!
+                    Â¡Hola ${organizerName.toUpperCase()}!
                   </h2>
                   <p style="color: #4a5568; font-size: 16px; line-height: 1.6; margin: 0 0 30px 0;">
                     Tu reserva de pádel ha sido confirmada exitosamente. Te esperamos en la cancha.
@@ -1449,7 +1449,7 @@ function generateBookingEmailHtml(booking, organizerName, isVisitorBooking = fal
                               <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%">
                                 <tr>
                                   <td style="width: 40px; vertical-align: top;">
-                                    <span style="font-size: 18px;">📅</span>
+                                    <span style="font-size: 18px;">ðŸ“…</span>
                                   </td>
                                   <td style="vertical-align: top; padding-left: 12px;">
                                     <strong style="color: #2d3748; font-size: 16px;">Fecha:</strong>
@@ -1466,7 +1466,7 @@ function generateBookingEmailHtml(booking, organizerName, isVisitorBooking = fal
                               <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%">
                                 <tr>
                                   <td style="width: 40px; vertical-align: top;">
-                                    <span style="font-size: 18px;">🕐</span>
+                                    <span style="font-size: 18px;">ðŸ•</span>
                                   </td>
                                   <td style="vertical-align: top; padding-left: 12px;">
                                     <strong style="color: #2d3748; font-size: 16px;">Hora:</strong>
@@ -1483,7 +1483,7 @@ function generateBookingEmailHtml(booking, organizerName, isVisitorBooking = fal
                               <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%">
                                 <tr>
                                   <td style="width: 40px; vertical-align: top;">
-                                    <span style="font-size: 18px;">🏓</span>
+                                    <span style="font-size: 18px;">ðŸ“</span>
                                   </td>
                                   <td style="vertical-align: top; padding-left: 12px;">
                                     <strong style="color: #2d3748; font-size: 16px;">Cancha:</strong>
@@ -1509,14 +1509,14 @@ function generateBookingEmailHtml(booking, organizerName, isVisitorBooking = fal
                     <tr>
                       <td style="padding: 20px;">
                         <h3 style="color: #065f46; margin: 0 0 16px 0; font-size: 18px; font-weight: bold;">
-                          👥 Jugadores (${booking.players.length}/4):
+                          ðŸ‘¥ Jugadores (${booking.players.length}/4):
                         </h3>
                         ${booking.players.map((player, index) => {
                           const playerName = typeof player === 'string' ? player : (player.name || 'Jugador');
                           const isOrganizer = index === 0;
                           return `
                             <div style="padding: 8px 0; color: #047857; font-size: 16px; display: flex; align-items: center;">
-                              <span style="margin-right: 8px; font-size: 18px;">${isOrganizer ? '🏆' : '•'}</span>
+                              <span style="margin-right: 8px; font-size: 18px;">${isOrganizer ? 'ðŸ†' : 'â€¢'}</span>
                               <span><strong>${playerName}</strong>${isOrganizer ? ' <em>(Organizador)</em>' : ''}</span>
                             </div>
                           `;
@@ -1527,10 +1527,10 @@ function generateBookingEmailHtml(booking, organizerName, isVisitorBooking = fal
                 </td>
               </tr>
 
-              <!-- BOTÓN CANCELAR -->
+              <!-- BOTÃ“N CANCELAR -->
               <tr>
                 <td style="padding: 0 40px 20px 40px; text-align: center;">
-                  <a href="https://us-central1-cgpreservas.cloudfunctions.net/cancelBooking?id=${booking.id || `${booking.courtNumber || booking.courtId}-${booking.date}-${(booking.timeSlot || booking.time || '').replace(/:/g, '')}`}&email=${encodeURIComponent(email)}" style="background: #dc2626; color: white; padding: 16px 32px; text-decoration: none; border-radius: 8px; font-weight: bold; font-size: 16px; display: inline-block; margin: 10px 0; box-shadow: 0 2px 4px rgba(0,0,0,0.2);">❌ Cancelar Reserva</a>
+                  <a href="https://us-central1-cgpreservas.cloudfunctions.net/cancelBooking?id=${booking.id || `${booking.courtNumber || booking.courtId}-${booking.date}-${(booking.timeSlot || booking.time || '').replace(/:/g, '')}`}&email=${encodeURIComponent(email)}" style="background: #dc2626; color: white; padding: 16px 32px; text-decoration: none; border-radius: 8px; font-weight: bold; font-size: 16px; display: inline-block; margin: 10px 0; box-shadow: 0 2px 4px rgba(0,0,0,0.2);">âŒ Cancelar Reserva</a>
                 </td>
               </tr>
 
@@ -1541,7 +1541,7 @@ function generateBookingEmailHtml(booking, organizerName, isVisitorBooking = fal
                     <tr>
                       <td style="padding: 16px;">
                         <p style="margin: 0; color: #92400e; font-size: 14px; line-height: 1.6;">
-                          <strong>💡 Importante:</strong> Si no has reservado, o no estás al tanto de esta invitación, o no puedes asistir, <strong>cancela</strong> esta reserva, haciendo clic en el botón de arriba. Se notificará automáticamente a los otros jugadores.
+                          <strong>ðŸ’¡ Importante:</strong> Si no has reservado, o no estás al tanto de esta invitación, o no puedes asistir, <strong>cancela</strong> esta reserva, haciendo clic en el botón de arriba. Se notificará automáticamente a los otros jugadores.
                         </p>
                       </td>
                     </tr>
@@ -1553,10 +1553,10 @@ function generateBookingEmailHtml(booking, organizerName, isVisitorBooking = fal
               <tr>
                 <td style="background: #f8fafc; padding: 20px 40px; text-align: center; color: #64748b; font-size: 14px; border-top: 1px solid #e2e8f0;">
                   <p style="margin: 0 0 8px 0; line-height: 1.4;">
-                    <strong>Club de Golf Papudo</strong> • Desde 1932<br>
-                    📧 <a href="mailto:anibalreinosomendez@gmail.com" style="color: #1e3a8a;">paddlepapudo@gmail.com</a><br>
-                    📍 Miraflores s/n - Papudo, Valparaíso<br>
-                    🌐 <a href="https://clubgolfpapudo.cl" style="color: #1e3a8a;">clubgolfpapudo.cl</a>
+                    <strong>Club de Golf Papudo</strong> â€¢ Desde 1932<br>
+                    ðŸ“§ <a href="mailto:anibalreinosomendez@gmail.com" style="color: #1e3a8a;">paddlepapudo@gmail.com</a><br>
+                    ðŸ“ Miraflores s/n - Papudo, Valparaíso<br>
+                    ðŸŒ <a href="https://clubgolfpapudo.cl" style="color: #1e3a8a;">clubgolfpapudo.cl</a>
                   </p>
                 </td>
               </tr>
@@ -1596,11 +1596,11 @@ END:VCALENDAR`;
 }
 
 function getCourtName(courtId) {
-  console.log('🏓 getCourtName recibió:', courtId, 'tipo:', typeof courtId);
+  console.log('ðŸ“ getCourtName recibió:', courtId, 'tipo:', typeof courtId);
   
   try {
     if (!courtId) {
-      console.warn('⚠️ getCourtName: courtId es null/undefined');
+      console.warn('âš ï¸ getCourtName: courtId es null/undefined');
       return 'Cancha Desconocida';
     }
     
@@ -1618,25 +1618,25 @@ function getCourtName(courtId) {
     };
     
     const result = courts[courtStr] || `Cancha ${courtId}`;
-    console.log('🏓 getCourtName resultado:', result);
+    console.log('ðŸ“ getCourtName resultado:', result);
     
     return result;
     
   } catch (error) {
-    console.error('❌ Error en getCourtName:', error);
-    console.error('❌ courtId original:', courtId);
+    console.error('âŒ Error en getCourtName:', error);
+    console.error('âŒ courtId original:', courtId);
     return 'Cancha Desconocida';
   }
 }
 
 // Función formatDate segura (línea ~1333)
 function formatDate(dateString) {
-  console.log('📅 formatDate recibió:', dateString, 'tipo:', typeof dateString);
+  console.log('ðŸ“… formatDate recibió:', dateString, 'tipo:', typeof dateString);
   
   try {
     // Validar que dateString existe y no es null/undefined
     if (!dateString) {
-      console.warn('⚠️ formatDate: dateString es null/undefined, usando fecha actual');
+      console.warn('âš ï¸ formatDate: dateString es null/undefined, usando fecha actual');
       dateString = new Date().toISOString().split('T')[0]; // YYYY-MM-DD format
     }
     
@@ -1644,11 +1644,11 @@ function formatDate(dateString) {
     const dateStr = String(dateString).trim();
     
     if (!dateStr) {
-      console.warn('⚠️ formatDate: dateString vacío después de trim, usando fecha actual');
+      console.warn('âš ï¸ formatDate: dateString vacío después de trim, usando fecha actual');
       dateString = new Date().toISOString().split('T')[0];
     }
     
-    console.log('📅 formatDate procesando:', dateStr);
+    console.log('ðŸ“… formatDate procesando:', dateStr);
     
     // Intentar crear fecha
     let date;
@@ -1663,11 +1663,11 @@ function formatDate(dateString) {
     
     // Verificar que la fecha es válida
     if (isNaN(date.getTime())) {
-      console.error('❌ formatDate: Fecha inválida:', dateStr);
+      console.error('âŒ formatDate: Fecha inválida:', dateStr);
       date = new Date(); // Usar fecha actual como fallback
     }
     
-    console.log('📅 formatDate fecha creada:', date);
+    console.log('ðŸ“… formatDate fecha creada:', date);
     
     const options = { 
       weekday: 'long', 
@@ -1678,13 +1678,13 @@ function formatDate(dateString) {
     };
     
     const formatted = date.toLocaleDateString('es-ES', options);
-    console.log('📅 formatDate resultado:', formatted);
+    console.log('ðŸ“… formatDate resultado:', formatted);
     
     return formatted;
     
   } catch (error) {
-    console.error('❌ Error en formatDate:', error);
-    console.error('❌ dateString original:', dateString);
+    console.error('âŒ Error en formatDate:', error);
+    console.error('âŒ dateString original:', dateString);
     
     // Fallback: usar fecha actual formateada
     const fallbackDate = new Date();
@@ -1696,33 +1696,33 @@ function formatDate(dateString) {
       timeZone: 'America/Santiago'
     });
     
-    console.log('🔄 formatDate usando fallback:', fallbackFormatted);
+    console.log('ðŸ”„ formatDate usando fallback:', fallbackFormatted);
     return fallbackFormatted;
   }
 }
 
 // Función getEndTime segura
 function getEndTime(startTime) {
-  console.log('🕐 getEndTime recibió:', startTime, 'tipo:', typeof startTime);
+  console.log('ðŸ• getEndTime recibió:', startTime, 'tipo:', typeof startTime);
   
   try {
     // Validar que startTime existe
     if (!startTime) {
-      console.warn('⚠️ getEndTime: startTime es null/undefined');
+      console.warn('âš ï¸ getEndTime: startTime es null/undefined');
       return 'N/A';
     }
     
     const timeStr = String(startTime).trim();
     
     if (!timeStr || !timeStr.includes(':')) {
-      console.warn('⚠️ getEndTime: formato de tiempo inválido:', timeStr);
+      console.warn('âš ï¸ getEndTime: formato de tiempo inválido:', timeStr);
       return 'N/A';
     }
     
     const timeParts = timeStr.split(':');
     
     if (timeParts.length < 2) {
-      console.warn('⚠️ getEndTime: no se pudo dividir tiempo:', timeStr);
+      console.warn('âš ï¸ getEndTime: no se pudo dividir tiempo:', timeStr);
       return 'N/A';
     }
     
@@ -1730,11 +1730,11 @@ function getEndTime(startTime) {
     const minutes = parseInt(timeParts[1], 10);
     
     if (isNaN(hours) || isNaN(minutes)) {
-      console.warn('⚠️ getEndTime: horas o minutos no son números:', hours, minutes);
+      console.warn('âš ï¸ getEndTime: horas o minutos no son números:', hours, minutes);
       return 'N/A';
     }
     
-    console.log('🕐 getEndTime procesando:', hours, ':', minutes);
+    console.log('ðŸ• getEndTime procesando:', hours, ':', minutes);
     
     const endHours = hours + 1;
     const endMinutes = minutes + 30;
@@ -1748,20 +1748,20 @@ function getEndTime(startTime) {
     }
     
     const result = `${String(finalHours).padStart(2, '0')}:${String(finalMinutes).padStart(2, '0')}`;
-    console.log('🕐 getEndTime resultado:', result);
+    console.log('ðŸ• getEndTime resultado:', result);
     
     return result;
     
   } catch (error) {
-    console.error('❌ Error en getEndTime:', error);
-    console.error('❌ startTime original:', startTime);
+    console.error('âŒ Error en getEndTime:', error);
+    console.error('âŒ startTime original:', startTime);
     return 'N/A';
   }
 }
 
 // Función auxiliar para envío desde trigger
 async function sendBookingEmailFirestore(transporter, email, booking, playerName, showVisitorMessage = false) {
-  console.log(`📧 Enviando email desde trigger a: ${email} para jugador: ${playerName}`);
+  console.log(`ðŸ“§ Enviando email desde trigger a: ${email} para jugador: ${playerName}`);
   
   const msg = {
     from: {
@@ -1775,10 +1775,10 @@ async function sendBookingEmailFirestore(transporter, email, booking, playerName
   
   try {
     await transporter.sendMail(msg);
-    console.log(`✅ Email trigger enviado exitosamente a: ${email}`);
+    console.log(`âœ… Email trigger enviado exitosamente a: ${email}`);
     return { success: true, email: email };
   } catch (error) {
-    console.error(`❌ Error enviando email trigger a ${email}:`, error);
+    console.error(`âŒ Error enviando email trigger a ${email}:`, error);
     throw error;
   }
 }

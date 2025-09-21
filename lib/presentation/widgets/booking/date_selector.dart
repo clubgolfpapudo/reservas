@@ -1,4 +1,4 @@
-// lib/presentation/widgets/booking/date_selector.dart
+﻿// lib/presentation/widgets/booking/date_selector.dart
 import 'package:flutter/material.dart';
 import '../../../core/constants/app_constants.dart';
 import '../../../core/theme/app_theme.dart';
@@ -124,3 +124,5 @@ class DateSelector extends StatelessWidget {
     return AppConstants.getWeekdayName(date.weekday, short: true);
   }
 }
+
+

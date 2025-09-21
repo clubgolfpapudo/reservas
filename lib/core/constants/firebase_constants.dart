@@ -1,4 +1,4 @@
-// lib/core/constants/firebase_constants.dart
+﻿// lib/core/constants/firebase_constants.dart
 class FirebaseConstants {
   static const String bookings = 'bookings';
   static const String users = 'users';
@@ -11,3 +11,4 @@ class RouteConstants {
   static const String booking = '/booking';
   // etc...
 }
+

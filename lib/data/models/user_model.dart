@@ -1,4 +1,4 @@
-// lib/data/models/user_model.dart  
+﻿// lib/data/models/user_model.dart  
 class UserModel extends User {
   const UserModel({
     required super.id,
@@ -134,3 +134,4 @@ class UserMetadataModel extends UserMetadata {
     );
   }
 }
+

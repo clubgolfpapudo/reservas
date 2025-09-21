@@ -1,4 +1,4 @@
-// lib/presentation/providers/app_auth_provider.dart
+﻿// lib/presentation/providers/app_auth_provider.dart
 import 'package:flutter/foundation.dart';
 import '../../core/services/firebase_user_service.dart';
 
@@ -51,7 +51,7 @@ class AppauthProvider with ChangeNotifier {
         _currentUserName = null;
         
         if (kDebugMode) {
-          print('❌ Usuario no encontrado: $email');
+          print('âŒ Usuario no encontrado: $email');
         }
         
         _isLoading = false;
@@ -60,7 +60,7 @@ class AppauthProvider with ChangeNotifier {
       }
     } catch (e) {
       if (kDebugMode) {
-        print('❌ Error validando usuario: $e');
+        print('âŒ Error validando usuario: $e');
       }
       
       _isUserValidated = false;
@@ -81,7 +81,7 @@ class AppauthProvider with ChangeNotifier {
     notifyListeners();
     
     if (kDebugMode) {
-      print('🔓 Usuario deslogueado');
+      print('ðŸ”“ Usuario deslogueado');
     }
   }
 
@@ -93,13 +93,13 @@ class AppauthProvider with ChangeNotifier {
       
       if (email != null && email.isNotEmpty) {
         if (kDebugMode) {
-          print('🔍 Auto-login detectado para: $email');
+          print('ðŸ” Auto-login detectado para: $email');
         }
         await validateUser(email);
       }
     } catch (e) {
       if (kDebugMode) {
-        print('❌ Error en auto-login: $e');
+        print('âŒ Error en auto-login: $e');
       }
     }
   }
@@ -119,3 +119,5 @@ class AppauthProvider with ChangeNotifier {
     // notifyListeners(); si aplica
   }
 }
+
+

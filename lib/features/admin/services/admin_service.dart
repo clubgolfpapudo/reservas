@@ -1,4 +1,4 @@
-// lib/features/admin/services/admin_service.dart
+﻿// lib/features/admin/services/admin_service.dart
 import 'package:flutter/foundation.dart';
 import '../../../core/constants/admin_constants.dart';
 
@@ -7,28 +7,28 @@ class AdminService {
   factory AdminService() => _instance;
   AdminService._internal();
 
-  // 🔐 Cache de datos admin
+  // ðŸ” Cache de datos admin
   Map<String, dynamic> _adminCache = {};
   DateTime? _lastCacheUpdate;
   static const int _cacheLifetimeMinutes = 30;
 
-  // 🔐 Verificar si un email es administrador
+  // ðŸ” Verificar si un email es administrador
   bool isAdminEmail(String email) {
     return AdminConstants.adminEmails.contains(email.toLowerCase());
   }
 
-  // 🔑 Obtener permisos de un administrador
+  // ðŸ”‘ Obtener permisos de un administrador
   List<String> getAdminPermissions(String email) {
     return AdminConstants.adminPermissions[email.toLowerCase()] ?? [];
   }
 
-  // 📊 Verificar si tiene un permiso específico
+  // ðŸ“Š Verificar si tiene un permiso específico
   bool hasPermission(String email, String permission) {
     final permissions = getAdminPermissions(email);
     return permissions.contains('full_access') || permissions.contains(permission);
   }
 
-  // 📊 Obtener nivel de permisos
+  // ðŸ“Š Obtener nivel de permisos
   AdminPermissionLevel getPermissionLevel(String email) {
     final permissions = getAdminPermissions(email);
     
@@ -43,19 +43,19 @@ class AdminService {
     }
   }
 
-  // 🔧 Obtener funciones disponibles para un admin
+  // ðŸ”§ Obtener funciones disponibles para un admin
   List<AdminFunction> getAvailableFunctions(String email) {
     return AdminConstants.adminFunctions.where((function) {
       return hasPermission(email, function.permission);
     }).toList();
   }
 
-  // 📊 Cargar métricas del sistema (simulado - conectar con API real)
+  // ðŸ“Š Cargar métricas del sistema (simulado - conectar con API real)
   Future<List<AdminMetric>> loadSystemMetrics() async {
     try {
       // Verificar cache
       if (_isCacheValid('metrics')) {
-        debugPrint('📊 Admin metrics loaded from cache');
+        debugPrint('ðŸ“Š Admin metrics loaded from cache');
         return _adminCache['metrics'] as List<AdminMetric>;
       }
 
@@ -108,20 +108,20 @@ class AdminService {
       // Guardar en cache
       _updateCache('metrics', metrics);
       
-      debugPrint('📊 Admin metrics loaded from API');
+      debugPrint('ðŸ“Š Admin metrics loaded from API');
       return metrics;
     } catch (e) {
-      debugPrint('❌ Error loading admin metrics: $e');
+      debugPrint('âŒ Error loading admin metrics: $e');
       return _getDefaultMetrics();
     }
   }
 
-  // 🔔 Cargar notificaciones admin
+  // ðŸ”” Cargar notificaciones admin
   Future<List<AdminNotification>> loadAdminNotifications() async {
     try {
       // Verificar cache
       if (_isCacheValid('notifications')) {
-        debugPrint('🔔 Admin notifications loaded from cache');
+        debugPrint('ðŸ”” Admin notifications loaded from cache');
         return _adminCache['notifications'] as List<AdminNotification>;
       }
 
@@ -133,15 +133,15 @@ class AdminService {
       // Guardar en cache
       _updateCache('notifications', notifications);
       
-      debugPrint('🔔 Admin notifications loaded from API');
+      debugPrint('ðŸ”” Admin notifications loaded from API');
       return notifications;
     } catch (e) {
-      debugPrint('❌ Error loading admin notifications: $e');
+      debugPrint('âŒ Error loading admin notifications: $e');
       return _getDefaultNotifications();
     }
   }
 
-  // 📊 Obtener estadísticas de usuarios
+  // ðŸ“Š Obtener estadísticas de usuarios
   Future<Map<String, dynamic>> getUserStatistics() async {
     try {
       return {
@@ -151,7 +151,7 @@ class AdminService {
         'newThisMonth': await _getNewUsersThisMonth(),
       };
     } catch (e) {
-      debugPrint('❌ Error loading user statistics: $e');
+      debugPrint('âŒ Error loading user statistics: $e');
       return {
         'totalUsers': '497',
         'activeToday': '42',
@@ -161,7 +161,7 @@ class AdminService {
     }
   }
 
-  // 📅 Obtener estadísticas de reservas
+  // ðŸ“… Obtener estadísticas de reservas
   Future<Map<String, dynamic>> getReservationStatistics() async {
     try {
       return {
@@ -171,7 +171,7 @@ class AdminService {
         'occupancyRate': await _getReservationOccupancyPercentage(),
       };
     } catch (e) {
-      debugPrint('❌ Error loading reservation statistics: $e');
+      debugPrint('âŒ Error loading reservation statistics: $e');
       return {
         'todayReservations': '23',
         'weekReservations': '156',
@@ -181,7 +181,7 @@ class AdminService {
     }
   }
 
-  // 💰 Obtener estadísticas financieras
+  // ðŸ’° Obtener estadísticas financieras
   Future<Map<String, dynamic>> getFinancialStatistics() async {
     try {
       return {
@@ -191,7 +191,7 @@ class AdminService {
         'averagePerReservation': await _getAverageRevenuePerReservation(),
       };
     } catch (e) {
-      debugPrint('❌ Error loading financial statistics: $e');
+      debugPrint('âŒ Error loading financial statistics: $e');
       return {
         'monthlyRevenue': '\$2.1M',
         'dailyRevenue': '\$68K',
@@ -201,7 +201,7 @@ class AdminService {
     }
   }
 
-  // 🔔 Crear nueva notificación admin
+  // ðŸ”” Crear nueva notificación admin
   AdminNotification createNotification({
     required String title,
     required String message,
@@ -219,7 +219,7 @@ class AdminService {
     );
   }
 
-  // 📊 Exportar datos para reportes
+  // ðŸ“Š Exportar datos para reportes
   Future<Map<String, dynamic>> exportDataForReport({
     required String reportType,
     required DateTime startDate,
@@ -240,19 +240,19 @@ class AdminService {
           throw Exception('Tipo de reporte no válido: $reportType');
       }
     } catch (e) {
-      debugPrint('❌ Error exporting data: $e');
+      debugPrint('âŒ Error exporting data: $e');
       rethrow;
     }
   }
 
-  // 🔧 Limpiar cache
+  // ðŸ”§ Limpiar cache
   void clearCache() {
     _adminCache.clear();
     _lastCacheUpdate = null;
-    debugPrint('🧹 Admin cache cleared');
+    debugPrint('ðŸ§¹ Admin cache cleared');
   }
 
-  // 📊 Obtener información del cache
+  // ðŸ“Š Obtener información del cache
   Map<String, dynamic> getCacheInfo() {
     return {
       'cacheSize': _adminCache.length,
@@ -262,9 +262,9 @@ class AdminService {
     };
   }
 
-  // ===== MÉTODOS PRIVADOS =====
+  // ===== MÃ‰TODOS PRIVADOS =====
 
-  // 🔧 Verificar si el cache es válido
+  // ðŸ”§ Verificar si el cache es válido
   bool _isCacheValid(String key) {
     if (_lastCacheUpdate == null || !_adminCache.containsKey(key)) {
       return false;
@@ -275,13 +275,13 @@ class AdminService {
     return difference.inMinutes < _cacheLifetimeMinutes;
   }
 
-  // 🔧 Actualizar cache
+  // ðŸ”§ Actualizar cache
   void _updateCache(String key, dynamic data) {
     _adminCache[key] = data;
     _lastCacheUpdate = DateTime.now();
   }
 
-  // 📊 Métodos de datos simulados (reemplazar con API real)
+  // ðŸ“Š Métodos de datos simulados (reemplazar con API real)
   
   Future<String> _getUserCount() async {
     // Simular consulta a base de datos
@@ -359,7 +359,7 @@ class AdminService {
     return '\$35';
   }
 
-  // 🔔 Obtener notificaciones desde API simulada
+  // ðŸ”” Obtener notificaciones desde API simulada
   Future<List<AdminNotification>> _fetchNotificationsFromAPI() async {
     return [
       AdminNotification(
@@ -402,7 +402,7 @@ class AdminService {
     ];
   }
 
-  // 📊 Métricas por defecto en caso de error
+  // ðŸ“Š Métricas por defecto en caso de error
   List<AdminMetric> _getDefaultMetrics() {
     return [
       const AdminMetric(
@@ -440,7 +440,7 @@ class AdminService {
     ];
   }
 
-  // 🔔 Notificaciones por defecto en caso de error
+  // ðŸ”” Notificaciones por defecto en caso de error
   List<AdminNotification> _getDefaultNotifications() {
     return [
       AdminNotification(
@@ -454,7 +454,7 @@ class AdminService {
     ];
   }
 
-  // 📊 Métodos de exportación de datos
+  // ðŸ“Š Métodos de exportación de datos
   
   Future<Map<String, dynamic>> _exportUserData(DateTime startDate, DateTime endDate) async {
     return {
@@ -495,7 +495,7 @@ class AdminService {
     };
   }
 
-  // 🔧 Debug: Imprimir estado del servicio
+  // ðŸ”§ Debug: Imprimir estado del servicio
   void debugPrintServiceStatus() {
     if (kDebugMode) {
       print('=== ADMIN SERVICE DEBUG ===');
@@ -508,3 +508,4 @@ class AdminService {
     }
   }
 }
+

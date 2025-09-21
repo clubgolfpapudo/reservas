@@ -1,4 +1,4 @@
-// ============================================================================
+﻿// ============================================================================
 // lib/data/services/ics_generator.dart
 // ============================================================================
 
@@ -76,9 +76,9 @@ END:VCALENDAR''';
         'Z';
   }
 
-  static String _getCourtName(String courtId) {  // ← CAMBIAR PARÁMETRO
+  static String _getCourtName(String courtId) {  // â† CAMBIAR PARÃMETRO
     switch (courtId) {
-      // PÁDEL
+      // PÃDEL
       case 'padel_court_1':
         return 'Cancha 1 - PITE';
       case 'padel_court_2':
@@ -110,7 +110,7 @@ END:VCALENDAR''';
   }
   
   // ============================================================================
-  // GENERAR .ICS PARA CANCELACIÓN
+  // GENERAR .ICS PARA CANCELACIÃ“N
   // ============================================================================
   
   static String generateCancellationIcs(Booking booking) {
@@ -135,3 +135,4 @@ END:VEVENT
 END:VCALENDAR''';
   }
 }
+

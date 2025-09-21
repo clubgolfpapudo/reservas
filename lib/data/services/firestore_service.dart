@@ -64,7 +64,7 @@ class FirestoreService {
   // MÃ‰TODOS ADICIONALES PARA SISTEMA DE EMAILS
   // ============================================================================
 
-  /// Obtener una reserva especÃ­fica por ID
+  /// Obtener una reserva específica por ID
   static Future<Booking?> getBookingById(String bookingId) async {
     try {
       final doc = await _firestore.collection('bookings').doc(bookingId).get();
@@ -91,7 +91,7 @@ class FirestoreService {
      
     await _firestore.collection('bookings').doc(booking.id).update(dataToUpdate);
      
-    print('âœ… Reserva actualizada: ${booking.id}');
+    print('✅ Reserva actualizada: ${booking.id}');
     } catch (e) {
       throw Exception('Error actualizando reserva: $e');
     }
@@ -111,7 +111,7 @@ class FirestoreService {
         date: bookingData['date'],
         timeSlot: bookingData['timeSlot'],
         players: players,
-        status: BookingStatus.incomplete, // No importa, se recalcularÃ¡
+        status: BookingStatus.incomplete, // No importa, se recalculará
       );
       
       final newStatus = tempBooking.calculatedStatus;
@@ -137,7 +137,7 @@ class FirestoreService {
   static Future<void> deleteBooking(String bookingId) async {
     try {
       await _firestore.collection('bookings').doc(bookingId).delete();
-      print('âœ… Reserva eliminada: $bookingId');
+      print('✅ Reserva eliminada: $bookingId');
     } catch (e) {
       print('âŒ Error eliminando reserva: $e');
       throw Exception('Error eliminando reserva: $e');
@@ -171,7 +171,7 @@ class FirestoreService {
           updatedAt: data['updatedAt']?.toDate(),
         );
                 
-        // Verificar si el usuario estÃ¡ en la reserva (como organizador o jugador)
+        // Verificar si el usuario está en la reserva (como organizador o jugador)
         final isUserInBooking = booking.players.any((player) => 
           (player.email?.toLowerCase() ?? '') == userEmail.toLowerCase()
         );
@@ -200,3 +200,5 @@ class FirestoreService {
     }
   }
 }
+
+

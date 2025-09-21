@@ -1,23 +1,23 @@
-// lib/core/theme/app_theme.dart
+﻿// lib/core/theme/app_theme.dart
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
-// ═══════════════════════════════════════════════════════════════════════════════
-// COLORES DE LA APLICACIÓN - TENIS (TIERRA BATIDA)
-// ═══════════════════════════════════════════════════════════════════════════════
+// â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+// COLORES DE LA APLICACIÃ“N - TENIS (TIERRA BATIDA)
+// â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
 abstract class AppColors {
-  // Colores principales - TENIS (Tierra Batida) 🎾
-  static const Color primaryBlue = Color(0xFFD2691E);        // 🏆 TIERRA BATIDA AUTÉNTICA (era café)
-  static const Color primaryBlueLight = Color(0xFFFFF8DC);   // 🏺 Cornsilk claro (era café claro)
-  static const Color primaryBlueDark = Color(0xFFB8860B);    // 🥉 Dark Goldenrod (era café oscuro)
-  static const Color primaryBlueBorder = Color(0xFFDEB887);  // 🍂 Burlywood borde (era café borde)
+  // Colores principales - TENIS (Tierra Batida) ðŸŽ¾
+  static const Color primaryBlue = Color(0xFFD2691E);        // ðŸ† TIERRA BATIDA AUTÃ‰NTICA (era café)
+  static const Color primaryBlueLight = Color(0xFFFFF8DC);   // ðŸº Cornsilk claro (era café claro)
+  static const Color primaryBlueDark = Color(0xFFB8860B);    // ðŸ¥‰ Dark Goldenrod (era café oscuro)
+  static const Color primaryBlueBorder = Color(0xFFDEB887);  // ðŸ‚ Burlywood borde (era café borde)
   
   // Colores de estado para reservas
   static const Color available = Color(0xFFF3E5AB);          // Beige disponible (mantener)
   static const Color availableBorder = Color(0xFFD4AF37);    // Dorado claro borde (mantener)
   static const Color availableText = Color(0xFF3A3A3C);
-  static const Color reserved = Color(0xFFD2691E);           // 🎾 TIERRA BATIDA reservado
-  static const Color reservedBorder = Color(0xFFB8860B);     // 🎾 Dark Goldenrod borde
+  static const Color reserved = Color(0xFFD2691E);           // ðŸŽ¾ TIERRA BATIDA reservado
+  static const Color reservedBorder = Color(0xFFB8860B);     // ðŸŽ¾ Dark Goldenrod borde
   static const Color reservedText = Colors.white;
   static const Color incomplete = Color(0xFFFFFACD);         // Mantener amarillo
   static const Color incompleteBorder = Color(0xFFDAA520);   // Mantener borde dorado
@@ -27,7 +27,7 @@ abstract class AppColors {
   static const Color success = Color(0xFF34C759);
   static const Color warning = Color(0xFFFF9500);
   static const Color error = Color(0xFFFF3A30);
-  static const Color info = primaryBlue;                     // 🎾 Ahora tierra batida
+  static const Color info = primaryBlue;                     // ðŸŽ¾ Ahora tierra batida
   
   // Grises (sin cambios)
   static const Color darkGray = Color(0xFF3A3A3C);
@@ -49,9 +49,9 @@ abstract class AppColors {
   static const Color plaiyaColor = Color(0xFF4CAF50); // Verde
 }
 
-// ═══════════════════════════════════════════════════════════════════════════════
-// TAMAÑOS Y ESPACIADO
-// ═══════════════════════════════════════════════════════════════════════════════
+// â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+// TAMAÃ‘OS Y ESPACIADO
+// â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
 abstract class AppSizes {
   // Sistema base de 8px
   static const double base = 8.0;
@@ -96,9 +96,9 @@ abstract class AppSizes {
   static const double maxCardWidth = 400.0;
 }
 
-// ═══════════════════════════════════════════════════════════════════════════════
+// â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
 // ESTILOS DE TEXTO
-// ═══════════════════════════════════════════════════════════════════════════════
+// â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
 abstract class AppTextStyles {
   // Familia de fuente base
   static const String fontFamily = 'SF Pro Display';
@@ -209,9 +209,9 @@ abstract class AppTextStyles {
   );
 }
 
-// ═══════════════════════════════════════════════════════════════════════════════
+// â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
 // ANIMACIONES
-// ═══════════════════════════════════════════════════════════════════════════════
+// â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
 abstract class AppAnimations {
   // Duraciones
   static const Duration instant = Duration(milliseconds: 0);
@@ -228,9 +228,9 @@ abstract class AppAnimations {
   static const Curve smooth = Curves.easeInOut;
 }
 
-// ═══════════════════════════════════════════════════════════════════════════════
+// â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
 // SOMBRAS
-// ═══════════════════════════════════════════════════════════════════════════════
+// â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
 abstract class AppShadows {
   static List<BoxShadow> get none => [];
   
@@ -267,9 +267,9 @@ abstract class AppShadows {
   ];
 }
 
-// ═══════════════════════════════════════════════════════════════════════════════
+// â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
 // TEMA PRINCIPAL
-// ═══════════════════════════════════════════════════════════════════════════════
+// â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
 class AppTheme {
   static ThemeData get lightTheme {
     return ThemeData(
@@ -637,9 +637,9 @@ class AppTheme {
   }
 }
 
-// ═══════════════════════════════════════════════════════════════════════════════
-// MÉTODOS UTILITARIOS PARA COLORES
-// ═══════════════════════════════════════════════════════════════════════════════
+// â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+// MÃ‰TODOS UTILITARIOS PARA COLORES
+// â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
 extension AppColorsExtension on AppColors {
   /// Obtiene el color según el rol del usuario
   static Color getRoleColor(String role) {
@@ -688,9 +688,9 @@ extension AppColorsExtension on AppColors {
   }
 }
 
-// ═══════════════════════════════════════════════════════════════════════════════
+// â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
 // RESPONSIVE UTILITIES
-// ═══════════════════════════════════════════════════════════════════════════════
+// â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
 extension ResponsiveUtils on BuildContext {
   /// Verifica si es móvil
   bool get isMobile => MediaQuery.of(this).size.width < 768;
@@ -725,3 +725,4 @@ extension ResponsiveUtils on BuildContext {
     return 3;
   }
 }
+

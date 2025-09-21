@@ -36,8 +36,8 @@ class _GolfReservationsPageState extends State<GolfReservationsPage> {
     WidgetsBinding.instance.addPostFrameCallback((_) {
       final provider = context.read<BookingProvider>();
       
-      // CAMBIAR: En lugar del mÃ©todo anterior
-      provider.initializeGolfDates(); // Usar la nueva lÃ³gica de ventana deslizante
+      // CAMBIAR: En lugar del método anterior
+      provider.initializeGolfDates(); // Usar la nueva lógica de ventana deslizante
       
       provider.fetchUsers();
       provider.selectCourt('golf_tee_1');
@@ -59,7 +59,7 @@ class _GolfReservationsPageState extends State<GolfReservationsPage> {
         builder: (context, bookingProvider, child) {
           return Column(
             children: [
-              // Header con navegaciÃ³n de fechas
+              // Header con navegación de fechas
               DateNavigationHeader(
                 title: 'Golf',
                 selectedDate: bookingProvider.selectedDate,
@@ -76,7 +76,7 @@ class _GolfReservationsPageState extends State<GolfReservationsPage> {
                 onDateTap: () => _showDateSelector(context, bookingProvider),
               ),
 
-              // EstadÃ­sticas compactas
+              // Estadísticas compactas
               AnimatedCompactStats(
                 bookings: bookingProvider.currentBookings,
               ),
@@ -163,12 +163,12 @@ class _GolfReservationsPageState extends State<GolfReservationsPage> {
         Expanded(
           child: Column(
             children: [
-              // Header Hoyo 1 - Verde estÃ¡ndar
+              // Header Hoyo 1 - Verde estándar
               Container(
                 padding: const EdgeInsets.all(12),
                 margin: const EdgeInsets.symmetric(horizontal: 8),
                 decoration: BoxDecoration(
-                  color: Color(0xFF4CAF50), // Verde estÃ¡ndar mÃ¡s contrastante
+                  color: Color(0xFF4CAF50), // Verde estándar más contrastante
                   borderRadius: BorderRadius.circular(8),
                 ),
                 child: Row(
@@ -243,7 +243,7 @@ class _GolfReservationsPageState extends State<GolfReservationsPage> {
     );
   }
 
-  // Nuevo mÃ©todo en la clase _GolfReservationsPageState
+  // Nuevo método en la clase _GolfReservationsPageState
   Widget _buildAddPlayerModal(BuildContext context, List<BookingPlayer> allUsers, List<BookingPlayer> bookedPlayers) {
     final bookedPlayerIds = bookedPlayers.map((p) => p.id).toSet();
     final availablePlayers = allUsers.where((user) => !bookedPlayerIds.contains(user.id)).toList();
@@ -308,7 +308,7 @@ class _GolfReservationsPageState extends State<GolfReservationsPage> {
       itemBuilder: (context, index) {
         final timeSlot = availableSlots[index];
         
-        // BÃºsqueda directa sin filtros previos
+        // Búsqueda directa sin filtros previos
         Booking? booking;
         for (var b in provider.bookings) {  // Usar bookings en lugar de currentBookings
           if (b.courtId == hoyoId && 
@@ -329,7 +329,7 @@ class _GolfReservationsPageState extends State<GolfReservationsPage> {
           // PERF: // PERF: print('DEBUG booking != null}');
         }
 
-        // Determinar nÃºmero de jugadores
+        // Determinar número de jugadores
         int playerCount = 0;
         BookingStatus? status;
         List<BookingPlayer> players = [];
@@ -374,7 +374,7 @@ class _GolfReservationsPageState extends State<GolfReservationsPage> {
                   
                   const SizedBox(height: 4),
                   
-                  // Estado/AcciÃ³n
+                  // Estado/Acción
                   if (playerCount == 4)
                     GestureDetector(
                       onTap: () => _showCompleteSlotInfo(context, booking!),
@@ -417,17 +417,17 @@ class _GolfReservationsPageState extends State<GolfReservationsPage> {
                           ),
                           const SizedBox(height: 4),
                         ],
-                        // Reemplaza el GestureDetector que estÃ¡ en el bloque 'else'
+                        // Reemplaza el GestureDetector que está en el bloque 'else'
                         GestureDetector(
                           onTap: () {
                             if (playerCount == 0) {
-                              // Slot vacÃ­o - crear nueva reserva
+                              // Slot vacío - crear nueva reserva
                               _handleReserveSlot(context, hoyoId, timeSlot);
                             } else if (playerCount < 4) {
                               // Slot incompleto - usar el modal mejorado para unirse
                               _handleSlotTap(context, booking!);
                             } else {
-                              // Slot completo - mostrar informaciÃ³n detallada
+                              // Slot completo - mostrar información detallada
                               _showCompleteSlotInfo(context, booking!);
                             }
                           },
@@ -458,7 +458,7 @@ class _GolfReservationsPageState extends State<GolfReservationsPage> {
     );
   }
 
-  // Colores especÃ­ficos para golf
+  // Colores específicos para golf
   Color _getGolfSlotBackgroundColor(int playerCount, bool isSuspended) {
     if (isSuspended) {
       return Colors.grey[100]!;
@@ -654,7 +654,7 @@ class _GolfReservationsPageState extends State<GolfReservationsPage> {
                     mainAxisSize: MainAxisSize.min,
                     children: [
                       Text(
-                        'Ver reservas de maÃ±ana',
+                        'Ver reservas de mañana',
                         style: TextStyle(
                           color: Colors.white,
                           fontSize: 16,
@@ -689,7 +689,7 @@ class _GolfReservationsPageState extends State<GolfReservationsPage> {
 
   String _getDayName(DateTime date) {
     const days = [
-      '', 'Lunes', 'Martes', 'MiÃ©rcoles', 'Jueves', 'Viernes', 'SÃ¡bado', 'Domingo'
+      '', 'Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado', 'Domingo'
     ];
     return days[date.weekday];
   }
@@ -701,13 +701,13 @@ class _GolfReservationsPageState extends State<GolfReservationsPage> {
   void _handleAddReservation(BuildContext context) {
     ScaffoldMessenger.of(context).showSnackBar(
       const SnackBar(
-        content: Text('FunciÃ³n de agregar reserva prÃ³ximamente'),
+        content: Text('Función de agregar reserva próximamente'),
         backgroundColor: GolfColors.primaryGreen,
       ),
     );
   }
 
-  /// MÃ©todo principal - Muestra el modal de reservas para golf
+  /// Método principal - Muestra el modal de reservas para golf
   void _handleReserveSlot(BuildContext context, String hoyoId, String timeSlot) async {
     final provider = context.read<BookingProvider>();
     
@@ -729,7 +729,7 @@ class _GolfReservationsPageState extends State<GolfReservationsPage> {
   Future<void> _handleAddPlayerToBooking(BuildContext context, Booking booking) async {
     final provider = context.read<BookingProvider>();
 
-    // âœ… 1. Primero, asegura que los datos estÃ©n cargados antes de cualquier navegaciÃ³n
+    // ✅ 1. Primero, asegura que los datos estén cargados antes de cualquier navegación
     if (provider.users == null || provider.users!.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
@@ -738,7 +738,7 @@ class _GolfReservationsPageState extends State<GolfReservationsPage> {
       );
       await provider.fetchUsers();
       
-      // Si la carga sigue fallando, notifica y detÃ©n
+      // Si la carga sigue fallando, notifica y detén
       if (provider.users == null || provider.users!.isEmpty) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
@@ -749,17 +749,17 @@ class _GolfReservationsPageState extends State<GolfReservationsPage> {
       }
     }
 
-    // âœ… 2. Abre el modal de forma segura, esperando a que el usuario interactÃºe
+    // ✅ 2. Abre el modal de forma segura, esperando a que el usuario interactúe
     final selectedPlayer = await showDialog<BookingPlayer>(
       context: context,
       builder: (context) => _buildAddPlayerModal(context, provider.users!, booking.players)
     );
     
-    // âœ… 3. Si se selecciona un jugador, realiza la acciÃ³n y muestra un mensaje
+    // ✅ 3. Si se selecciona un jugador, realiza la acción y muestra un mensaje
     if (selectedPlayer != null) {
       await provider.addPlayerToBooking(booking.id!, selectedPlayer.id, selectedPlayer.name);
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Jugador agregado con Ã©xito'))
+        const SnackBar(content: Text('Jugador agregado con éxito'))
       );
     }
   }
@@ -768,7 +768,7 @@ class _GolfReservationsPageState extends State<GolfReservationsPage> {
     return '${date.year}-${date.month.toString().padLeft(2, '0')}-${date.day.toString().padLeft(2, '0')}';
   }
 
-// MÃ©todo para terminar despliegue de pantalla para 'hoy'
+// Método para terminar despliegue de pantalla para 'hoy'
 DateTime _getSmartInitialDate() {
   final now = DateTime.now();
   final lastSlot = GolfConstants.DEFAULT_TIME_SLOTS.last;
@@ -781,7 +781,7 @@ DateTime _getSmartInitialDate() {
   return now.isAfter(lastSlotToday) ? now.add(Duration(days: 1)) : now;
 }
 
-// MÃ©todo mejorado para slots incompletos
+// Método mejorado para slots incompletos
 Future<void> _handleSlotTap(BuildContext context, Booking booking) async {
   final currentPlayers = booking.players.map((player) => ' ${player.name}').join('\n');
   final remainingSlots = 4 - booking.players.length - 1;
@@ -800,7 +800,7 @@ Future<void> _handleSlotTap(BuildContext context, Booking booking) async {
         mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // InformaciÃ³n del slot
+          // Información del slot
           Container(
             padding: EdgeInsets.all(12),
             decoration: BoxDecoration(
@@ -844,7 +844,7 @@ Future<void> _handleSlotTap(BuildContext context, Booking booking) async {
           ),
           SizedBox(height: 16),
           
-          // InformaciÃ³n de espacios disponibles
+          // Información de espacios disponibles
           Container(
             padding: EdgeInsets.all(8),
             decoration: BoxDecoration(
@@ -857,7 +857,7 @@ Future<void> _handleSlotTap(BuildContext context, Booking booking) async {
                 SizedBox(width: 8),
                 Expanded(
                   child: Text(
-                    'QuedarÃ¡n $remainingSlots espacio${remainingSlots > 1 ? 's' : ''} disponible${remainingSlots > 1 ? 's' : ''} despuÃ©s de unirte',
+                    'Quedarán $remainingSlots espacio${remainingSlots > 1 ? 's' : ''} disponible${remainingSlots > 1 ? 's' : ''} después de unirte',
                     style: TextStyle(fontSize: 12, color: Colors.blue[800]),
                   ),
                 ),
@@ -904,7 +904,7 @@ Future<void> _handleSlotTap(BuildContext context, Booking booking) async {
       // Agregar jugador
       await provider.addPlayerToBooking(booking.id!, userEmail, userName);
       
-      // AGREGAR: EnvÃ­o de correo de confirmaciÃ³n
+      // AGREGAR: Envío de correo de confirmación
       try {
         // Obtener la reserva actualizada para el correo
         final updatedBooking = provider.bookings.firstWhere((b) => b.id == booking.id);
@@ -915,13 +915,13 @@ Future<void> _handleSlotTap(BuildContext context, Booking booking) async {
       }
       
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('$userName se uniÃ³ a la reserva con Ã©xito')),
+        SnackBar(content: Text('$userName se unió a la reserva con éxito')),
       );
     }
   }
 }
 
-// Nuevo mÃ©todo para mostrar informaciÃ³n de slots completos
+// Nuevo método para mostrar información de slots completos
 void _showCompleteSlotInfo(BuildContext context, Booking booking) {
   final playersList = booking.players.map((player) => ' ${player.name}').join('\n');
   
@@ -939,7 +939,7 @@ void _showCompleteSlotInfo(BuildContext context, Booking booking) {
         mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // InformaciÃ³n del slot
+          // Información del slot
           Container(
             padding: EdgeInsets.all(12),
             decoration: BoxDecoration(
@@ -996,7 +996,7 @@ void _showCompleteSlotInfo(BuildContext context, Booking booking) {
                 Icon(Icons.check_circle, size: 16, color: Colors.green[600]),
                 SizedBox(width: 8),
                 Text(
-                  'Esta reserva estÃ¡ confirmada y completa',
+                  'Esta reserva está confirmada y completa',
                   style: TextStyle(fontSize: 12, color: Colors.green[800]),
                 ),
               ],
@@ -1018,3 +1018,5 @@ void _showCompleteSlotInfo(BuildContext context, Booking booking) {
   );
 }
 }
+
+

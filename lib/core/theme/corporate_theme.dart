@@ -1,4 +1,4 @@
-// lib/core/theme/corporate_theme.dart
+﻿// lib/core/theme/corporate_theme.dart
 import 'package:flutter/material.dart';
 import '../constants/app_constants.dart';
 
@@ -379,3 +379,4 @@ class CorporateCard extends StatelessWidget {
     );
   }
 }
+

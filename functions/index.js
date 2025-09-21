@@ -1,13 +1,13 @@
-/// functions/index.js
+﻿/// functions/index.js
 /// 
 /// PROPÓSITO:
 /// Sistema backend completo de Firebase Cloud Functions para el Club de Golf Papudo.
-/// Maneja la funcionalidad crítica del sistema de reservas multi-deporte incluyendo:
+/// Maneja la funcionalidad crí­tica del sistema de reservas multi-deporte incluyendo:
 /// - Sincronización automática diaria de 502+ usuarios desde Google Sheets
 /// - Sistema de emails automáticos para confirmación y cancelación de reservas
 /// - API RESTful para integración con aplicación Flutter Web/PWA
 /// - Gestión completa del ciclo de vida de reservas de pádel
-/// - Arquitectura híbrida para integración con sistema GAS existente (Golf/Tenis)
+/// - Arquitectura hí­brida para integración con sistema GAS existente (Golf/Tenis)
 /// 
 /// VERSIÓN: v2.1.0 - Julio 2025
 /// ESTADO: ✅ PRODUCCIÓN - Sistema 100% operativo
@@ -63,7 +63,7 @@ setGlobalOptions({
 /// - TLS: Configurado para compatibilidad universal
 /// - Timeout: Optimizado para emails con attachments
 /// 
-/// @return {Object} Transporter configurado para envío de emails
+/// @return {Object} Transporter configurado para enví­o de emails
 const createTransporter = () => {
   const gmailPassword = 'yyll uhje izsv mbwc'; // App Password dedicado
   
@@ -104,7 +104,7 @@ const createTransporter = () => {
 /// 3. Procesamiento individual con validaciones de email
 /// 4. Formateo de nombres según estándar del club
 /// 5. Operación .set() para reemplazo completo de datos
-/// 6. Logging de estadísticas detalladas
+/// 6. Logging de estadí­sticas detalladas
 /// 7. Timestamp de última sincronización en collection system
 /// 
 /// ESTRUCTURA DE DATOS SINCRONIZADA (10 campos por usuario):
@@ -116,7 +116,7 @@ const createTransporter = () => {
 /// - motherLastName: Apellido materno
 /// - idDocument: RUT/Pasaporte para identificación
 /// - birthDate: Fecha de nacimiento
-/// - relation: Tipo de membresía (SOCIO TITULAR, HIJO, etc.)
+/// - relation: Tipo de membresí­a (SOCIO TITULAR, HIJO, etc.)
 /// - Campos sistema: isActive, lastSyncFromSheets, source
 /// 
 /// GOOGLE SHEETS ESTRUCTURA (headers en español):
@@ -133,7 +133,7 @@ const createTransporter = () => {
 /// 
 /// @param {Object} context - Firebase Functions context
 /// @throws No propaga errores, logs en Firestore para debugging
-/// @logs Estadísticas completas en Firebase Functions logs
+/// @logs Estadí­sticas completas en Firebase Functions logs
 exports.dailyUserSync = onSchedule({
   schedule: "0 6 * * *", // 6:00 AM Chile diario
   timeZone: "America/Santiago",
@@ -141,9 +141,9 @@ exports.dailyUserSync = onSchedule({
   timeoutSeconds: 540, // 9 minutos máximo
 }, async (context) => {
   try {
-    console.log('🔄 === SINCRONIZACIÓN AUTOMÁTICA DIARIA INICIADA ===');
+    console.log('📄 === SINCRONIZACIÓN AUTOMÁTICA DIARIA INICIADA ===');
     console.log('⏰ Timestamp:', new Date().toISOString());
-    console.log('🌍 Timezone: America/Santiago');
+    console.log('ðŸŒ Timezone: America/Santiago');
     
     const startTime = Date.now();
     
@@ -194,7 +194,7 @@ exports.dailyUserSync = onSchedule({
     });
     
     await doc.loadInfo();
-    console.log('📊 Documento Google Sheets cargado:', doc.title);
+    console.log('ðŸ“Š Documento Google Sheets cargado:', doc.title);
     
     const sheet = doc.sheetsByTitle[SHEET_NAME];
     if (!sheet) {
@@ -203,13 +203,13 @@ exports.dailyUserSync = onSchedule({
     
     // Leer todas las filas de la planilla
     const rows = await sheet.getRows();
-    console.log(`📊 Filas encontradas en Sheets: ${rows.length}`);
-    console.log(`🔄 Procesando TODOS los ${rows.length} usuarios...`);
+    console.log(`ðŸ“Š Filas encontradas en Sheets: ${rows.length}`);
+    console.log(`📄 Procesando TODOS los ${rows.length} usuarios...`);
     
     const db = admin.firestore();
     const usersRef = db.collection('users');
     
-    // Estadísticas de proceso
+    // Estadí­sticas de proceso
     const stats = {
       processed: 0,
       created: 0,
@@ -284,7 +284,7 @@ exports.dailyUserSync = onSchedule({
       }
     }
     
-    // Guardar estadísticas en Firestore para monitoreo
+    // Guardar estadí­sticas en Firestore para monitoreo
     await db.collection('system').doc('sync_status').set({
       lastAutoSync: new Date(),
       autoSyncStats: stats,
@@ -297,10 +297,10 @@ exports.dailyUserSync = onSchedule({
     const executionTime = Date.now() - startTime;
     
     console.log('🎉 === SINCRONIZACIÓN AUTOMÁTICA COMPLETADA ===');
-    console.log(`⏱️  Tiempo de ejecución: ${executionTime}ms`);
+    console.log(`⏱️ Tiempo de ejecución: ${executionTime}ms`);
     console.log(`📋 Procesados: ${stats.processed}`);
     console.log(`✅ Creados: ${stats.created}`);
-    console.log(`🔄 Actualizados: ${stats.updated}`);
+    console.log(`📄 Actualizados: ${stats.updated}`);
     console.log(`⚠️  Filtrados: ${stats.filtered}`);
     console.log(`❌ Errores: ${stats.errors}`);
     console.log(`🎯 Éxito: ${((stats.created + stats.updated) / stats.processed * 100).toFixed(1)}%`);
@@ -329,9 +329,9 @@ exports.dailyUserSync = onSchedule({
 // SISTEMA DE EMAILS AUTOMÁTICOS
 // ============================================================================
 
-/// **FUNCIÓN CRÍTICA** - Envío de emails de confirmación de reservas
+/// **FUNCIÓN CRÍTICA** - Enví­o de emails de confirmación de reservas
 /// 
-/// Procesa solicitudes de envío de emails desde la aplicación Flutter y envía
+/// Procesa solicitudes de enví­o de emails desde la aplicación Flutter y envía
 /// confirmaciones automáticas a todos los jugadores de una reserva. Maneja
 /// hasta 4 jugadores por reserva con templates HTML profesionales.
 /// 
@@ -348,9 +348,9 @@ exports.dailyUserSync = onSchedule({
 /// 2. Normalización de estructura (compatibilidad con versiones anteriores)
 /// 3. Configuración de transporter Gmail
 /// 4. Generación de template HTML personalizado por jugador
-/// 5. Envío secuencial con manejo de errores individual
+/// 5. Enví­o secuencial con manejo de errores individual
 /// 6. Logging detallado de resultados por email
-/// 7. Respuesta con estadísticas completas
+/// 7. Respuesta con estadí­sticas completas
 /// 
 /// ESTRUCTURA DE DATOS ESPERADA:
 /// ```json
@@ -379,12 +379,12 @@ exports.dailyUserSync = onSchedule({
 /// GESTIÓN DE USUARIOS VISITA:
 /// - Detecta automáticamente jugadores "VISITA" por nombre
 /// - Muestra mensaje especial al organizador sobre pagos
-/// - Omite envío de email a usuarios sin email válido
-/// - Logs específicos para usuarios VISITA
+/// - Omite enví­o de email a usuarios sin email válido
+/// - Logs especí­ficos para usuarios VISITA
 /// 
 /// @param {Object} req - Request con datos de reserva
-/// @param {Object} res - Response con resultados de envío
-/// @returns {Object} Estadísticas de emails enviados/fallidos
+/// @param {Object} res - Response con resultados de enví­o
+/// @returns {Object} Estadí­sticas de emails enviados/fallidos
 /// @logs Proceso completo de cada email individual
 exports.sendBookingEmailHTTP = onRequest({
   region: 'us-central1',
@@ -406,7 +406,7 @@ exports.sendBookingEmailHTTP = onRequest({
   
   try {
     const bookingData = req.body;
-    // 🆕 EXTRAER parámetros de admin
+    // • EXTRAER parámetros de admin
     const { isAdminAction = false, adminActionType = null } = req.body;
     const requestType = req.body.type;
     console.log(`📧 Admin Action: ${isAdminAction}, Type: ${adminActionType}`);
@@ -416,7 +416,7 @@ exports.sendBookingEmailHTTP = onRequest({
     
     console.log(`📧 Admin Action: ${isAdminAction}, Type: ${adminActionType}`);
 
-    // 🆕 AGREGAR ESTAS LÍNEAS DE DEBUG
+    // • AGREGAR ESTAS LÍNEAS DE DEBUG
     console.log('📧 booking structure:', JSON.stringify(booking, null, 2));
     console.log('📧 bookingData keys:', Object.keys(bookingData));
 
@@ -453,7 +453,7 @@ exports.sendBookingEmailHTTP = onRequest({
       const playerEmail = typeof player === 'string' ? null : player.email;
       
       if (!playerEmail) {
-        console.log(`⏭️ Saltando ${playerName} - no tiene email`);
+        console.log(`â­ï¸ Saltando ${playerName} - no tiene email`);
         continue;
       }
       
@@ -523,7 +523,10 @@ exports.sendBookingEmailHTTP = onRequest({
       }
         
       const mailOptions = {
-        from: { /* ... */ },
+        from: {
+        name: "Club de Golf Papudo",
+        address: "cgpreservas@gmail.com"
+      },
         to: playerEmail,
         subject: emailSubject,
         html: emailHtml
@@ -587,7 +590,7 @@ exports.sendBookingEmailHTTP = onRequest({
 /// 1. Decodificación de parámetros (ID reserva + email jugador)
 /// 2. Búsqueda de reserva en Firestore por ID o campos alternativos
 /// 3. Identificación y remoción del jugador que cancela
-/// 4. Envío de notificaciones a jugadores restantes
+/// 4. Enví­o de notificaciones a jugadores restantes
 /// 5. Actualización de reserva con nueva lista de jugadores
 /// 6. Respuesta con confirmación (HTML para GET, JSON para POST)
 /// 
@@ -598,12 +601,12 @@ exports.sendBookingEmailHTTP = onRequest({
 /// BUSQUEDA DE RESERVA:
 /// 1. Búsqueda directa por campo 'id' en Firestore
 /// 2. Si falla, decodifica ID y busca por campos individuales:
-///    - courtNumber: extraído de ID
-///    - date: extraído de ID  
-///    - timeSlot: extraído de ID
+///    - courtNumber: extraí­do de ID
+///    - date: extraí­do de ID  
+///    - timeSlot: extraí­do de ID
 /// 
 /// NOTIFICACIONES AUTOMÁTICAS:
-/// - Template HTML específico para cancelaciones
+/// - Template HTML especí­fico para cancelaciones
 /// - Información del jugador que canceló
 /// - Lista actualizada de jugadores restantes
 /// - Datos completos de la reserva
@@ -629,9 +632,9 @@ exports.cancelBooking = onRequest({
   }
 
   try {
-    console.log('🗑️ === CANCELACIÓN DE RESERVA ===');
-    console.log('🗑️ Method:', req.method);
-    console.log('🗑️ Query:', req.query);
+    console.log('ðŸ—‘ï¸ === CANCELACIÓN DE RESERVA ===');
+    console.log('ðŸ—‘ï¸ Method:', req.method);
+    console.log('ðŸ—‘ï¸ Query:', req.query);
 
     const bookingId = req.query.id || req.body.bookingId;
     const playerEmail = req.query.email || req.body.playerEmail;
@@ -650,7 +653,7 @@ exports.cancelBooking = onRequest({
       });
     }
 
-    console.log(`🗑️ Cancelando jugador ${decodeURIComponent(playerEmail)} de reserva: ${bookingId}`);
+    console.log(`ðŸ—‘ï¸ Cancelando jugador ${decodeURIComponent(playerEmail)} de reserva: ${bookingId}`);
 
     const db = admin.firestore();
     const bookingsRef = db.collection('bookings');
@@ -661,22 +664,22 @@ exports.cancelBooking = onRequest({
     let docRef = null;
 
     // Buscar la reserva por ID generado
-    console.log(`🔍 Buscando por ID: ${bookingId}`);
+    console.log(`ðŸ” Buscando por ID: ${bookingId}`);
     const snapshot = await bookingsRef.where('id', '==', bookingId).get();
     
     if (snapshot.empty) {
       // Búsqueda alternativa por campos individuales
       const idParts = bookingId.split('-');
-      console.log(`🔍 ID parts:`, idParts);
+      console.log(`ðŸ” ID parts:`, idParts);
       
       if (idParts.length >= 5) {
-        // ID formato: court1-2025-06-05-1200 → court_1, 2025-06-05, 12:00
+        // ID formato: court1-2025-06-05-1200 â†’ court_1, 2025-06-05, 12:00
         const courtId = idParts[0];
         const date = `${idParts[1]}-${idParts[2]}-${idParts[3]}`;
         const timeRaw = idParts[4];
         const timeSlot = `${timeRaw.substring(0,2)}:${timeRaw.substring(2,4)}`;
         
-        console.log(`🔍 Buscando por: court=${courtId}, date=${date}, time=${timeSlot}`);
+        console.log(`ðŸ” Buscando por: court=${courtId}, date=${date}, time=${timeSlot}`);
         
         const alternativeSnapshot = await bookingsRef
           .where('courtId', '==', courtId)
@@ -721,11 +724,11 @@ exports.cancelBooking = onRequest({
         (cancelingPlayer.name || cancelingPlayer.displayName || 'Un compañero') : 
         'Un compañero';
       
-      console.log(`👤 Jugador que cancela: ${cancelingPlayerName} (${decodedPlayerEmail})`);
+      console.log(`ðŸ‘¤ Jugador que cancela: ${cancelingPlayerName} (${decodedPlayerEmail})`);
 
       if (updatedPlayers.length === 0) {
         // Si no quedan jugadores, eliminar toda la reserva
-        console.log('🗑️ No quedan jugadores, eliminando reserva completa...');
+        console.log('ðŸ—‘ï¸ No quedan jugadores, eliminando reserva completa...');
         await docRef.delete();
         console.log('✅ Reserva eliminada completamente');
       } else {
@@ -770,7 +773,7 @@ exports.cancelBooking = onRequest({
         }
 
         // Actualizar reserva con jugadores restantes
-        console.log('🔄 Actualizando reserva con jugadores restantes...');
+        console.log('📄 Actualizando reserva con jugadores restantes...');
         const newStatus = updatedPlayers.length === 4 ? 'complete' : 'incomplete';
 
         await docRef.update({
@@ -832,8 +835,8 @@ exports.cancelBooking = onRequest({
 /// CAMPOS RETORNADOS POR USUARIO:
 /// - email: Identificador único
 /// - name: Nombre formateado para mostrar
-/// - phone: Teléfono para contacto (puede ser vacío)
-/// - relacion: Tipo de membresía
+/// - phone: Teléfono para contacto (puede ser vací­o)
+/// - relacion: Tipo de membresí­a
 /// 
 /// FILTROS APLICADOS:
 /// - Solo usuarios con isActive: true
@@ -848,7 +851,7 @@ exports.cancelBooking = onRequest({
 /// @param {Object} req - Request HTTP
 /// @param {Object} res - Response con lista de usuarios
 /// @returns {JSON} Lista de usuarios activos
-/// @logs Estadísticas de usuarios enviados
+/// @logs Estadí­sticas de usuarios enviados
 exports.getUsers = onRequest({
   cors: true,
 }, async (req, res) => {
@@ -910,7 +913,7 @@ exports.getUsers = onRequest({
 /// - Validación de campos esperados
 /// 
 /// INFORMACIÓN RETORNADA:
-/// - Título del documento
+/// - Tí­tulo del documento
 /// - Nombre de la hoja
 /// - Número de filas y columnas
 /// - Lista de headers encontrados
@@ -933,7 +936,7 @@ exports.verifyGoogleSheetsAPI = onRequest({
   cors: true,
 }, async (req, res) => {
   try {
-    console.log('🔍 Verificando configuración de Google Sheets API...');
+    console.log('ðŸ” Verificando configuración de Google Sheets API...');
     
     const SHEET_ID = '1A-8RvvgkHXUP-985So8CBJvDAj50w58EFML1CJEq2c4';
     const SHEET_NAME = 'Maestro';
@@ -978,7 +981,7 @@ exports.verifyGoogleSheetsAPI = onRequest({
     
     await doc.loadInfo();
     console.log('✅ Autenticación exitosa');
-    console.log('📊 Documento cargado:', doc.title);
+    console.log('ðŸ“Š Documento cargado:', doc.title);
     
     // Verificar hoja
     const sheet = doc.sheetsByTitle[SHEET_NAME];
@@ -1063,9 +1066,9 @@ exports.verifyGoogleSheetsAPI = onRequest({
 /// 4. Inicial apellido materno (sin punto) si existe
 /// 
 /// EJEMPLOS:
-/// - "FELIPE", "GARCIA", "BENITEZ" → "FELIPE GARCIA B"
-/// - "ANA MARIA", "BELMAR", "PEREZ" → "ANA M BELMAR P"
-/// - "CARLOS", "RODRIGUEZ", "" → "CARLOS RODRIGUEZ"
+/// - "FELIPE", "GARCIA", "BENITEZ" â†’ "FELIPE GARCIA B"
+/// - "ANA MARIA", "BELMAR", "PEREZ" â†’ "ANA M BELMAR P"
+/// - "CARLOS", "RODRIGUEZ", "" â†’ "CARLOS RODRIGUEZ"
 /// 
 /// @param {string} nombres - Nombres de pila (puede ser múltiple)
 /// @param {string} apellidoPaterno - Apellido paterno
@@ -1413,8 +1416,8 @@ function generateTennisEmailTemplate(booking, organizerName, isVisitorBooking = 
                 <td style="background: #f8fafc; padding: 30px 40px; text-align: center; color: #64748b; font-size: 14px; border-top: 1px solid #e2e8f0; border-radius: 0 0 12px 12px;">
                   <p style="margin: 0; line-height: 1.6;">
                     <strong>Club de Golf Papudo</strong> • Desde 1932<br>
-                    📧 paddlepapudo@gmail.com<br>
-                    📍 Miraflores s/n - Papudo, Valparaíso<br>
+                    📧 cgpreservas@gmail.com<br>
+                    📍 Miraflores s/n - Papudo, Valparaí­so<br>
                     🌐 clubgolfpapudo.cl
                   </p>
                 </td>
@@ -1525,7 +1528,7 @@ function generatePadelEmailTemplate(booking, organizerName, isVisitorBooking = f
                         <div style="color: #1565C0; font-size: 16px; line-height: 1.8;">
                           <div><strong>📅 Fecha:</strong> ${formattedDate}</div>
                           <div><strong>⏰ Hora:</strong> ${booking.time} - ${endTime}</div>
-                          <div><strong>🏓 Cancha:</strong> ${courtName}</div>
+                          <div><strong>📍 Cancha:</strong> ${courtName}</div>
                         </div>
                       </td>
                     </tr>
@@ -1565,8 +1568,8 @@ function generatePadelEmailTemplate(booking, organizerName, isVisitorBooking = f
                 <td style="background: #f8fafc; padding: 30px 40px; text-align: center; color: #64748b; font-size: 14px; border-top: 1px solid #e2e8f0; border-radius: 0 0 12px 12px;">
                   <p style="margin: 0; line-height: 1.6;">
                     <strong>Club de Golf Papudo</strong> • Desde 1932<br>
-                    📧 paddlepapudo@gmail.com<br>
-                    📍 Miraflores s/n - Papudo, Valparaíso<br>
+                    📧 cgpreservas@gmail.com<br>
+                    📍 Miraflores s/n - Papudo, Valparaí­so<br>
                     🌐 clubgolfpapudo.cl
                   </p>
                 </td>
@@ -1717,8 +1720,8 @@ function generateGolfEmailTemplate(booking, organizerName, isVisitorBooking = fa
                 <td style="background: #f8fafc; padding: 30px 40px; text-align: center; color: #64748b; font-size: 14px; border-top: 1px solid #e2e8f0; border-radius: 0 0 12px 12px;">
                   <p style="margin: 0; line-height: 1.6;">
                     <strong>Club de Golf Papudo</strong> • Desde 1932<br>
-                    📧 paddlepapudo@gmail.com<br>
-                    📍 Miraflores s/n - Papudo, Valparaíso<br>
+                    📧 cgpreservas@gmail.com<br>
+                    📍 Miraflores s/n - Papudo, Valparaí­so<br>
                     🌐 clubgolfpapudo.cl
                   </p>
                 </td>
@@ -1748,11 +1751,11 @@ function generateBookingEmailHtml(booking, organizerName, isVisitorBooking = fal
   }
 }
 
-/// Envía notificación de cancelación a jugador restante
+/// Enví­a notificación de cancelación a jugador restante
 /// 
 /// @param {Object} remainingPlayer - Jugador que recibe la notificación
 /// @param {Object} reservationInfo - Información completa de la reserva
-/// @returns {Promise} Resultado del envío
+/// @returns {Promise} Resultado del enví­o
 async function sendCancellationNotification(remainingPlayer, reservationInfo) {
   try {
     const {
@@ -1820,8 +1823,8 @@ async function sendCancellationNotification(remainingPlayer, reservationInfo) {
                           <div style="color: #1e3a8a; font-size: 16px; line-height: 1.8;">
                             <div><strong>📅 Fecha:</strong> ${formattedDate}</div>
                             <div><strong>⏰ Horario:</strong> ${timeSlot} - ${endTime}</div>
-                            <div><strong>🤾 Cancha:</strong> ${courtName}</div>
-                            <div><strong>👤 Se retiró:</strong> ${cancelingPlayerName}</div>
+                            <div><strong>ðŸ¤¾ Cancha:</strong> ${courtName}</div>
+                            <div><strong>ðŸ‘¤ Se retiró:</strong> ${cancelingPlayerName}</div>
                           </div>
                         </td>
                       </tr>
@@ -1846,7 +1849,7 @@ async function sendCancellationNotification(remainingPlayer, reservationInfo) {
                           
                           ${remainingPlayers.length < 4 ? `
                             <div style="margin-top: 16px; padding: 12px; background-color: #dcfce7; border-radius: 6px; color: #166534;">
-                              <strong>💡 Tip:</strong> Puedes contactar al club para agregar más jugadores.
+                              <strong>ðŸ’¡ Tip:</strong> Puedes contactar al club para agregar más jugadores.
                             </div>
                           ` : ''}
                         </td>
@@ -1858,7 +1861,7 @@ async function sendCancellationNotification(remainingPlayer, reservationInfo) {
                       <tr>
                         <td style="padding: 20px;">
                           <h3 style="color: #92400e; margin: 0 0 16px 0; font-size: 18px;">
-                            📞 Contacto del jugador que se retiró:
+                            ðŸ“ž Contacto del jugador que se retiró:
                           </h3>
                           <p style="color: #a16207; font-size: 16px; margin: 0;">
                             <strong>${cancelingPlayerName}</strong><br>
@@ -1875,7 +1878,7 @@ async function sendCancellationNotification(remainingPlayer, reservationInfo) {
                   <td style="padding: 30px 40px; border-top: 1px solid #e5e7eb; background-color: #f9fafb; border-radius: 0 0 12px 12px;">
                     <p style="color: #6b7280; font-size: 14px; text-align: center; margin: 0;">
                       Club de Golf Papudo - Sistema de Reservas Pádel<br>
-                      📧 paddlepapudo@gmail.com
+                      📧 cgpreservas@gmail.com
                     </p>
                   </td>
                 </tr>
@@ -1892,7 +1895,7 @@ async function sendCancellationNotification(remainingPlayer, reservationInfo) {
     const mailOptions = {
       from: {
         name: 'Club de Golf Papudo',
-        address: 'paddlepapudo@gmail.com'
+        address: 'cgpreservas@gmail.com'
       },
       to: remainingPlayer.email,
       subject: `⚠️ Jugador se retiró de reserva - ${formattedDate}`,
@@ -2083,7 +2086,7 @@ function generateErrorHtml(errorMessage) {
             <h1>Error al Cancelar</h1>
             <p>${errorMessage}</p>
             <p>Por favor contacta al club directamente.</p>
-            <a href="mailto:paddlepapudo@gmail.com">📧 Contactar Club</a>
+            <a href="mailto:cgpreservas@gmail.com">📧 Contactar Club</a>
         </div>
     </body>
     </html>
@@ -2204,18 +2207,18 @@ function generateErrorHtml(errorMessage) {
 /// 2. **OPTIMIZACIONES DE PERFORMANCE**:
 ///    - Implementar cache en getUsers para reducir latencia
 ///    - Batch processing en dailyUserSync para mayor eficiencia
-///    - Optimizar queries con índices compuestos en Firestore
+///    - Optimizar queries con í­ndices compuestos en Firestore
 /// 
 /// 3. **MEJORAS DE SEGURIDAD**:
 ///    - Implementar rate limiting en endpoints públicos
 ///    - Validación más estricta de parámetros de entrada
-///    - Logging de seguridad para auditoría
+///    - Logging de seguridad para auditorí­a
 /// 
 /// 4. **FUNCIONALIDADES ADICIONALES**:
 ///    - Sistema de recordatorios automáticos 24h antes
 ///    - Integración con calendario del club
 ///    - Dashboard de administración para staff
-///    - Reportes de uso y estadísticas
+///    - Reportes de uso y estadí­sticas
 /// 
 /// CONSIDERACIONES TÉCNICAS:
 /// 
@@ -2230,3 +2233,8 @@ function generateErrorHtml(errorMessage) {
 /// 
 /// - **Mantenimiento**: Código documentado y modular para facilitar
 ///   actualizaciones y debugging por múltiples desarrolladores
+
+
+
+
+

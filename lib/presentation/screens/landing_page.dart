@@ -1,5 +1,5 @@
-// lib/presentation/screens/landing_page.dart
-// CAMBIO CRÍTICO: Activar Golf de "coming soon" a funcional
+﻿// lib/presentation/screens/landing_page.dart
+// CAMBIO CRÃTICO: Activar Golf de "coming soon" a funcional
 
 class LandingPage extends StatelessWidget {
   @override
@@ -20,7 +20,7 @@ class LandingPage extends StatelessWidget {
             children: [
               // Existing header section...
               
-              // ✅ SECCIÓN DEPORTES - Golf ahora funcional
+              // ✅ SECCIÃ“N DEPORTES - Golf ahora funcional
               Expanded(
                 child: Container(
                   width: double.infinity,
@@ -57,7 +57,7 @@ class LandingPage extends StatelessWidget {
                               title: 'Golf',
                               description: 'Campo de golf de 18 hoyos, par 68',
                               icon: Icons.golf_course,
-                              isComingSoon: false, // ← CAMBIO CRÍTICO: false
+                              isComingSoon: false, // â† CAMBIO CRÃTICO: false
                               gradient: LinearGradient(
                                 colors: [Color(0xFF7CB342), Color(0xFF689F38)],
                                 begin: Alignment.topLeft,
@@ -68,7 +68,7 @@ class LandingPage extends StatelessWidget {
                             
                             SizedBox(height: 16),
                             
-                            // ✅ PÁDEL CARD - Mantener existente
+                            // ✅ PÃDEL CARD - Mantener existente
                             SportCard(
                               sportType: SportType.padel,
                               title: 'Pádel',
@@ -113,11 +113,11 @@ class LandingPage extends StatelessWidget {
     );
   }
   
-  // ✅ NAVEGACIÓN GOLF - Agregar case para golf
+  // ✅ NAVEGACIÃ“N GOLF - Agregar case para golf
   void _navigateToSport(BuildContext context, SportType sportType) {
     switch (sportType) {
       case SportType.golf:
-        // ✅ NAVEGACIÓN A GOLF
+        // ✅ NAVEGACIÃ“N A GOLF
         Navigator.push(
           context,
           MaterialPageRoute(
@@ -276,3 +276,4 @@ class SportCard extends StatelessWidget {
     );
   }
 }
+

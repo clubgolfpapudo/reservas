@@ -69,7 +69,7 @@ const createTransporter = () => {
   
   console.log('ðŸ“§ Configurando Gmail transporter...');
   
-  return nodemailer.createTransporter({
+  return nodemailer.createTransport({
     service: 'gmail',
     auth: {
       user: 'paddlepapudo@gmail.com',
@@ -259,7 +259,7 @@ exports.dailyUserSync = onSchedule({
           
           // Campos sistema
           isActive: true,
-          lastSyncFromSheets: admin.firestore.FieldValue.serverTimestamp(),
+          lastSyncFromSheets: new Date(),
           source: 'google_sheets_auto'
         };
         
@@ -269,7 +269,7 @@ exports.dailyUserSync = onSchedule({
         // Usar .set() para reemplazo completo (evita campos duplicados)
         await usersRef.doc(email).set({
           ...userData,
-          createdAt: userDoc.exists ? userDoc.data().createdAt : admin.firestore.FieldValue.serverTimestamp()
+          createdAt: userDoc.exists ? userDoc.data().createdAt : new Date()
         });
         
         if (userDoc.exists) {
@@ -406,8 +406,20 @@ exports.sendBookingEmailHTTP = onRequest({
   
   try {
     const bookingData = req.body;
+    // ðŸ†• EXTRAER parámetros de admin
+    const { isAdminAction = false, adminActionType = null } = req.body;
+    const requestType = req.body.type;
+    console.log(`ðŸ“§ Admin Action: ${isAdminAction}, Type: ${adminActionType}`);
+    console.log(`ðŸ“§ Request type: ${requestType}`);
+
     const booking = bookingData.booking || bookingData;
     
+    console.log(`ðŸ“§ Admin Action: ${isAdminAction}, Type: ${adminActionType}`);
+
+    // ðŸ†• AGREGAR ESTAS LÃNEAS DE DEBUG
+    console.log('ðŸ“§ booking structure:', JSON.stringify(booking, null, 2));
+    console.log('ðŸ“§ bookingData keys:', Object.keys(bookingData));
+
     // Normalizar datos para compatibilidad con versiones anteriores
     const normalizedBooking = {
       date: booking.date,
@@ -452,17 +464,70 @@ exports.sendBookingEmailHTTP = onRequest({
         const isOrganizer = emailResults.length === 0;
         const showVisitorMessage = isOrganizer && isVisitorBooking;
         
-        const emailHtml = generateBookingEmailHtml(normalizedBooking, playerName, showVisitorMessage, playerEmail);
+      // let emailHtml;
+      // const requestType = req.body.type; // Nuevo parámetro del EmailService
+
+      // if (isAdminAction) {
+      //   // Lógica anterior (mantener como backup)
+      //   if (adminActionType === 'ADDED') {
+      //     emailHtml = generatePlayerAddedByAdminEmailTemplate(normalizedBooking, 'Administrador', showVisitorMessage, playerEmail);
+      //   } else if (adminActionType === 'REMOVED') {
+      //     emailHtml = generatePlayerRemovedByAdminEmailTemplate(normalizedBooking, 'Administrador', showVisitorMessage, playerEmail);
+      //   } else {
+      //     console.log(`âŒ adminActionType inválido: ${adminActionType}`);
+      //     continue;
+      //   }
+      // } else if (requestType === 'player_added') {
+      //   // Nueva lógica usando el parámetro 'type' del EmailService
+      //   emailHtml = generatePlayerAddedByAdminEmailTemplate(normalizedBooking, 'Administrador', showVisitorMessage, playerEmail);
+      // } else if (requestType === 'player_removed') {
+      //   // Nueva lógica usando el parámetro 'type' del EmailService  
+      //   emailHtml = generatePlayerRemovedByAdminEmailTemplate(normalizedBooking, 'Administrador', showVisitorMessage, playerEmail);
+      // } else {
+      //   // Lógica normal existente
+      //   emailHtml = generateBookingEmailHtml(normalizedBooking, playerName, showVisitorMessage, playerEmail);
+      // }
+      let emailHtml;
+      const requestType = req.body.type;
+
+      if (requestType === 'player_added') {
+        emailHtml = generateBookingEmailHtml(normalizedBooking, playerName, showVisitorMessage, playerEmail)
+          .replace('Reserva de Golf Confirmada', 'Agregado a Reserva de Golf')
+          .replace('Reserva de Tenis Confirmada', 'Agregado a Reserva de Tenis')
+          .replace('Reserva de Pádel Confirmada', 'Agregado a Reserva de Pádel')
+          .replace('Tu reserva de golf ha sido confirmada exitosamente', 'Has sido agregado a una reserva de golf')
+          .replace('Tu reserva de tenis ha sido confirmada exitosamente', 'Has sido agregado a una reserva de tenis')
+          .replace('Tu reserva de pádel ha sido confirmada exitosamente', 'Has sido agregado a una reserva de pádel');
+      } else if (requestType === 'player_removed') {
+        emailHtml = generateBookingEmailHtml(normalizedBooking, playerName, showVisitorMessage, playerEmail)
+          .replace(/Reserva de Golf Confirmada/g, 'Removido de Reserva de Golf')
+          .replace(/Reserva de Tenis Confirmada/g, 'Removido de Reserva de Tenis')
+          .replace(/Reserva de Pádel Confirmada/g, 'Removido de Reserva de Pádel')
+          .replace(/Confirmada/g, 'Modificada')
+          .replace('Tu reserva de golf ha sido confirmada exitosamente', 'Has sido removido de la reserva de golf')
+          .replace('Te esperamos', 'Si tienes dudas, contacta al club');
+      } else {
+        emailHtml = generateBookingEmailHtml(normalizedBooking, playerName, showVisitorMessage, playerEmail);
+      }
+
+      const sport = getSportFromCourtId(normalizedBooking.courtId);
+      const sportName = sport === 'TENIS' ? 'Tenis' : sport === 'GOLF' ? 'Golf' : 'Pádel';
+
+      let emailSubject;
+      if (requestType === 'player_added') {
+        emailSubject = `Agregado a Reserva de ${sportName} - ${formatDate(normalizedBooking.date)}`;
+      } else if (requestType === 'player_removed') {
+        emailSubject = `Removido de Reserva de ${sportName} - ${formatDate(normalizedBooking.date)}`;
+      } else {
+        emailSubject = `Reserva de ${sportName} Confirmada - ${formatDate(normalizedBooking.date)}`;
+      }
         
-        const mailOptions = {
-          from: {
-            name: 'Club de Golf Papudo',
-            address: 'paddlepapudo@gmail.com'
-          },
-          to: playerEmail,
-          subject: `Reserva de Pádel Confirmada - ${formatDate(normalizedBooking.date)}`,
-          html: emailHtml
-        };
+      const mailOptions = {
+        from: { /* ... */ },
+        to: playerEmail,
+        subject: emailSubject,
+        html: emailHtml
+      };
         
         await transporter.sendMail(mailOptions);
         console.log(`âœ… Email enviado exitosamente a: ${playerName} (${playerEmail})`);
@@ -1126,31 +1191,74 @@ function getEndTime(startTime) {
 /// 
 /// @param {string} courtId - ID técnico de cancha
 /// @returns {string} Nombre amigable de la cancha
-function getCourtName(courtId) {
-  try {
-    if (!courtId) {
-      return 'Cancha Desconocida';
-    }
-    
-    const courtStr = String(courtId).trim().toLowerCase();
-    
-    const courts = {
-      'court1': 'Cancha 1 - PITE',
-      'court_1': 'Cancha 1 - PITE',
-      'court2': 'Cancha 2 - LILEN', 
-      'court_2': 'Cancha 2 - LILEN',
-      'court3': 'Cancha 3 - PLAYA',
-      'court_3': 'Cancha 3 - PLAYA',
-      'court4': 'Cancha 4 - PEUMO',
-      'court_4': 'Cancha 4 - PEUMO'
-    };
-    
-    return courts[courtStr] || `Cancha ${courtId}`;
-    
-  } catch (error) {
-    console.error('âŒ Error en getCourtName:', error);
-    return 'Cancha Desconocida';
+// ðŸ”µ MAPEO DE CANCHAS PÃDEL
+function getPadelCourtName(courtId) {
+  const courtStr = String(courtId).trim().toLowerCase();
+  const padelCourts = {
+    'court1': 'PITE',
+    'court_1': 'PITE',
+    'padel_court_1': 'PITE',
+    'court2': 'LILEN', 
+    'court_2': 'LILEN',
+    'padel_court_2': 'LILEN',
+    'court3': 'PLAIYA',
+    'court_3': 'PLAIYA',
+    'padel_court_3': 'PLAIYA',
+    'court4': 'PEUMO',
+    'court_4': 'PEUMO',
+    'padel_court_4': 'PEUMO'
+  };
+  return padelCourts[courtStr] || courtId;
+}
+
+// ðŸŽ¾ MAPEO DE CANCHAS TENIS
+function getTennisCourtName(courtId) {
+  const courtStr = String(courtId).trim().toLowerCase();
+  const tennisCourts = {
+    'tennis_court_1': 'Cancha 1',
+    'tennis_court_2': 'Cancha 2', 
+    'tennis_court_3': 'Cancha 3',
+    'tennis_court_4': 'Cancha 4'
+  };
+  return tennisCourts[courtStr] || courtId;
+}
+
+// MAPEO DE CANCHAS GOLF
+function getGolfHoyoName(courtId) {
+  switch (courtId) {
+    case 'golf_tee_1':
+      return 'Hoyo 1';
+    case 'golf_tee_10':
+      return 'Hoyo 10';
+    default:
+      return 'Campo de Golf';
   }
+}
+
+// ðŸŽ¯ DETECTAR DEPORTE DESDE COURT ID
+function getSportFromCourtId(courtId) {
+  const courtStr = String(courtId).trim().toLowerCase();
+  
+  if (courtStr.startsWith('tennis_') || courtStr.includes('tennis')) {
+    return 'TENIS';
+  } else if (courtStr.startsWith('golf_') || courtStr.includes('golf') || courtStr.includes('tee')) {
+    return 'GOLF';
+  } else if (courtStr.startsWith('padel_') || courtStr.includes('padel') || 
+             courtStr.startsWith('court') || courtStr.match(/^court[_]?\d+$/)) {
+    return 'PADEL';
+  }
+  return 'PADEL'; // Default fallback
+}
+
+// Función auxiliar para calcular hora de finalización de golf (duración 12 minutos)
+function getGolfEndTime(startTime) {
+  if (!startTime) return '';
+  
+  const [hours, minutes] = startTime.split(':').map(Number);
+  const startDate = new Date(2024, 0, 1, hours, minutes);
+  const endDate = new Date(startDate.getTime() + 12 * 60000); // 12 minutos después
+  
+  return `${String(endDate.getHours()).padStart(2, '0')}:${String(endDate.getMinutes()).padStart(2, '0')}`;
 }
 
 // ============================================================================
@@ -1167,11 +1275,13 @@ function getCourtName(courtId) {
 /// @param {boolean} isVisitorBooking - Si incluye usuarios VISITA
 /// @param {string} email - Email del destinatario
 /// @returns {string} HTML completo del email
-function generateBookingEmailHtml(booking, organizerName, isVisitorBooking = false, email) {
+// ðŸ”µ TEMPLATE EMAIL PÃDEL
+// ðŸŽ¾ TEMPLATE EMAIL TENIS CON LOGO CLUB
+function generateTennisEmailTemplate(booking, organizerName, isVisitorBooking = false, email) {
   const formattedDate = formatDate(booking.date);
-  const courtName = getCourtName(booking.courtId);
+  const courtName = getTennisCourtName(booking.courtId);
   const endTime = getEndTime(booking.time);
-  
+
   // Mensaje especial para reservas con usuarios VISITA
   const visitorMessage = isVisitorBooking ? `
     <div style="background-color: #fff3cd; border: 1px solid #ffeaa7; border-radius: 8px; padding: 16px; margin: 20px 0;">
@@ -1185,59 +1295,85 @@ function generateBookingEmailHtml(booking, organizerName, isVisitorBooking = fal
     </div>
   ` : '';
 
+  // Generar lista de jugadores
+  const playersHtml = booking.players.map((player, index) => {
+    const isOrganizer = index === 0;
+    return `
+      <div style="padding: 8px 0; color: #047857; font-size: 16px;">
+        <span style="margin-right: 8px;">${isOrganizer ? 'ðŸ†' : 'â€¢'}</span>
+        <strong>${player.name || player.displayName || 'Jugador'}</strong>
+        ${isOrganizer ? ' (Organizador)' : ''}
+      </div>
+    `;
+  }).join("");
+
   return `
     <!DOCTYPE html>
     <html>
     <head>
-      <meta charset="utf-8">
+      <meta charset="UTF-8">
       <meta name="viewport" content="width=device-width, initial-scale=1.0">
-      <title>Reserva de Pádel Confirmada</title>
+      <title>Reserva de Tenis Confirmada - Club de Golf Papudo</title>
     </head>
     <body style="margin: 0; padding: 0; background-color: #f5f5f5; font-family: Arial, sans-serif;">
       <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%">
         <tr>
           <td style="padding: 20px 0;">
             <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="600" style="margin: 0 auto; background-color: #ffffff; border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.1);">
-              
-              <!-- HEADER CORPORATIVO -->
+
+              <!-- HEADER TIERRA BATIDA TENIS CON LOGO -->
               <tr>
-                <td style="background: linear-gradient(135deg, #4f8ef7 0%, #2c5282 100%); padding: 40px 20px; text-align: center; border-radius: 12px 12px 0 0;">
-                  <h1 style="color: white; font-size: 32px; font-weight: bold; margin: 0;">
-                    Club de Golf Papudo
-                  </h1>
-                  <p style="color: #bfdbfe; margin: 10px 0 0 0; font-size: 18px;">
-                    Reserva de Pádel Confirmada
-                  </p>
+                <td style="background: linear-gradient(135deg, #D2691E 0%, #B8860B 100%); padding: 40px 20px; text-align: center; border-radius: 12px 12px 0 0;">
+                  
+                  <!-- TABLA PARA LOGO + TEXTO (COMPATIBLE CON EMAILS) -->
+                  <table role="presentation" cellspacing="0" cellpadding="0" border="0" style="margin: 0 auto;">
+                    <tr>
+                      <td style="vertical-align: middle; padding-right: 15px;">
+                        <img src="https://raw.githubusercontent.com/paddlepapudo/cgp_reservas/main/assets/images/club_logo.png" 
+                             alt="Club de Golf Papudo" 
+                             style="width: 50px; height: 50px; border-radius: 50%; border: 2px solid white; display: block;">
+                      </td>
+                      <td style="vertical-align: middle; text-align: left;">
+                        <h1 style="color: white; font-size: 32px; font-weight: bold; margin: 0; text-shadow: 2px 2px 4px rgba(0,0,0,0.6);">
+                          Club de Golf Papudo
+                        </h1>
+                        <p style="color: #FFFFFF; margin: 5px 0 0 0; font-size: 18px; text-shadow: 1px 1px 2px rgba(0,0,0,0.4);">
+                          Reserva de Tenis Confirmada
+                        </p>
+                      </td>
+                    </tr>
+                  </table>
+                  
                 </td>
               </tr>
 
-              <!-- CONTENIDO PRINCIPAL -->
+              <!-- CONTENIDO -->
               <tr>
                 <td style="padding: 40px;">
                   <h2 style="color: #2d3748; font-size: 24px; margin: 0 0 20px 0;">
                     Â¡Hola ${organizerName.toUpperCase()}!
                   </h2>
                   <p style="color: #4a5568; font-size: 16px; line-height: 1.6; margin: 0 0 30px 0;">
-                    Tu reserva de pádel ha sido confirmada exitosamente. Te esperamos en la cancha.
+                    Tu reserva de tenis ha sido confirmada exitosamente. Te esperamos.
                   </p>
-                  
+
                   ${visitorMessage}
                 </td>
               </tr>
 
-              <!-- DETALLES DE LA RESERVA -->
+              <!-- DETALLES RESERVA -->
               <tr>
                 <td style="padding: 0 40px 40px 40px;">
-                  <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%" style="border-left: 4px solid #4f8ef7; background-color: #f8fafc; border-radius: 8px;">
+                  <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%" style="border-left: 4px solid #D2691E; background-color: #f8fafc; border-radius: 8px;">
                     <tr>
                       <td style="padding: 24px;">
-                        <h3 style="color: #1e40af; margin: 0 0 16px 0; font-size: 18px;">
+                        <h3 style="color: #8B4513; margin: 0 0 16px 0; font-size: 18px;">
                           ðŸ“… Detalles de la Reserva:
                         </h3>
-                        <div style="color: #1e3a8a; font-size: 16px; line-height: 1.8;">
+                        <div style="color: #8B4513; font-size: 16px; line-height: 1.8;">
                           <div><strong>ðŸ“… Fecha:</strong> ${formattedDate}</div>
-                          <div><strong>â° Horario:</strong> ${booking.time} - ${endTime}</div>
-                          <div><strong>ðŸ“ Cancha:</strong> ${courtName}</div>
+                          <div><strong>â° Hora:</strong> ${booking.time} - ${endTime}</div>
+                          <div><strong>ðŸŽ¾ Cancha:</strong> ${courtName}</div>
                         </div>
                       </td>
                     </tr>
@@ -1245,7 +1381,7 @@ function generateBookingEmailHtml(booking, organizerName, isVisitorBooking = fal
                 </td>
               </tr>
 
-              <!-- LISTA DE JUGADORES -->
+              <!-- JUGADORES -->
               <tr>
                 <td style="padding: 0 40px 20px 40px;">
                   <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%" style="border-left: 4px solid #10b981; background-color: #f0fdf4; border-radius: 8px;">
@@ -1254,16 +1390,9 @@ function generateBookingEmailHtml(booking, organizerName, isVisitorBooking = fal
                         <h3 style="color: #065f46; margin: 0 0 16px 0; font-size: 18px;">
                           ðŸ‘¥ Jugadores (${booking.players.length}/4):
                         </h3>
-                        ${booking.players.map((player, index) => {
-                          const playerName = typeof player === 'string' ? player : (player.name || 'Jugador');
-                          const isOrganizer = index === 0;
-                          return `
-                            <div style="padding: 8px 0; color: #047857; font-size: 16px;">
-                              <span style="margin-right: 8px;">${isOrganizer ? 'ðŸ†' : 'â€¢'}</span>
-                              <strong>${playerName}</strong>${isOrganizer ? ' <em>(Organizador)</em>' : ''}
-                            </div>
-                          `;
-                        }).join('')}
+                        <div>
+                          ${playersHtml}
+                        </div>
                       </td>
                     </tr>
                   </table>
@@ -1279,7 +1408,7 @@ function generateBookingEmailHtml(booking, organizerName, isVisitorBooking = fal
                 </td>
               </tr>
 
-              <!-- FOOTER CORPORATIVO -->
+              <!-- FOOTER -->
               <tr>
                 <td style="background: #f8fafc; padding: 30px 40px; text-align: center; color: #64748b; font-size: 14px; border-top: 1px solid #e2e8f0; border-radius: 0 0 12px 12px;">
                   <p style="margin: 0; line-height: 1.6;">
@@ -1290,6 +1419,7 @@ function generateBookingEmailHtml(booking, organizerName, isVisitorBooking = fal
                   </p>
                 </td>
               </tr>
+
             </table>
           </td>
         </tr>
@@ -1297,6 +1427,325 @@ function generateBookingEmailHtml(booking, organizerName, isVisitorBooking = fal
     </body>
     </html>
   `;
+}
+
+function generatePadelEmailTemplate(booking, organizerName, isVisitorBooking = false, email) {
+  const formattedDate = formatDate(booking.date);
+  const courtName = getPadelCourtName(booking.courtId);
+  const endTime = getEndTime(booking.time);
+
+  // Mensaje especial para reservas con usuarios VISITA
+  const visitorMessage = isVisitorBooking ? `
+    <div style="background-color: #fff3cd; border: 1px solid #ffeaa7; border-radius: 8px; padding: 16px; margin: 20px 0;">
+      <div style="display: flex; align-items: center; margin-bottom: 8px;">
+        <div style="background-color: #f39c12; color: white; border-radius: 50%; width: 24px; height: 24px; display: inline-flex; align-items: center; justify-content: center; margin-right: 8px; font-size: 14px; font-weight: bold;">!</div>
+        <strong style="color: #856404;">Información para el organizador</strong>
+      </div>
+      <p style="margin: 0; color: #856404; line-height: 1.4;">
+        Esta reserva incluye jugadores invitados (VISITA). Recuerda coordinar el pago correspondiente con la Administración del Club ANTES de la hora reservada.
+      </p>
+    </div>
+  ` : '';
+
+  // Generar lista de jugadores
+  const playersHtml = booking.players.map((player, index) => {
+    const isOrganizer = index === 0;
+    return `
+      <div style="padding: 8px 0; color: #1565C0; font-size: 16px;">
+        <span style="margin-right: 8px;">${isOrganizer ? 'ðŸ†' : 'â€¢'}</span>
+        <strong>${player.name || player.displayName || 'Jugador'}</strong>
+        ${isOrganizer ? ' (Organizador)' : ''}
+      </div>
+    `;
+  }).join("");
+
+  return `
+    <!DOCTYPE html>
+    <html>
+    <head>
+      <meta charset="UTF-8">
+      <meta name="viewport" content="width=device-width, initial-scale=1.0">
+      <title>Reserva de Pádel Confirmada - Club de Golf Papudo</title>
+    </head>
+    <body style="margin: 0; padding: 0; background-color: #f5f5f5; font-family: Arial, sans-serif;">
+      <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%">
+        <tr>
+          <td style="padding: 20px 0;">
+            <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="600" style="margin: 0 auto; background-color: #ffffff; border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.1);">
+
+              <!-- HEADER AZUL PÃDEL CON LOGO -->
+              <tr>
+                <td style="background: linear-gradient(135deg, #2E7AFF 0%, #1E5AFF 100%); padding: 40px 20px; text-align: center; border-radius: 12px 12px 0 0;">
+                  
+                  <!-- TABLA PARA LOGO + TEXTO (COMPATIBLE CON EMAILS) -->
+                  <table role="presentation" cellspacing="0" cellpadding="0" border="0" style="margin: 0 auto;">
+                    <tr>
+                      <td style="vertical-align: middle; padding-right: 15px;">
+                        <img src="https://raw.githubusercontent.com/paddlepapudo/cgp_reservas/main/assets/images/club_logo.png" 
+                             alt="Club de Golf Papudo" 
+                             style="width: 50px; height: 50px; border-radius: 50%; border: 2px solid white; display: block;">
+                      </td>
+                      <td style="vertical-align: middle; text-align: left;">
+                        <h1 style="color: white; font-size: 32px; font-weight: bold; margin: 0;">
+                          Club de Golf Papudo
+                        </h1>
+                        <p style="color: #e3f2fd; margin: 5px 0 0 0; font-size: 18px;">
+                          Reserva de Pádel Confirmada
+                        </p>
+                      </td>
+                    </tr>
+                  </table>
+                  
+                </td>
+              </tr>
+
+              <!-- CONTENIDO -->
+              <tr>
+                <td style="padding: 40px;">
+                  <h2 style="color: #2d3748; font-size: 24px; margin: 0 0 20px 0;">
+                    Â¡Hola ${organizerName.toUpperCase()}!
+                  </h2>
+                  <p style="color: #4a5568; font-size: 16px; line-height: 1.6; margin: 0 0 30px 0;">
+                    Tu reserva de pádel ha sido confirmada exitosamente. Te esperamos.
+                  </p>
+
+                  ${visitorMessage}
+                </td>
+              </tr>
+
+              <!-- DETALLES RESERVA -->
+              <tr>
+                <td style="padding: 0 40px 40px 40px;">
+                  <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%" style="border-left: 4px solid #2E7AFF; background-color: #f0f7ff; border-radius: 8px;">
+                    <tr>
+                      <td style="padding: 24px;">
+                        <h3 style="color: #1565C0; margin: 0 0 16px 0; font-size: 18px;">
+                          ðŸ“… Detalles de la Reserva:
+                        </h3>
+                        <div style="color: #1565C0; font-size: 16px; line-height: 1.8;">
+                          <div><strong>ðŸ“… Fecha:</strong> ${formattedDate}</div>
+                          <div><strong>â° Hora:</strong> ${booking.time} - ${endTime}</div>
+                          <div><strong>ðŸ“ Cancha:</strong> ${courtName}</div>
+                        </div>
+                      </td>
+                    </tr>
+                  </table>
+                </td>
+              </tr>
+
+              <!-- JUGADORES -->
+              <tr>
+                <td style="padding: 0 40px 20px 40px;">
+                  <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%" style="border-left: 4px solid #10b981; background-color: #f0fdf4; border-radius: 8px;">
+                    <tr>
+                      <td style="padding: 20px;">
+                        <h3 style="color: #065f46; margin: 0 0 16px 0; font-size: 18px;">
+                          ðŸ‘¥ Jugadores (${booking.players.length}/4):
+                        </h3>
+                        <div>
+                          ${playersHtml}
+                        </div>
+                      </td>
+                    </tr>
+                  </table>
+                </td>
+              </tr>
+
+              <!-- BOTÃ“N CANCELAR -->
+              <tr>
+                <td style="padding: 0 40px 20px 40px; text-align: center;">
+                  <a href="https://us-central1-cgpreservas.cloudfunctions.net/cancelBooking?id=${booking.id || `${booking.courtId || booking.courtId}-${booking.date}-${(booking.timeSlot || booking.time || '').replace(/:/g, '')}`}&email=${encodeURIComponent(email)}" style="background: #dc2626; color: white; padding: 16px 32px; text-decoration: none; border-radius: 8px; font-weight: bold; font-size: 16px; display: inline-block;">
+                    âŒ Cancelar mi Participación
+                  </a>
+                </td>
+              </tr>
+
+              <!-- FOOTER -->
+              <tr>
+                <td style="background: #f8fafc; padding: 30px 40px; text-align: center; color: #64748b; font-size: 14px; border-top: 1px solid #e2e8f0; border-radius: 0 0 12px 12px;">
+                  <p style="margin: 0; line-height: 1.6;">
+                    <strong>Club de Golf Papudo</strong> â€¢ Desde 1932<br>
+                    ðŸ“§ paddlepapudo@gmail.com<br>
+                    ðŸ“ Miraflores s/n - Papudo, Valparaíso<br>
+                    ðŸŒ clubgolfpapudo.cl
+                  </p>
+                </td>
+              </tr>
+
+            </table>
+          </td>
+        </tr>
+      </table>
+    </body>
+    </html>
+  `;
+}
+
+function generateGolfEmailTemplate(booking, organizerName, isVisitorBooking = false, email) {
+  const formattedDate = formatDate(booking.date);
+  const hoyoName = getGolfHoyoName(booking.courtId);
+  const endTime = getGolfEndTime(booking.time);
+
+  // Mensaje especial para reservas con usuarios VISITA
+  const visitorMessage = isVisitorBooking ? `
+    <div style="background-color: #fff8e1; border: 1px solid #ffcc02; border-radius: 8px; padding: 16px; margin: 20px 0;">
+      <div style="display: flex; align-items: center; margin-bottom: 8px;">
+        <div style="background-color: #ff9800; color: white; border-radius: 50%; width: 24px; height: 24px; display: inline-flex; align-items: center; justify-content: center; margin-right: 8px; font-size: 14px; font-weight: bold;">!</div>
+        <strong style="color: #f57f17;">Información para el organizador</strong>
+      </div>
+      <p style="margin: 0; color: #f57f17; line-height: 1.4;">
+        Esta reserva incluye jugadores invitados (VISITA). Recuerda coordinar el pago correspondiente con la Administración del Club ANTES de la hora reservada.
+      </p>
+    </div>
+  ` : '';
+
+  // Generar lista de jugadores (golf permite 1-4 jugadores)
+  const playersHtml = booking.players.map((player, index) => {
+    const isOrganizer = index === 0;
+    return `
+      <div style="padding: 8px 0; color: #2E7D32; font-size: 16px;">
+        <span style="margin-right: 8px;">${isOrganizer ? 'â›³' : 'â€¢'}</span>
+        <strong>${player.name || player.displayName || 'Jugador'}</strong>
+        ${isOrganizer ? ' (Organizador)' : ''}
+      </div>
+    `;
+  }).join("");
+
+  return `
+    <!DOCTYPE html>
+    <html>
+    <head>
+      <meta charset="UTF-8">
+      <meta name="viewport" content="width=device-width, initial-scale=1.0">
+      <title>Reserva de Golf Confirmada - Club de Golf Papudo</title>
+    </head>
+    <body style="margin: 0; padding: 0; background-color: #f5f5f5; font-family: Arial, sans-serif;">
+      <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%">
+        <tr>
+          <td style="padding: 20px 0;">
+            <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="600" style="margin: 0 auto; background-color: #ffffff; border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.1);">
+
+              <!-- HEADER VERDE GOLF CON LOGO -->
+              <tr>
+                <td style="background: linear-gradient(135deg, #4CAF50 0%, #2E7D32 100%); padding: 40px 20px; text-align: center; border-radius: 12px 12px 0 0;">
+                  
+                  <!-- TABLA PARA LOGO + TEXTO (COMPATIBLE CON EMAILS) -->
+                  <table role="presentation" cellspacing="0" cellpadding="0" border="0" style="margin: 0 auto;">
+                    <tr>
+                      <td style="vertical-align: middle; padding-right: 15px;">
+                        <img src="https://raw.githubusercontent.com/paddlepapudo/cgp_reservas/main/assets/images/club_logo.png" 
+                             alt="Club de Golf Papudo" 
+                             style="width: 50px; height: 50px; border-radius: 50%; border: 2px solid white; display: block;">
+                      </td>
+                      <td style="vertical-align: middle; text-align: left;">
+                        <h1 style="color: white; font-size: 32px; font-weight: bold; margin: 0;">
+                          Club de Golf Papudo
+                        </h1>
+                        <p style="color: #e8f5e8; margin: 5px 0 0 0; font-size: 18px;">
+                          Reserva de Golf Confirmada
+                        </p>
+                      </td>
+                    </tr>
+                  </table>
+                  
+                </td>
+              </tr>
+
+              <!-- CONTENIDO -->
+              <tr>
+                <td style="padding: 40px;">
+                  <h2 style="color: #2d3748; font-size: 24px; margin: 0 0 20px 0;">
+                    Â¡Hola ${organizerName.toUpperCase()}!
+                  </h2>
+                  <p style="color: #4a5568; font-size: 16px; line-height: 1.6; margin: 0 0 30px 0;">
+                    Tu reserva de golf ha sido confirmada exitosamente. Te esperamos.
+                  </p>
+
+                  ${visitorMessage}
+                </td>
+              </tr>
+
+              <!-- DETALLES RESERVA -->
+              <tr>
+                <td style="padding: 0 40px 40px 40px;">
+                  <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%" style="border-left: 4px solid #4CAF50; background-color: #f1f8e9; border-radius: 8px;">
+                    <tr>
+                      <td style="padding: 24px;">
+                        <h3 style="color: #2E7D32; margin: 0 0 16px 0; font-size: 18px;">
+                          â›³ Detalles de la Reserva:
+                        </h3>
+                        <div style="color: #2E7D32; font-size: 16px; line-height: 1.8;">
+                          <div><strong>ðŸ“… Fecha:</strong> ${formattedDate}</div>
+                          <div><strong>â° Hora:</strong> ${booking.time} - ${endTime}</div>
+                          <div><strong>â›³ Hoyo:</strong> ${hoyoName}</div>
+                        </div>
+                      </td>
+                    </tr>
+                  </table>
+                </td>
+              </tr>
+
+              <!-- JUGADORES -->
+              <tr>
+                <td style="padding: 0 40px 20px 40px;">
+                  <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%" style="border-left: 4px solid #66BB6A; background-color: #f1f8e9; border-radius: 8px;">
+                    <tr>
+                      <td style="padding: 20px;">
+                        <h3 style="color: #1B5E20; margin: 0 0 16px 0; font-size: 18px;">
+                          ðŸ‘¥ Jugadores (${booking.players.length}/4):
+                        </h3>
+                        <div>
+                          ${playersHtml}
+                        </div>
+                      </td>
+                    </tr>
+                  </table>
+                </td>
+              </tr>
+
+              <!-- BOTÃ“N CANCELAR -->
+              <tr>
+                <td style="padding: 0 40px 20px 40px; text-align: center;">
+                  <a href="https://us-central1-cgpreservas.cloudfunctions.net/cancelBooking?id=${booking.id || `${booking.courtId || booking.courtId}-${booking.date}-${(booking.timeSlot || booking.time || '').replace(/:/g, '')}`}&email=${encodeURIComponent(email)}" style="background: #dc2626; color: white; padding: 16px 32px; text-decoration: none; border-radius: 8px; font-weight: bold; font-size: 16px; display: inline-block;">
+                    âŒ Cancelar mi Participación
+                  </a>
+                </td>
+              </tr>
+
+              <!-- FOOTER -->
+              <tr>
+                <td style="background: #f8fafc; padding: 30px 40px; text-align: center; color: #64748b; font-size: 14px; border-top: 1px solid #e2e8f0; border-radius: 0 0 12px 12px;">
+                  <p style="margin: 0; line-height: 1.6;">
+                    <strong>Club de Golf Papudo</strong> â€¢ Desde 1932<br>
+                    ðŸ“§ paddlepapudo@gmail.com<br>
+                    ðŸ“ Miraflores s/n - Papudo, Valparaíso<br>
+                    ðŸŒ clubgolfpapudo.cl
+                  </p>
+                </td>
+              </tr>
+
+            </table>
+          </td>
+        </tr>
+      </table>
+    </body>
+    </html>
+  `;
+}
+
+// ðŸŽ¯ FUNCIÃ“N PRINCIPAL ACTUALIZADA
+function generateBookingEmailHtml(booking, organizerName, isVisitorBooking = false, email) {
+  const sport = getSportFromCourtId(booking.courtId);
+  
+  console.log(`ðŸ“§ Generando email para deporte: ${sport}, cancha: ${booking.courtId}`);
+  
+  if (sport === 'TENIS') {
+    return generateTennisEmailTemplate(booking, organizerName, isVisitorBooking, email);
+  } else if (sport === 'GOLF') {
+    return generateGolfEmailTemplate(booking, organizerName, isVisitorBooking, email);
+  } else {
+    return generatePadelEmailTemplate(booking, organizerName, isVisitorBooking, email);
+  }
 }
 
 /// Envía notificación de cancelación a jugador restante
@@ -1317,7 +1766,10 @@ async function sendCancellationNotification(remainingPlayer, reservationInfo) {
 
     const formattedDate = formatDate(date);
     const endTime = getEndTime(timeSlot);
-    const courtName = getCourtName(courtId);
+    const courtName = courtId === 'golf_tee_1' ? 'Hoyo 1' : 
+                  courtId === 'golf_tee_10' ? 'Hoyo 10' :
+                  courtId.startsWith('tennis_') ? 'Cancha de Tenis' : 
+                  'Cancha de Pádel';
 
     const emailHtml = `
       <!DOCTYPE html>
@@ -1368,7 +1820,7 @@ async function sendCancellationNotification(remainingPlayer, reservationInfo) {
                           <div style="color: #1e3a8a; font-size: 16px; line-height: 1.8;">
                             <div><strong>ðŸ“… Fecha:</strong> ${formattedDate}</div>
                             <div><strong>â° Horario:</strong> ${timeSlot} - ${endTime}</div>
-                            <div><strong>ðŸ“ Cancha:</strong> ${courtName}</div>
+                            <div><strong>ðŸ¤¾ Cancha:</strong> ${courtName}</div>
                             <div><strong>ðŸ‘¤ Se retiró:</strong> ${cancelingPlayerName}</div>
                           </div>
                         </td>
@@ -1462,6 +1914,40 @@ async function sendCancellationNotification(remainingPlayer, reservationInfo) {
 /// @param {string} playerEmail - Email del jugador que canceló
 /// @returns {string} HTML de confirmación
 function generateCancellationConfirmationHtml(bookingId, playerEmail) {
+  // Funciones helper locales
+  function getCourtDisplayName(courtId) {
+    const courtMap = {
+      'padel_court_1': 'PITE',
+      'padel_court_2': 'LILEN', 
+      'padel_court_3': 'PLAIYA',
+      'tennis_court_1': 'Cancha 1',
+      'tennis_court_2': 'Cancha 2',
+      'tennis_court_3': 'Cancha 3',
+      'tennis_court_4': 'Cancha 4',
+      'golf_tee_1': 'Hoyo 1',
+      'golf_tee_10': 'Hoyo 10'
+    };
+    return courtMap[courtId] || courtId;
+  }
+
+  function extractCourtFromBookingId(bookingId) {
+    const parts = bookingId.split('-');
+    if (parts.length >= 4) {
+      const datePart = parts.slice(-3).join('-');
+      const courtId = bookingId.replace('-' + datePart, '');
+      return courtId;
+    }
+    return bookingId;
+  }
+
+  // Extraer información del bookingId
+  const parts = bookingId.split('-');
+  const courtId = parts[0]; // "padel_court_1"
+  const courtDisplayName = getCourtDisplayName(courtId);
+  const date = `${parts[1]}-${parts[2]}-${parts[3]}`; // "2025-08-21"
+  const time = parts[4] || '0000';
+  const formattedTime = time.substring(0, 2) + ':' + time.substring(2, 4);
+
   return `
     <!DOCTYPE html>
     <html lang="es">
@@ -1470,59 +1956,103 @@ function generateCancellationConfirmationHtml(bookingId, playerEmail) {
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
         <title>Cancelación Exitosa - Club de Golf Papudo</title>
         <style>
-            body { 
-                font-family: -apple-system, BlinkMacSystemFont, sans-serif; 
-                background: #f5f5f5; margin: 0; padding: 20px; 
+            body {
+                font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+                background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+                margin: 0;
+                padding: 20px;
+                min-height: 100vh;
+                display: flex;
+                align-items: center;
+                justify-content: center;
             }
-            .container { 
-                max-width: 500px; margin: 50px auto; background: white; 
-                border-radius: 12px; padding: 40px; text-align: center;
-                box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+            .container {
+                background: white;
+                padding: 40px;
+                border-radius: 15px;
+                box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+                text-align: center;
+                max-width: 500px;
+                width: 100%;
             }
-            .header { color: #1e3a8a; margin-bottom: 30px; }
-            .success { color: #10b981; font-size: 48px; margin-bottom: 20px; }
-            .message { font-size: 18px; color: #374151; margin-bottom: 30px; line-height: 1.6; }
-            .booking-id { 
-                background: #f3f4f6; padding: 12px; border-radius: 6px; 
-                font-family: monospace; color: #6b7280; margin: 20px 0; 
+            .success-icon {
+                font-size: 4rem;
+                margin-bottom: 20px;
             }
-            .button { 
-                background: #1e3a8a; color: white; padding: 12px 24px; 
-                text-decoration: none; border-radius: 6px; display: inline-block;
-                margin: 10px; font-weight: 600;
+            h1 {
+                color: #2c3e50;
+                margin-bottom: 10px;
+                font-size: 2rem;
             }
-            .note { 
-                background: #dcfce7; padding: 16px; border-radius: 6px; 
-                color: #16a34a; font-size: 14px; margin-top: 20px; 
+            .booking-details {
+                background: #f8f9fa;
+                padding: 20px;
+                border-radius: 8px;
+                margin: 20px 0;
+                border-left: 4px solid #2E7AFF;
+            }
+            .court-info {
+                font-size: 16px;
+                line-height: 1.6;
+                margin-bottom: 10px;
+                text-align: left;
+            }
+            .court-info strong {
+                color: #2E7AFF;
+                font-weight: 600;
+            }
+            .booking-reference {
+                font-size: 12px;
+                color: #6c757d;
+                border-top: 1px solid #dee2e6;
+                padding-top: 10px;
+                margin-top: 10px;
+            }
+            .message {
+                color: #666;
+                margin: 20px 0;
+                line-height: 1.6;
+            }
+            .contact-btn {
+                background: #2E7AFF;
+                color: white;
+                padding: 12px 24px;
+                border: none;
+                border-radius: 25px;
+                text-decoration: none;
+                display: inline-block;
+                margin-top: 20px;
+                transition: background 0.3s;
+            }
+            .contact-btn:hover {
+                background: #1E5AFF;
             }
         </style>
     </head>
     <body>
         <div class="container">
-            <div class="header">
-                <h1>Club de Golf Papudo</h1>
-                <p>Sistema de Reservas de Pádel</p>
-            </div>
+            <div class="success-icon">âœ…</div>
+            <h1>Cancelación Exitosa</h1>
             
-            <div class="success">âœ…</div>
+            <div class="booking-details">
+                <div class="court-info">
+                    <strong>Cancha:</strong> ${courtDisplayName}<br>
+                    <strong>Fecha:</strong> ${date}<br>
+                    <strong>Hora:</strong> ${formattedTime}<br>
+                    <strong>Jugador:</strong> ${decodeURIComponent(playerEmail)}
+                </div>
+                <div class="booking-reference">
+                    <small>Referencia: ${bookingId}</small>
+                </div>
+            </div>
             
             <div class="message">
-                <strong>Cancelación Exitosa</strong><br><br>
-                Has sido removido de esta reserva de pádel.
+                Tu reserva ha sido cancelada exitosamente. 
+                Los demás jugadores han sido notificados automáticamente.
             </div>
             
-            <div class="booking-id">
-                Reserva: ${bookingId}<br>
-                Jugador: ${decodeURIComponent(playerEmail)}
-            </div>
-            
-            <div class="note">
-                ðŸ“§ <strong>Notificaciones Enviadas</strong><br>
-                Los otros jugadores han sido notificados de tu cancelación.
-            </div>
-            
-            <a href="https://paddlepapudo.github.io/cgp_reservas/" class="button">
-                ðŸ“ Ir a Reservas
+            <a href="mailto:info@clubdegolfpapudo.cl" class="contact-btn">
+                ðŸ“§ Contactar Club
             </a>
         </div>
     </body>
@@ -1558,6 +2088,106 @@ function generateErrorHtml(errorMessage) {
     </body>
     </html>
   `;
+  // === PLANTILLAS PARA ACCIONES DE ADMIN (reutilizan plantillas existentes) ===
+
+  // === GOLF - REUTILIZAR PLANTILLA EXISTENTE ===
+  function generateGolfPlayerAddedTemplate(booking, organizerName, isVisitorBooking, email) {
+    return generateGolfEmailTemplate(booking, organizerName, isVisitorBooking, email)
+      .replace('Confirmación de Reserva', 'Has sido agregado a una reserva')
+      .replace('Â¡Tu reserva ha sido confirmada exitosamente!', 'Â¡El administrador te ha agregado a una reserva de Golf!')
+      .replace('Nos complace confirmar tu reserva', 'Has sido incluido en la siguiente reserva')
+      .replace('Â¡Nos vemos en el campo!', 'Â¡Confirma tu asistencia y nos vemos en el campo!');
+  }
+
+  function generateGolfPlayerRemovedTemplate(booking, organizerName, isVisitorBooking, email) {
+    return generateGolfEmailTemplate(booking, organizerName, isVisitorBooking, email)
+      .replace('Confirmación de Reserva', 'Has sido removido de una reserva')
+      .replace('Â¡Tu reserva ha sido confirmada exitosamente!', 'Has sido removido de una reserva de Golf')
+      .replace('Nos complace confirmar tu reserva', 'El administrador te ha removido de la siguiente reserva')
+      .replace('linear-gradient(135deg, #4CAF50, #7CB342)', 'linear-gradient(135deg, #f44336, #d32f2f)')
+      .replace('Â¡Nos vemos en el campo!', 'Si tienes dudas, contacta al club directamente.');
+  }
+
+  // === TENIS - REUTILIZAR PLANTILLA EXISTENTE ===
+  function generateTennisPlayerAddedTemplate(booking, organizerName, isVisitorBooking, email) {
+    return generateTennisEmailTemplate(booking, organizerName, isVisitorBooking, email)
+      .replace('Confirmación de Reserva', 'Has sido agregado a una reserva')
+      .replace('Â¡Tu reserva ha sido confirmada exitosamente!', 'Â¡El administrador te ha agregado a una reserva de Tenis!')
+      .replace('Nos complace confirmar tu reserva', 'Has sido incluido en la siguiente reserva')
+      .replace('Â¡Nos vemos en la cancha!', 'Â¡Confirma tu asistencia y nos vemos en la cancha!');
+  }
+
+  function generateTennisPlayerRemovedTemplate(booking, organizerName, isVisitorBooking, email) {
+    return generateTennisEmailTemplate(booking, organizerName, isVisitorBooking, email)
+      .replace('Confirmación de Reserva', 'Has sido removido de una reserva')
+      .replace('Â¡Tu reserva ha sido confirmada exitosamente!', 'Has sido removido de una reserva de Tenis')
+      .replace('Nos complace confirmar tu reserva', 'El administrador te ha removido de la siguiente reserva')
+      .replace('background: linear-gradient(135deg, #2196F3, #1976D2)', 'background: linear-gradient(135deg, #f44336, #d32f2f)')
+      .replace('Â¡Nos vemos en la cancha!', 'Si tienes dudas, contacta al club directamente.');
+  }
+
+  // === PADEL - REUTILIZAR PLANTILLA EXISTENTE ===
+  function generatePadelPlayerAddedTemplate(booking, organizerName, isVisitorBooking, email) {
+    return generatePadelEmailTemplate(booking, organizerName, isVisitorBooking, email)
+      .replace('Confirmación de Reserva', 'Has sido agregado a una reserva')
+      .replace('Â¡Tu reserva ha sido confirmada exitosamente!', 'Â¡El administrador te ha agregado a una reserva de Pádel!')
+      .replace('Nos complace confirmar tu reserva', 'Has sido incluido en la siguiente reserva')
+      .replace('Â¡Nos vemos en la cancha!', 'Â¡Confirma tu asistencia y nos vemos en la cancha!');
+  }
+
+  function generatePadelPlayerRemovedTemplate(booking, organizerName, isVisitorBooking, email) {
+    return generatePadelEmailTemplate(booking, organizerName, isVisitorBooking, email)
+      .replace('Confirmación de Reserva', 'Has sido removido de una reserva')
+      .replace('Â¡Tu reserva ha sido confirmada exitosamente!', 'Has sido removido de una reserva de Pádel')
+      .replace('Nos complace confirmar tu reserva', 'El administrador te ha removido de la siguiente reserva')
+      .replace('background: linear-gradient(135deg, #2E7AFF, #1E5AFF)', 'background: linear-gradient(135deg, #f44336, #d32f2f)')
+      .replace('Â¡Nos vemos en la cancha!', 'Si tienes dudas, contacta al club directamente.');
+  } 
+  // === FUNCIONES DE PLANTILLAS ADMIN (al final del archivo) ===
+  function generatePlayerAddedByAdminEmailTemplate(booking, organizerName, isVisitorBooking, email) {
+    const sport = getSportFromCourtId(booking.courtId);
+    
+    if (sport === 'GOLF') {
+      return generateGolfEmailTemplate(booking, organizerName, isVisitorBooking, email)
+        .replace('Confirmación de Reserva', 'Has sido agregado a una reserva')
+        .replace('Â¡Tu reserva ha sido confirmada exitosamente!', 'Â¡El administrador te ha agregado a una reserva!')
+        .replace('Â¡Nos vemos en el campo!', 'Â¡Confirma tu asistencia y nos vemos en el campo!');
+    } else if (sport === 'TENIS') {
+      return generateTennisEmailTemplate(booking, organizerName, isVisitorBooking, email)
+        .replace('Confirmación de Reserva', 'Has sido agregado a una reserva')
+        .replace('Â¡Tu reserva ha sido confirmada exitosamente!', 'Â¡El administrador te ha agregado a una reserva!')
+        .replace('Â¡Nos vemos en la cancha!', 'Â¡Confirma tu asistencia y nos vemos en la cancha!');
+    } else {
+      return generatePadelEmailTemplate(booking, organizerName, isVisitorBooking, email)
+        .replace('Confirmación de Reserva', 'Has sido agregado a una reserva')
+        .replace('Â¡Tu reserva ha sido confirmada exitosamente!', 'Â¡El administrador te ha agregado a una reserva!')
+        .replace('Â¡Nos vemos en la cancha!', 'Â¡Confirma tu asistencia y nos vemos en la cancha!');
+    }
+  }
+
+  function generatePlayerRemovedByAdminEmailTemplate(booking, organizerName, isVisitorBooking, email) {
+    const sport = getSportFromCourtId(booking.courtId);
+    
+    if (sport === 'GOLF') {
+      return generateGolfEmailTemplate(booking, organizerName, isVisitorBooking, email)
+        .replace('Confirmación de Reserva', 'Has sido removido de una reserva')
+        .replace('Â¡Tu reserva ha sido confirmada exitosamente!', 'Has sido removido de una reserva')
+        .replace('linear-gradient(135deg, #4CAF50, #7CB342)', 'linear-gradient(135deg, #f44336, #d32f2f)')
+        .replace('Â¡Nos vemos en el campo!', 'Si tienes dudas, contacta al club directamente.');
+    } else if (sport === 'TENIS') {
+      return generateTennisEmailTemplate(booking, organizerName, isVisitorBooking, email)
+        .replace('Confirmación de Reserva', 'Has sido removido de una reserva')
+        .replace('Â¡Tu reserva ha sido confirmada exitosamente!', 'Has sido removido de una reserva')
+        .replace('background: linear-gradient(135deg, #2196F3, #1976D2)', 'background: linear-gradient(135deg, #f44336, #d32f2f)')
+        .replace('Â¡Nos vemos en la cancha!', 'Si tienes dudas, contacta al club directamente.');
+    } else {
+      return generatePadelEmailTemplate(booking, organizerName, isVisitorBooking, email)
+        .replace('Confirmación de Reserva', 'Has sido removido de una reserva')
+        .replace('Â¡Tu reserva ha sido confirmada exitosamente!', 'Has sido removido de una reserva')
+        .replace('background: linear-gradient(135deg, #2E7AFF, #1E5AFF)', 'background: linear-gradient(135deg, #f44336, #d32f2f)')
+        .replace('Â¡Nos vemos en la cancha!', 'Si tienes dudas, contacta al club directamente.');
+    }
+  }
 }
 
 // ============================================================================

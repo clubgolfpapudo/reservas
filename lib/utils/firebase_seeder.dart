@@ -1,4 +1,4 @@
-// ============================================================================
+﻿// ============================================================================
 // ARCHIVO 2: lib/utils/firebase_seeder.dart (CREAR ESTE ARCHIVO)
 // ============================================================================
 
@@ -9,7 +9,7 @@ class FirebaseSeeder {
   
   static Future<void> seedData() async {
     try {
-      print('🌱 Iniciando seed de datos...');
+      print('ðŸŒ± Iniciando seed de datos...');
       
       // Verificar si ya existen datos
       final courtsSnapshot = await _firestore.collection('courts').limit(1).get();
@@ -23,13 +23,13 @@ class FirebaseSeeder {
       
       print('✅ Datos poblados exitosamente');
     } catch (e) {
-      print('❌ Error poblando datos: $e');
+      print('âŒ Error poblando datos: $e');
     }
   }
   
   static Future<void> _createCourts() async {
     final courts = [
-      // PÁDEL
+      // PÃDEL
       {
         'name': 'PITE',
         'description': 'Cancha PITE',
@@ -175,3 +175,4 @@ class FirebaseSeeder {
     print('✅ Reservas creadas');
   }
 }
+
