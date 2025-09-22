@@ -464,30 +464,6 @@ exports.sendBookingEmailHTTP = onRequest({
         const isOrganizer = emailResults.length === 0;
         const showVisitorMessage = isOrganizer && isVisitorBooking;
         
-      // let emailHtml;
-      // const requestType = req.body.type; // Nuevo parámetro del EmailService
-
-      // if (isAdminAction) {
-      //   // Lógica anterior (mantener como backup)
-      //   if (adminActionType === 'ADDED') {
-      //     emailHtml = generatePlayerAddedByAdminEmailTemplate(normalizedBooking, 'Administrador', showVisitorMessage, playerEmail);
-      //   } else if (adminActionType === 'REMOVED') {
-      //     emailHtml = generatePlayerRemovedByAdminEmailTemplate(normalizedBooking, 'Administrador', showVisitorMessage, playerEmail);
-      //   } else {
-      //     console.log(`❌ adminActionType inválido: ${adminActionType}`);
-      //     continue;
-      //   }
-      // } else if (requestType === 'player_added') {
-      //   // Nueva lógica usando el parámetro 'type' del EmailService
-      //   emailHtml = generatePlayerAddedByAdminEmailTemplate(normalizedBooking, 'Administrador', showVisitorMessage, playerEmail);
-      // } else if (requestType === 'player_removed') {
-      //   // Nueva lógica usando el parámetro 'type' del EmailService  
-      //   emailHtml = generatePlayerRemovedByAdminEmailTemplate(normalizedBooking, 'Administrador', showVisitorMessage, playerEmail);
-      // } else {
-      //   // Lógica normal existente
-      //   emailHtml = generateBookingEmailHtml(normalizedBooking, playerName, showVisitorMessage, playerEmail);
-      // }
-      // Declarar variables una sola vez
       let emailHtml;
       let emailSubject;
       const requestType = req.body.type;
@@ -2099,6 +2075,97 @@ function generateErrorHtml(errorMessage) {
   `;
   // === PLANTILLAS PARA ACCIONES DE ADMIN (reutilizan plantillas existentes) ===
 
+  // === GOLF - REUTILIZAR PLANTILLA EXISTENTE ===
+  function generateGolfPlayerAddedTemplate(booking, organizerName, isVisitorBooking, email) {
+    return generateGolfEmailTemplate(booking, organizerName, isVisitorBooking, email)
+      .replace('Confirmación de Reserva', 'Has sido agregado a una reserva')
+      .replace('¡Tu reserva ha sido confirmada exitosamente!', '¡El administrador te ha agregado a una reserva de Golf!')
+      .replace('Nos complace confirmar tu reserva', 'Has sido incluido en la siguiente reserva')
+      .replace('¡Nos vemos en el campo!', '¡Confirma tu asistencia y nos vemos en el campo!');
+  }
+
+  function generateGolfPlayerRemovedTemplate(booking, organizerName, isVisitorBooking, email) {
+    return generateGolfEmailTemplate(booking, organizerName, isVisitorBooking, email)
+      .replace('Confirmación de Reserva', 'Has sido removido de una reserva')
+      .replace('¡Tu reserva ha sido confirmada exitosamente!', 'Has sido removido de una reserva de Golf')
+      .replace('Nos complace confirmar tu reserva', 'El administrador te ha removido de la siguiente reserva')
+      .replace('background: linear-gradient(135deg, #4CAF50 0%, #2E7D32 100%)', 'background: linear-gradient(135deg, #f44336, #d32f2f)')
+      .replace('¡Nos vemos en el campo!', 'Si tienes dudas, contacta al club directamente.')
+      .replace(/<tr>\s*<td style="padding: 0 40px 20px 40px; text-align: center;">[\s\S]*?❌ Cancelar mi Participación[\s\S]*?<\/tr>/g, '');
+  }
+
+  // === TENIS - REUTILIZAR PLANTILLA EXISTENTE ===
+  function generateTennisPlayerAddedTemplate(booking, organizerName, isVisitorBooking, email) {
+    return generateTennisEmailTemplate(booking, organizerName, isVisitorBooking, email)
+      .replace('Confirmación de Reserva', 'Has sido agregado a una reserva')
+      .replace('¡Tu reserva ha sido confirmada exitosamente!', '¡El administrador te ha agregado a una reserva de Tenis!')
+      .replace('Nos complace confirmar tu reserva', 'Has sido incluido en la siguiente reserva')
+      .replace('¡Nos vemos en la cancha!', '¡Confirma tu asistencia y nos vemos en la cancha!');
+  }
+
+  function generateTennisPlayerRemovedTemplate(booking, organizerName, isVisitorBooking, email) {
+    return generateTennisEmailTemplate(booking, organizerName, isVisitorBooking, email)
+      .replace('Confirmación de Reserva', 'Has sido removido de una reserva')
+      .replace('¡Tu reserva ha sido confirmada exitosamente!', 'Has sido removido de una reserva de Tenis')
+      .replace('Nos complace confirmar tu reserva', 'El administrador te ha removido de la siguiente reserva')
+      .replace('background: linear-gradient(135deg, #2196F3, #1976D2)', 'background: linear-gradient(135deg, #f44336, #d32f2f)')
+      .replace('¡Nos vemos en la cancha!', 'Si tienes dudas, contacta al club directamente.')
+      .replace(/<tr>\s*<td style="padding: 0 40px 20px 40px; text-align: center;">[\s\S]*?❌ Cancelar mi Participación[\s\S]*?<\/tr>/g, '');
+  }
+
+  // === PADEL - REUTILIZAR PLANTILLA EXISTENTE ===
+  function generatePadelPlayerAddedTemplate(booking, organizerName, isVisitorBooking, email) {
+    return generatePadelEmailTemplate(booking, organizerName, isVisitorBooking, email)
+      .replace('Confirmación de Reserva', 'Has sido agregado a una reserva')
+      .replace('¡Tu reserva ha sido confirmada exitosamente!', '¡El administrador te ha agregado a una reserva de Pádel!')
+      .replace('Nos complace confirmar tu reserva', 'Has sido incluido en la siguiente reserva')
+      .replace('¡Nos vemos en la cancha!', '¡Confirma tu asistencia y nos vemos en la cancha!');
+  }
+
+  function generatePadelPlayerRemovedTemplate(booking, organizerName, isVisitorBooking, email) {
+    return generatePadelEmailTemplate(booking, organizerName, isVisitorBooking, email)
+      .replace('Confirmación de Reserva', 'Has sido removido de una reserva')
+      .replace('¡Tu reserva ha sido confirmada exitosamente!', 'Has sido removido de una reserva de Pádel')
+      .replace('Nos complace confirmar tu reserva', 'El administrador te ha removido de la siguiente reserva')
+      .replace('background: linear-gradient(135deg, #2E7AFF, #1E5AFF)', 'background: linear-gradient(135deg, #f44336, #d32f2f)')
+      .replace('¡Nos vemos en la cancha!', 'Si tienes dudas, contacta al club directamente.')
+      .replace(/❌ Cancelar mi Participación/g, '')  // Elimina el texto del botón
+      .replace(/href="https:\/\/us-central1-cgpreservas\.cloudfunctions\.net\/cancelBooking[^"]*"/g, 'href="#"')  // Desactiva el link
+      .replace(/background: #dc2626/g, 'background: #cccccc');  // Desactiva visualmente
+  } 
+  // === FUNCIONES DE PLANTILLAS ADMIN (al final del archivo) ===
+  function generatePlayerAddedByAdminEmailTemplate(booking, organizerName, isVisitorBooking, email) {
+    const sport = getSportFromCourtId(booking.courtId);
+    
+    if (sport === 'GOLF') {
+      return generateGolfEmailTemplate(booking, organizerName, isVisitorBooking, email)
+        .replace('Confirmación de Reserva', 'Has sido agregado a una reserva')
+        .replace('¡Tu reserva ha sido confirmada exitosamente!', '¡El administrador te ha agregado a una reserva!')
+        .replace('¡Nos vemos en el campo!', '¡Confirma tu asistencia y nos vemos en el campo!');
+    } else if (sport === 'TENIS') {
+      return generateTennisEmailTemplate(booking, organizerName, isVisitorBooking, email)
+        .replace('Confirmación de Reserva', 'Has sido agregado a una reserva')
+        .replace('¡Tu reserva ha sido confirmada exitosamente!', '¡El administrador te ha agregado a una reserva!')
+        .replace('¡Nos vemos en la cancha!', '¡Confirma tu asistencia y nos vemos en la cancha!');
+    } else {
+      return generatePadelEmailTemplate(booking, organizerName, isVisitorBooking, email)
+        .replace('Confirmación de Reserva', 'Has sido agregado a una reserva')
+        .replace('¡Tu reserva ha sido confirmada exitosamente!', '¡El administrador te ha agregado a una reserva!')
+        .replace('¡Nos vemos en la cancha!', '¡Confirma tu asistencia y nos vemos en la cancha!');
+    }
+  }
+
+function generatePlayerRemovedByAdminEmailTemplate(booking, organizerName, isVisitorBooking, email) {
+  const sport = getSportFromCourtId(booking.courtId);
+  
+  if (sport === 'GOLF') {
+    return generateGolfPlayerRemovedTemplate(booking, organizerName, isVisitorBooking, email);
+  } else if (sport === 'TENIS') {
+    return generateTennisPlayerRemovedTemplate(booking, organizerName, isVisitorBooking, email);
+  } else {
+    return generatePadelPlayerRemovedTemplate(booking, organizerName, isVisitorBooking, email);
+  }
+}
 }
 
 // ============================================================================

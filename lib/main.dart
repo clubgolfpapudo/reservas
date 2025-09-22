@@ -1,4 +1,4 @@
-﻿// lib/main.dart - CON RUTAS DE NAVEGACIÃ“N COMPLETAS
+// lib/main.dart - CON RUTAS DE NAVEGACIÃ“N COMPLETAS
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';

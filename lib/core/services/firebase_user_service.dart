@@ -1,4 +1,4 @@
-﻿/// lib/core/services/firebase_user_service.dart
+/// lib/core/services/firebase_user_service.dart
 /// 
 /// PROPÃ“SITO:
 /// Servicio especializado para gestión de usuarios desde Firebase Firestore con enfoque específico

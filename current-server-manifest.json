@@ -1,4 +1,4 @@
-{
+﻿{
     "name": "CGP Reservas - Club de Golf Papudo",
     "short_name": "CGP Reservas",
     "description": "Sistema de reservas del Club de Golf Papudo",
@@ -6,15 +6,17 @@
     "display": "standalone",
     "background_color": "#ffffff",
     "theme_color": "#2E7AFF",
+    "orientation": "portrait-primary",
+    "scope": "/",
     "icons": [
         {
-            "src": "icons/club_logo.png",
-            "sizes": "725x723",
+            "src": "icons/Icon-192.png",
+            "sizes": "192x192",
             "type": "image/png"
         },
         {
-            "src": "icons/club_logo.png",
-            "sizes": "725x723",
+            "src": "icons/Icon-512.png",
+            "sizes": "512x512",
             "type": "image/png"
         }
     ]
