@@ -918,7 +918,7 @@ exports.verifyGoogleSheetsAPI = onRequest({
   cors: true,
 }, async (req, res) => {
   try {
-    console.log('ðŸ” Verificando configuración de Google Sheets API...');
+    console.log('🔥 Verificando configuración de Google Sheets API...');
     
     const SHEET_ID = '1A-8RvvgkHXUP-985So8CBJvDAj50w58EFML1CJEq2c4';
     const SHEET_NAME = 'Maestro';
@@ -1738,6 +1738,8 @@ function generateBookingEmailHtml(booking, organizerName, isVisitorBooking = fal
 /// @param {Object} remainingPlayer - Jugador que recibe la notificación
 /// @param {Object} reservationInfo - Información completa de la reserva
 /// @returns {Promise} Resultado del enví­o
+// REEMPLAZAR función sendCancellationNotification completa
+// (Aproximadamente líneas 1145-1285 en index.js)
 async function sendCancellationNotification(remainingPlayer, reservationInfo) {
   try {
     const {
@@ -1751,10 +1753,32 @@ async function sendCancellationNotification(remainingPlayer, reservationInfo) {
 
     const formattedDate = formatDate(date);
     const endTime = getEndTime(timeSlot);
-    const courtName = courtId === 'golf_tee_1' ? 'Hoyo 1' : 
-                  courtId === 'golf_tee_10' ? 'Hoyo 10' :
-                  courtId.startsWith('tennis_') ? 'Cancha de Tenis' : 
-                  'Cancha de Pádel';
+    
+    // 🎯 DETECTAR DEPORTE CORRECTAMENTE
+    const sport = getSportFromCourtId(courtId);
+    const sportName = sport === 'GOLF' ? 'Golf' : 
+                      sport === 'TENIS' ? 'Tenis' : 
+                      'Pádel';
+    
+    // 🎯 NOMBRE DE CANCHA CORRECTO POR DEPORTE
+    let courtName;
+    if (sport === 'GOLF') {
+      courtName = courtId === 'golf_tee_1' ? 'Hoyo 1' : 'Hoyo 10';
+    } else if (sport === 'TENIS') {
+      courtName = getTennisCourtName(courtId);
+    } else {
+      courtName = getPadelCourtName(courtId);
+    }
+    
+    // 🎯 EMOJI CORRECTO POR DEPORTE
+    const sportEmoji = sport === 'GOLF' ? '⛳' : 
+                       sport === 'TENIS' ? '🎾' : 
+                       '🏐';
+    
+    // 🎯 COLOR DE HEADER POR DEPORTE
+    const headerColor = sport === 'GOLF' ? 'linear-gradient(135deg, #4CAF50 0%, #2E7D32 100%)' :
+                        sport === 'TENIS' ? 'linear-gradient(135deg, #D2691E 0%, #B8860B 100%)' :
+                        'linear-gradient(135deg, #2E7AFF 0%, #1E5AFF 100%)';
 
     const emailHtml = `
       <!DOCTYPE html>
@@ -1770,13 +1794,13 @@ async function sendCancellationNotification(remainingPlayer, reservationInfo) {
             <td style="padding: 20px 0;">
               <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="600" style="margin: 0 auto; background-color: white; border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.1);">
                 
-                <!-- HEADER -->
+                <!-- HEADER CON COLOR DEL DEPORTE -->
                 <tr>
-                  <td style="background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%); padding: 30px 40px; border-radius: 12px 12px 0 0;">
+                  <td style="background: ${headerColor}; padding: 30px 40px; border-radius: 12px 12px 0 0;">
                     <h1 style="color: white; margin: 0; font-size: 24px; text-align: center;">
                       ⚠️ Cambio en tu Reserva
                     </h1>
-                    <p style="color: #fde68a; margin: 5px 0 0 0; font-size: 16px; text-align: center;">
+                    <p style="color: rgba(255,255,255,0.9); margin: 5px 0 0 0; font-size: 16px; text-align: center;">
                       Club de Golf Papudo
                     </p>
                   </td>
@@ -1789,7 +1813,7 @@ async function sendCancellationNotification(remainingPlayer, reservationInfo) {
                       Hola ${remainingPlayer.name || remainingPlayer.displayName || 'Jugador'},
                     </h2>
                     <p style="color: #374151; font-size: 16px; line-height: 1.6; margin: 0 0 24px 0;">
-                      Te informamos que <strong>${cancelingPlayerName}</strong> se retiró de la reserva de Pádel en la que participas.
+                      Te informamos que <strong>${cancelingPlayerName}</strong> se retiró de la reserva de <strong>${sportName}</strong> en la que participas.
                     </p>
                     <p style="color: #374151; font-size: 16px; line-height: 1.6; margin: 0 0 24px 0;">
                       La reserva sigue <strong>activa</strong> con los jugadores restantes.
@@ -1805,8 +1829,8 @@ async function sendCancellationNotification(remainingPlayer, reservationInfo) {
                           <div style="color: #1e3a8a; font-size: 16px; line-height: 1.8;">
                             <div><strong>📅 Fecha:</strong> ${formattedDate}</div>
                             <div><strong>⏰ Horario:</strong> ${timeSlot} - ${endTime}</div>
-                            <div><strong>ðŸ¤¾ Cancha:</strong> ${courtName}</div>
-                            <div><strong>ðŸ‘¤ Se retiró:</strong> ${cancelingPlayerName}</div>
+                            <div><strong>${sportEmoji} ${sport === 'GOLF' ? 'Hoyo' : 'Cancha'}:</strong> ${courtName}</div>
+                            <div><strong>👤 Se retiró:</strong> ${cancelingPlayerName}</div>
                           </div>
                         </td>
                       </tr>
@@ -1831,7 +1855,7 @@ async function sendCancellationNotification(remainingPlayer, reservationInfo) {
                           
                           ${remainingPlayers.length < 4 ? `
                             <div style="margin-top: 16px; padding: 12px; background-color: #dcfce7; border-radius: 6px; color: #166534;">
-                              <strong>ðŸ’¡ Tip:</strong> Puedes contactar al club para agregar más jugadores.
+                              <strong>💡 Tip:</strong> Puedes contactar al club para agregar más jugadores.
                             </div>
                           ` : ''}
                         </td>
@@ -1843,7 +1867,7 @@ async function sendCancellationNotification(remainingPlayer, reservationInfo) {
                       <tr>
                         <td style="padding: 20px;">
                           <h3 style="color: #92400e; margin: 0 0 16px 0; font-size: 18px;">
-                            ðŸ“ž Contacto del jugador que se retiró:
+                            📞 Contacto del jugador que se retiró:
                           </h3>
                           <p style="color: #a16207; font-size: 16px; margin: 0;">
                             <strong>${cancelingPlayerName}</strong><br>
@@ -1859,7 +1883,7 @@ async function sendCancellationNotification(remainingPlayer, reservationInfo) {
                 <tr>
                   <td style="padding: 30px 40px; border-top: 1px solid #e5e7eb; background-color: #f9fafb; border-radius: 0 0 12px 12px;">
                     <p style="color: #6b7280; font-size: 14px; text-align: center; margin: 0;">
-                      Club de Golf Papudo - Sistema de Reservas Pádel<br>
+                      Club de Golf Papudo - Sistema de Reservas Multi-Deporte<br>
                       📧 cgpreservas@gmail.com
                     </p>
                   </td>
@@ -1880,7 +1904,7 @@ async function sendCancellationNotification(remainingPlayer, reservationInfo) {
         address: 'cgpreservas@gmail.com'
       },
       to: remainingPlayer.email,
-      subject: `⚠️ Jugador se retiró de reserva - ${formattedDate}`,
+      subject: `⚠️ Jugador se retiró de reserva de ${sportName} - ${formattedDate}`,
       html: emailHtml
     };
 
@@ -2036,7 +2060,7 @@ function generateCancellationConfirmationHtml(bookingId, playerEmail) {
                 Los demás jugadores han sido notificados automáticamente.
             </div>
             
-            <a href="mailto:info@clubdegolfpapudo.cl" class="contact-btn">
+            <a href="mailto:contacto@clubgolfpapudo.cl" class="contact-btn">
                 📧 Contactar Club
             </a>
         </div>
