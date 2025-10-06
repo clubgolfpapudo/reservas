@@ -252,13 +252,13 @@ class _ReservationScreenState extends State<ReservationScreen> {
                 'Horarios estacionales:',
                 style: TextStyle(fontWeight: FontWeight.bold),
               ),
-              Text('â€¢ Invierno: hasta 16:00'),
-              Text('â€¢ Verano: hasta 17:00'),
+              Text('• Invierno: hasta 16:00'),
+              Text('• Verano: hasta 17:00'),
               SizedBox(height: 8),
               Text('Salidas cada 12 minutos desde 08:00'),
               SizedBox(height: 8),
               Text(
-                'âš ï¸ No puedes tener reservas simultáneas en Hoyo 1 y Hoyo 10',
+                '⚠️ No puedes tener reservas simultáneas en Hoyo 1 y Hoyo 10',
                 style: TextStyle(
                   color: Colors.orange[700],
                   fontStyle: FontStyle.italic,

@@ -143,9 +143,11 @@ class _AdminReservationsPageState extends State<AdminReservationsPage> {
           style: TextStyle(
             fontSize: 18,
             fontWeight: FontWeight.w500,
+            color: Colors.white,
           ),
         ),
         backgroundColor: Colors.blue[800],
+        foregroundColor: Colors.white,
         centerTitle: true,
       ),
 
@@ -565,6 +567,8 @@ class _EditBookingModalContentState extends State<_EditBookingModalContent> {
     );
   }
 }
+
+
 
 
 

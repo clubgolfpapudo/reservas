@@ -17,6 +17,8 @@ environment:
 dependencies:
   flutter:                             # SDK base de Flutter
     sdk: flutter
+  shared_preferences: ^2.2.2
+  shared_preferences_web: ^2.2.1
   
   # ✅ AGREGAR ESTAS DOS LÍNEAS AQUÍ:
   flutter_localizations:
@@ -48,7 +50,6 @@ dependencies:
   # └─────────────────────────────────────────────────────────────────────────┘
   webview_flutter: ^4.4.2              # Mostrar páginas web dentro de la app
   url_launcher: ^6.2.1                 # ✅ NUEVO: Abrir URLs externas
-  shared_preferences: ^2.2.2           # ✅ NUEVO: Guardar datos localmente (usuario)
   
   # ┌─────────────────────────────────────────────────────────────────────────┐
   # │ UTILIDADES - Herramientas útiles                                       │

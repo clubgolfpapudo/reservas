@@ -104,7 +104,7 @@ class _AdminDashboardPageState extends State<AdminDashboardPage>
                                   
                                   const SizedBox(height: AdminConstants.adminSpacing * 2),
                                   
-                                  // Métricas principales
+                                  // MÃ©tricas principales
                                   _buildMetricsSection(adminProvider),
                                   
                                   const SizedBox(height: AdminConstants.adminSpacing * 2),
@@ -243,7 +243,15 @@ class _AdminDashboardPageState extends State<AdminDashboardPage>
             ),
           ),
         ),
-        
+        title: Text(
+          AdminConstants.adminPanelTitle,
+          style: const TextStyle(
+            color: Colors.white,
+            fontSize: 18,
+            fontWeight: FontWeight.w600,
+          ),
+        ),
+        centerTitle: true,
       ),
       
       // Acciones del header
@@ -261,7 +269,7 @@ class _AdminDashboardPageState extends State<AdminDashboardPage>
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
-          'Métricas del Sistema',
+          'MÃ©tricas del Sistema',
           style: TextStyle(
             fontSize: 22,
             fontWeight: FontWeight.bold,
@@ -566,7 +574,7 @@ class _AdminDashboardPageState extends State<AdminDashboardPage>
             if (adminProvider.unreadNotifications > 0)
               TextButton(
                 onPressed: () => adminProvider.markAllNotificationsAsRead(),
-                child: const Text('Marcar todo como leí­do'),
+                child: const Text('Marcar todo como leÃ­do'),
               ),
           ],
         ),
@@ -749,7 +757,7 @@ class _AdminDashboardPageState extends State<AdminDashboardPage>
               _buildActivityItem(
                 Icons.person_add,
                 'Nuevo usuario registrado',
-                'Marí­a González se registró en el sistema',
+                'MarÃ­a GonzÃ¡lez se registrÃ³ en el sistema',
                 '5 min ago',
                 AdminConstants.adminSuccess,
               ),
@@ -757,7 +765,7 @@ class _AdminDashboardPageState extends State<AdminDashboardPage>
               _buildActivityItem(
                 Icons.calendar_today,
                 'Reserva creada',
-                'Juan Pí©rez reservó Cancha 1 de Tenis',
+                'Juan PÃ©rez reservÃ³ Cancha 1 de Tenis',
                 '15 min ago',
                 AdminConstants.adminAccent,
               ),
@@ -836,7 +844,7 @@ class _AdminDashboardPageState extends State<AdminDashboardPage>
       backgroundColor: AdminConstants.adminPrimary,
       foregroundColor: Colors.white,
       icon: const Icon(Icons.speed),
-      label: const Text('Acciones Rápidas'),
+      label: const Text('Acciones RÃ¡pidas'),
     );
   }
 
@@ -866,7 +874,7 @@ class _AdminDashboardPageState extends State<AdminDashboardPage>
             ),
             const SizedBox(height: 16),
             const Text(
-              'No tienes permisos para acceder a esta sección.',
+              'No tienes permisos para acceder a esta secciÃ³n.',
               textAlign: TextAlign.center,
               style: TextStyle(fontSize: 16),
             ),
@@ -881,7 +889,7 @@ class _AdminDashboardPageState extends State<AdminDashboardPage>
     );
   }
 
-  // ===== MÉTODOS DE NAVEGACIÓN Y ACCIONES =====
+  // ===== MÃ‰TODOS DE NAVEGACIÃ“N Y ACCIONES =====
 
   void _navigateToFunction(AdminFunction function) {
     switch (function.route) {
@@ -893,12 +901,12 @@ class _AdminDashboardPageState extends State<AdminDashboardPage>
         );
         break;
       default:
-        // Código para funciones no implementadas o con rutas no coincidentes
+        // CÃ³digo para funciones no implementadas o con rutas no coincidentes
         showDialog(
           context: context,
           builder: (context) => AlertDialog(
             title: Text(function.title),
-            content: Text('${function.description}\n\nPróximamente disponible.'),
+            content: Text('${function.description}\n\nPrÃ³ximamente disponible.'),
             actions: [
               TextButton(
                 onPressed: () => Navigator.pop(context),
@@ -939,7 +947,7 @@ class _AdminDashboardPageState extends State<AdminDashboardPage>
                       adminProvider.markAllNotificationsAsRead();
                       Navigator.pop(context);
                     },
-                    child: const Text('Marcar todo como leí­do'),
+                    child: const Text('Marcar todo como leÃ­do'),
                   ),
               ],
             ),
@@ -973,7 +981,7 @@ class _AdminDashboardPageState extends State<AdminDashboardPage>
           mainAxisSize: MainAxisSize.min,
           children: [
             const Text(
-              'Acciones Rápidas',
+              'Acciones RÃ¡pidas',
               style: TextStyle(
                 fontSize: 18,
                 fontWeight: FontWeight.bold,
@@ -1006,8 +1014,8 @@ class _AdminDashboardPageState extends State<AdminDashboardPage>
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('Configuración Admin'),
-        content: const Text('Configuración del panel administrativo próximamente disponible.'),
+        title: const Text('ConfiguraciÃ³n Admin'),
+        content: const Text('ConfiguraciÃ³n del panel administrativo prÃ³ximamente disponible.'),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
@@ -1029,9 +1037,7 @@ class _AdminDashboardPageState extends State<AdminDashboardPage>
     } else if (difference.inDays < 1) {
       return '${difference.inHours} h ago';
     } else {
-      return '${difference.inDays} dí­as ago';
+      return '${difference.inDays} dÃ­as ago';
     }
   }
 }
-
-

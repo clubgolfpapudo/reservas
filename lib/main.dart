@@ -1,4 +1,4 @@
-// lib/main.dart - CON RUTAS DE NAVEGACIÃ“N COMPLETAS
+﻿// lib/main.dart - CON RUTAS DE NAVEGACIÃ“N COMPLETAS
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -6,6 +6,7 @@ import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:intl/date_symbol_data_local.dart';
 import 'package:provider/provider.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 // Core
@@ -31,7 +32,7 @@ import 'features/admin/providers/admin_provider.dart';
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   
-  // Configurar orientación (solo portrait para móviles)
+  // Configurar orientación
   await SystemChrome.setPreferredOrientations([
     DeviceOrientation.portraitUp,
     DeviceOrientation.portraitDown,
@@ -42,7 +43,10 @@ void main() async {
     options: DefaultFirebaseOptions.currentPlatform,
   );
   
-  // Inicializar localización en español
+  // ✅ NUEVO: Pre-inicializar SharedPreferences para web
+  await SharedPreferences.getInstance();
+  
+  // Inicializar localización
   await initializeDateFormatting('es_ES', null);
   
   runApp(const CGPReservasApp());
@@ -329,6 +333,10 @@ class _SimpleLoginPageState extends State<SimpleLoginPage> {
                       TextField(
                         controller: _emailController,
                         keyboardType: TextInputType.emailAddress,
+                        autofillHints: const [AutofillHints.email], // ← NUEVO
+                        autocorrect: false,
+                        textInputAction: TextInputAction.done,
+                        onSubmitted: (_) => _handleLogin(), // ← NUEVO: Login al presionar Enter
                         decoration: InputDecoration(
                           labelText: 'Email',
                           hintText: 'ejemplo@clubgolfpapudo.cl',

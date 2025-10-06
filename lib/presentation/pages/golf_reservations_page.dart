@@ -785,7 +785,7 @@ DateTime _getSmartInitialDate() {
 Future<void> _handleSlotTap(BuildContext context, Booking booking) async {
   final currentPlayers = booking.players.map((player) => ' ${player.name}').join('\n');
   final remainingSlots = 4 - booking.players.length - 1;
-  
+
   final confirmed = await showDialog<bool>(
     context: context,
     builder: (context) => AlertDialog(
@@ -823,7 +823,7 @@ Future<void> _handleSlotTap(BuildContext context, Booking booking) async {
             ),
           ),
           SizedBox(height: 16),
-          
+
           // Jugadores actuales
           Text(
             'Jugadores confirmados:',
@@ -843,7 +843,7 @@ Future<void> _handleSlotTap(BuildContext context, Booking booking) async {
             ),
           ),
           SizedBox(height: 16),
-          
+
           // Información de espacios disponibles
           Container(
             padding: EdgeInsets.all(8),
@@ -867,30 +867,61 @@ Future<void> _handleSlotTap(BuildContext context, Booking booking) async {
         ],
       ),
       actions: [
-        TextButton(
+        // ✅ BOTÓN CANCELAR MEJORADO - Ahora con fondo rojo y mismo tamaño
+        ElevatedButton(
           onPressed: () => Navigator.pop(context, false),
-          child: Text('Cancelar', style: TextStyle(color: Colors.grey[600])),
+          style: ElevatedButton.styleFrom(
+            backgroundColor: Color(0xFFD32F2F), // Rojo Material Design
+            foregroundColor: Colors.white,
+            padding: EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+            elevation: 2,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(8),
+            ),
+          ),
+          child: Text(
+            'Cancelar',
+            style: TextStyle(
+              fontSize: 15,
+              fontWeight: FontWeight.w600,
+            ),
+          ),
         ),
+        SizedBox(width: 8), // Espaciado entre botones
+        // ✅ BOTÓN CONFIRMAR - Mantiene estilo verde
         ElevatedButton(
           onPressed: () => Navigator.pop(context, true),
           style: ElevatedButton.styleFrom(
             backgroundColor: Color(0xFF4CAF50),
             foregroundColor: Colors.white,
+            padding: EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+            elevation: 2,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(8),
+            ),
           ),
-          child: Text('Confirmar Reserva'),
+          child: Text(
+            'Confirmar Reserva',
+            style: TextStyle(
+              fontSize: 15,
+              fontWeight: FontWeight.w600,
+            ),
+          ),
         ),
       ],
+      // ✅ IMPORTANTE: Configurar para que los botones estén en fila
+      actionsPadding: EdgeInsets.fromLTRB(24, 0, 24, 16),
+      actionsAlignment: MainAxisAlignment.end,
     ),
   );
-  
+
   if (confirmed == true) {
     final provider = context.read<BookingProvider>();
     final authProvider = context.read<AppAuthProvider.AuthProvider>();
     final userEmail = authProvider.currentUserEmail;
     final userName = authProvider.currentUserName;
-    
+
     if (userEmail != null && userName != null && authProvider.isUserValidated) {
-      // Verificar duplicados
       // Verificar duplicados
       final isAlreadyInBooking = booking.players.any((player) => player.email == userEmail);
 
@@ -900,20 +931,18 @@ Future<void> _handleSlotTap(BuildContext context, Booking booking) async {
         );
         return;
       }
-      
+
       // Agregar jugador
       await provider.addPlayerToBooking(booking.id!, userEmail, userName);
-      
-      // AGREGAR: Envío de correo de confirmación
+
+      // Envío de correo de confirmación
       try {
-        // Obtener la reserva actualizada para el correo
         final updatedBooking = provider.bookings.firstWhere((b) => b.id == booking.id);
         await EmailService.sendBookingConfirmation(updatedBooking);
       } catch (emailError) {
         print('Error enviando correo: $emailError');
-        // No mostrar error al usuario, el correo es secundario
       }
-      
+
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('$userName se unió a la reserva con éxito')),
       );

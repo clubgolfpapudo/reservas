@@ -43,22 +43,24 @@ abstract class AppConstants {
   static const Map<String, Map<String, dynamic>> _sportScheduleConfig = {
     'padel': {
       'startTime': '09:00',
-      'winterEndTime': '18:00',
-      'summerEndTime': '21:00',
+      'winterEndTime': '16:30',
+      'summerEndTime': '16:30',
+      // 'summerEndTime': '21:00',
       'intervalMinutes': 90, // slots de 90 minutos
       'customSlots': true,   // usa slots predefinidos en lugar de intervalos
     },
     'tennis': {
       'startTime': '09:00',
-      'winterEndTime': '18:00',
-      'summerEndTime': '21:00',
+      'winterEndTime': '16:30',
+      'summerEndTime': '16:30',
+      // 'summerEndTime': '21:00',
       'intervalMinutes': 90, // slots de 90 minutos
       'customSlots': true,   // usa slots predefinidos en lugar de intervalos
     },
     'golf': {
       'startTime': '08:00',
       'winterEndTime': '16:00',
-      'summerEndTime': '17:00',
+      'summerEndTime': '16:00',
       'intervalMinutes': 12,  // slots de 12 minutos
       'customSlots': false,   // genera slots automáticamente
     },
@@ -82,9 +84,9 @@ abstract class AppConstants {
     '13:30',
     '15:00',
     '16:30',
-    '18:00',
-    '19:30',
-    '21:00',
+    // '18:00',
+    // '19:30',
+    // '21:00',
   ];
 
   /// Genera horarios automáticamente para Golf basado en intervalos
@@ -205,7 +207,7 @@ abstract class AppConstants {
   }
 
   // â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
-  // ðŸŒï¸ CONFIGURACIÃ“N ESPECÃFICA DE GOLF (MIGRADA)
+  // ⛳ CONFIGURACIÓN ESPECÍFICA DE GOLF (MIGRADA)
   // â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
   
   /// Verifica si Hoyo 10 está suspendido en un horario dado
@@ -228,13 +230,13 @@ abstract class AppConstants {
   static const int golfBookingHorizonHours = 48; // vs 72 para tenis/pádel
 
   // â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
-  // ðŸ“± CONFIGURACIÃ“N DE LA APP
+  // 📱 CONFIGURACIÓN DE LA APP
   // â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
   static const String appName = 'CGP Reservas';
   static const String appVersion = '1.0.0';
   
   // â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
-  // ðŸŸï¸ CONFIGURACIÃ“N DE RESERVAS
+  // 🏟️ CONFIGURACIÓN DE RESERVAS
   // â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
   static const int maxDaysInAdvance = 3;
   static const int maxBookingsPerUserPerDay = 3;
@@ -243,7 +245,7 @@ abstract class AppConstants {
   static const int childAgeLimit = 25;
 
   // â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
-  // â±ï¸ DURACIONES DE ANIMACIÃ“N
+  // ⏱️ DURACIONES DE ANIMACIÓN
   // â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
   static const Duration defaultAnimationDuration = Duration(milliseconds: 300);
   static const Duration fastAnimationDuration = Duration(milliseconds: 150);

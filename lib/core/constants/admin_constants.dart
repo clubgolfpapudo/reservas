@@ -2,7 +2,7 @@
 import 'package:flutter/material.dart';
 
 class AdminConstants {
-  // ðŸ” Lista de administradores
+  // 📁 Lista de administradores
   static const List<String> adminEmails = [
     'felipe@garciab.cl',
     'anibalreinosomendez@gmail.com',
@@ -11,12 +11,12 @@ class AdminConstants {
     // Futuros administradores se agregan aquí
   ];
   
-  // ðŸŽ¨ Configuración UI
+  // 🎨 Configuración UI
   static const String adminPanelTitle = 'Panel de Administración';
   static const String adminMenuLabel = 'Admin';
   static const String adminWelcomeMessage = 'Bienvenido al panel administrativo';
   
-  // ðŸ”‘ Sistema de permisos granular
+  // 🔑 Sistema de permisos granular
   static const Map<String, List<String>> adminPermissions = {
     'felipe@garciab.cl': [
       'full_access',
@@ -46,7 +46,7 @@ class AdminConstants {
     ],
   };
   
-  // ðŸ“Š Funciones administrativas disponibles
+  // 📊 Funciones administrativas disponibles
   static const List<AdminFunction> adminFunctions = [
     AdminFunction(
       id: 'reservations_management',
@@ -98,7 +98,7 @@ class AdminConstants {
     ),
   ];
   
-  // ðŸŽ¨ Colores del tema admin
+  // 🎨 Colores del tema admin
   static const Color adminPrimary = Color(0xFF1565C0);
   static const Color adminSecondary = Color(0xFF0D47A1);
   static const Color adminAccent = Color(0xFF2196F3);
@@ -106,17 +106,17 @@ class AdminConstants {
   static const Color adminWarning = Color(0xFFFF9800);
   static const Color adminError = Color(0xFFF44336);
   
-  // ðŸ“± Configuración de interfaz
+  // 📱 Configuración de interfaz
   static const double adminCardRadius = 12.0;
   static const double adminSpacing = 16.0;
   static const EdgeInsets adminPadding = EdgeInsets.all(20.0);
   
-  // ðŸ”§ Configuración de funcionalidades
+  // 🔧 Configuración de funcionalidades
   static const int maxRecentActivities = 10;
   static const int reportsCacheMinutes = 30;
   static const bool enableAuditLog = true;
   
-  // ðŸ“Š Métricas por defecto
+  // 📊 Métricas por defecto
   static const List<String> defaultMetrics = [
     'total_users',
     'daily_reservations',
@@ -125,7 +125,7 @@ class AdminConstants {
   ];
 }
 
-// ðŸ”§ Clase modelo para funciones administrativas
+// 🔧 Clase modelo para funciones administrativas
 class AdminFunction {
   final String id;
   final String title;
@@ -167,7 +167,7 @@ class AdminFunction {
   }
 }
 
-// ðŸ”‘ Enum para niveles de permisos
+// 🔑 Enum para niveles de permisos
 enum AdminPermissionLevel {
   readOnly,
   moderator,
@@ -175,7 +175,7 @@ enum AdminPermissionLevel {
   superAdmin,
 }
 
-// ðŸ“Š Clase para métricas del dashboard
+// 📊 Clase para métricas del dashboard
 class AdminMetric {
   final String id;
   final String title;
@@ -198,7 +198,7 @@ class AdminMetric {
   });
 }
 
-// ðŸ”” Clase para notificaciones admin
+// 🔔 Clase para notificaciones admin
 class AdminNotification {
   final String id;
   final String title;

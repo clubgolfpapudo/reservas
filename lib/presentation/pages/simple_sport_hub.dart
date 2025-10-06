@@ -19,31 +19,31 @@ class _SimpleSportHubState extends State<SimpleSportHub> {
   void initState() {
     super.initState();
     
-    // ðŸ” Verificar estado admin después de inicializar
+    // Verificar estado admin después de inicializar
     Future.delayed(const Duration(milliseconds: 500), () {
       _checkAdminStatus();
     });
   }
 
-  // ðŸ” Verificar estado de administrador
+  // Verificar estado de administrador
   void _checkAdminStatus() {
     final authProvider = Provider.of<AuthProvider>(context, listen: false);
     final adminProvider = Provider.of<AdminProvider>(context, listen: false);
     
-    print('ðŸ” DEBUG: Email actual: ${authProvider.currentUserEmail}');
-    print('ðŸ” DEBUG: Es autenticado: ${authProvider.isUserValidated}');
+    print('DEBUG: Email actual: ${authProvider.currentUserEmail}');
+    print('DEBUG: Es autenticado: ${authProvider.isUserValidated}');
     
     if (authProvider.isUserValidated) {
       adminProvider.checkAdminStatus(authProvider.currentUserEmail);
-      print('ðŸ” DEBUG: Es admin: ${adminProvider.isAdmin}');
+      print('DEBUG: Es admin: ${adminProvider.isAdmin}');
     }
   }
 
   @override
   Widget build(BuildContext context) {
-    // ðŸš¨ DEBUG: Para confirmar que este archivo se está ejecutando
-    print("ðŸ”¥ðŸ”¥ðŸ”¥ EJECUTANDO SIMPLE_SPORT_HUB.DART - VERSIÃ“N CON ADMIN");
-    print("ðŸ”¥ðŸ”¥ðŸ”¥ ORDEN CORRECTO: 1ï¸âƒ£Golf â†’ 2ï¸âƒ£Pádel â†’ 3ï¸âƒ£Tenis");
+    // DEBUG: Para confirmar que este archivo se está ejecutando
+    print("EJECUTANDO SIMPLE_SPORT_HUB.DART - VERSION CON ADMIN");
+    print("ORDEN CORRECTO: Golf -> Padel -> Tenis");
     
     return Scaffold(
       backgroundColor: const Color(0xFFF8F9FA),
@@ -137,7 +137,7 @@ class _SimpleSportHubState extends State<SimpleSportHub> {
                     ),
                   ),
                   
-                  // ðŸ” BOTÃ“N ADMIN
+                  // BOTON ADMIN
                   const AdminMenuButton(
                     showBadge: true,
                     padding: EdgeInsets.symmetric(horizontal: 8, vertical: 4),
@@ -146,7 +146,7 @@ class _SimpleSportHubState extends State<SimpleSportHub> {
                   
                   const SizedBox(width: 8),
                   
-                  // ðŸ” NUEVO: MENÃš HAMBURGUESA
+                  // NUEVO: MENU HAMBURGUESA
                   IconButton(
                     icon: const Icon(Icons.menu, color: Colors.white),
                     onPressed: () => _showMainMenu(context),
@@ -207,7 +207,7 @@ class _SimpleSportHubState extends State<SimpleSportHub> {
                 welcomeMessage,
                 style: TextStyle(
                   color: Colors.white.withOpacity(0.9),
-                  fontSize: 18,  // â† Aumenté un poco el tamaño ya que es el único texto
+                  fontSize: 18,
                   fontWeight: FontWeight.w500,
                 ),
                 textAlign: TextAlign.center,
@@ -222,42 +222,42 @@ class _SimpleSportHubState extends State<SimpleSportHub> {
   Widget _buildSportsCards() {
     return Column(
       children: [
-        // ðŸŒï¸ GOLF - PRIMER DEPORTE (POSICIÃ“N 1)
+        // GOLF - PRIMER DEPORTE (POSICION 1)
         _buildSportCard(
           title: 'Golf',
           description: 'Campo de golf de 18 hoyos, par 68',
           icon: Icons.golf_course,
           color: const Color(0xFF7CB342),
           onTap: () {
-            print("ðŸŒï¸ TAP EN GOLF - PRIMER DEPORTE");
+            print("TAP EN GOLF - PRIMER DEPORTE");
             Navigator.pushNamed(context, '/golf-reservations');
           },
         ),
         
         const SizedBox(height: 16),
         
-        // ðŸ“ PÃDEL - SEGUNDO DEPORTE (POSICIÃ“N 2)
+        // PADEL - SEGUNDO DEPORTE (POSICION 2)
         _buildSportCard(
           title: 'Pádel',
           description: 'Tres canchas profesionales',
           icon: Icons.sports_handball,
           color: const Color(0xFF2E7AFF),
           onTap: () {
-            print("ðŸ“ TAP EN PÃDEL - SEGUNDO DEPORTE");
+            print("TAP EN PADEL - SEGUNDO DEPORTE");
             Navigator.pushNamed(context, '/paddle-reservations');
           },
         ),
         
         const SizedBox(height: 16),
         
-        // ðŸŽ¾ TENIS - TERCER DEPORTE (POSICIÃ“N 3)
+        // TENIS - TERCER DEPORTE (POSICION 3)
         _buildSportCard(
           title: 'Tenis',
           description: 'Cuatro canchas de arcilla',
           icon: Icons.sports_tennis,
           color: const Color(0xFFD2691E),
           onTap: () {
-            print("ðŸŽ¾ TAP EN TENIS - TERCER DEPORTE");
+            print("TAP EN TENIS - TERCER DEPORTE");
             Navigator.pushNamed(context, '/tennis-reservations');
           },
         ),
@@ -350,7 +350,7 @@ class _SimpleSportHubState extends State<SimpleSportHub> {
     );
   }
 
-  // ðŸ“± Footer de navegación (igual que el anterior)
+  // Footer de navegación
   Widget _buildFooterNavigation() {
     return Container(
       padding: const EdgeInsets.all(20),
@@ -379,7 +379,7 @@ class _SimpleSportHubState extends State<SimpleSportHub> {
               if (constraints.maxWidth < 600) {
                 return GridView.count(
                   shrinkWrap: true,
-                  physics: const NeverScrollableScrollPhysics(), // o BouncingScrollPhysics si prefieres scroll interno
+                  physics: const NeverScrollableScrollPhysics(),
                   crossAxisCount: 2,
                   mainAxisSpacing: 10,
                   crossAxisSpacing: 10,
@@ -471,7 +471,7 @@ class _SimpleSportHubState extends State<SimpleSportHub> {
     );
   }
 
-  // ðŸ“± Modal para funciones del footer
+  // Modal para funciones del footer
   void _showComingSoonModal(String feature) {
     showDialog(
       context: context,
@@ -526,13 +526,13 @@ class _SimpleSportHubState extends State<SimpleSportHub> {
   void _showMainMenu(BuildContext context) {
     showModalBottomSheet(
       context: context,
-      isScrollControlled: true, // ✅ Permite que el modal use más altura si es necesario
+      isScrollControlled: true,
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
       ),
       builder: (context) => SafeArea(
         child: Padding(
-          padding: MediaQuery.of(context).viewInsets, // ✅ Respeta teclado si está activo
+          padding: MediaQuery.of(context).viewInsets,
           child: SingleChildScrollView(
             child: Padding(
               padding: const EdgeInsets.all(20),
@@ -577,4 +577,3 @@ class _SimpleSportHubState extends State<SimpleSportHub> {
     );
   }
 }
-

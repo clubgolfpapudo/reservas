@@ -751,7 +751,7 @@ class BookingProvider extends ChangeNotifier {
     
     // Valores de golf desde configuración
     const startTime = '08:00';
-    final endTime = isSummer ? '17:00' : '16:00';
+    final endTime = isSummer ? '16:00' : '16:00';
     const intervalMinutes = 12;
     
     final slots = <String>[];

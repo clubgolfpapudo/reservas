@@ -388,12 +388,12 @@ class _ReservationFormModalState extends State<ReservationFormModal> {
       });
 
       // Cargar usuarios reales desde Firebase
-      // PERF: print('ðŸ”¥ MODAL: Llamando a FirebaseUserService.getAllUsers()...');
+      // PERF: print('🔥 MODAL: Llamando a FirebaseUserService.getAllUsers()...');
       final usersData = await FirebaseUserService.getAllUsers();
-      // PERF: print('ðŸ”¥ MODAL: Recibidos ${usersData.length} usuarios de Firebase');
+      // PERF: print('🔥 MODAL: Recibidos ${usersData.length} usuarios de Firebase');
 
       // ðŸ” DEBUG: Verificar primeros 3 usuarios exactos
-      // PERF: print('ðŸ” MODAL DEBUG - Primeros 3 usuarios:');
+      // PERF: print('📁 MODAL DEBUG - Primeros 3 usuarios:');
       for (int i = 0; i < usersData.length && i < 3; i++) {
         final user = usersData[i];
         // PERF: print('  ${i+1}. name: "${user['name']}" | email: "${user['email']}"');
@@ -408,7 +408,7 @@ class _ReservationFormModalState extends State<ReservationFormModal> {
         );
       }).toList();
       
-      // PERF: print('ðŸ”¥ MODAL: Convertidos ${users.length} usuarios a ReservationPlayer');
+      // PERF: print('🔥 MODAL: Convertidos ${users.length} usuarios a ReservationPlayer');
 
       final allUsers = users;
       
@@ -423,7 +423,7 @@ class _ReservationFormModalState extends State<ReservationFormModal> {
       _filterPlayers();
       
     } catch (e) {
-      // PERF: print('âŒ MODAL: Error cargando usuarios: $e');
+      // PERF: print('❌ MODAL: Error cargando usuarios: $e');
       
       // Fallback: usar usuarios de prueba EXPANDIDOS
       final fallbackUsers = [
@@ -461,6 +461,7 @@ class _ReservationFormModalState extends State<ReservationFormModal> {
   /// - Búsqueda case-insensitive
   /// 
   /// Si no hay texto de búsqueda, muestra todos los usuarios disponibles
+  // Filtra jugadores disponibles excluyendo ya seleccionados y aplicando búsqueda por texto.
   void _filterPlayers() {
     final query = _searchController.text.toLowerCase().trim();
     setState(() {
@@ -469,6 +470,10 @@ class _ReservationFormModalState extends State<ReservationFormModal> {
             .where((player) => 
                 !_selectedPlayers.any((selected) => selected.email == player.email))
             .toList();
+
+        // 🔥 AGREGAR AQUÍ: Ordenamiento especial
+        _filteredPlayers = _sortPlayersWithPriority(_filteredPlayers);
+
       } else {
         _filteredPlayers = _availablePlayers
             .where((player) => 
@@ -476,10 +481,49 @@ class _ReservationFormModalState extends State<ReservationFormModal> {
                 (player.name.toLowerCase().contains(query) ||
                  player.email.toLowerCase().contains(query)))
             .toList();
+
+        // 🔥 AGREGAR AQUÍ: Ordenamiento especial
+        _filteredPlayers = _sortPlayersWithPriority(_filteredPlayers);
       }
     });
   }
 
+  // 🔥 Ordena lista poniendo ANIBAL y ANGEL primero, resto alfabético.
+  List<ReservationPlayer> _sortPlayersWithPriority(List<ReservationPlayer> players) {
+    // Usuarios prioritarios que siempre van primero
+    const priorityNames = ['ANIBAL REINOSO M', 'ANGEL ORTEGA R'];
+    
+    List<ReservationPlayer> priorityPlayers = [];
+    List<ReservationPlayer> regularPlayers = [];
+    
+    // Separar usuarios prioritarios del resto
+    for (ReservationPlayer player in players) {
+      String playerName = player.name.toUpperCase().trim();
+      
+      if (priorityNames.contains(playerName)) {
+        priorityPlayers.add(player);
+      } else {
+        regularPlayers.add(player);
+      }
+    }
+    
+    // Ordenar usuarios prioritarios según el orden deseado
+    priorityPlayers.sort((a, b) {
+      String nameA = a.name.toUpperCase().trim();
+      String nameB = b.name.toUpperCase().trim();
+      
+      int indexA = priorityNames.indexOf(nameA);
+      int indexB = priorityNames.indexOf(nameB);
+      
+      return indexA.compareTo(indexB);
+    });
+    
+    // Ordenar el resto alfabéticamente
+    regularPlayers.sort((a, b) => a.name.toUpperCase().compareTo(b.name.toUpperCase()));
+    
+    // Combinar: prioritarios primero, luego el resto
+    return [...priorityPlayers, ...regularPlayers];
+  }
   /// Agrega un jugador a la reserva con validación de conflictos
   /// 
   /// Antes de agregar el jugador:

@@ -1,6 +1,7 @@
 ﻿// lib/presentation/providers/auth_provider.dart
 import 'package:flutter/foundation.dart';
 import '../../core/services/firebase_user_service.dart';
+import '../../core/services/web_storage_service.dart';
 
 class AuthProvider with ChangeNotifier {
   final FirebaseUserService _userService = FirebaseUserService();
@@ -10,58 +11,50 @@ class AuthProvider with ChangeNotifier {
   String? _currentUserName;
   bool _isLoading = false;
 
-  // Getters
   bool get isUserValidated => _isUserValidated;
   String? get currentUserEmail => _currentUserEmail;
   String? get currentUserName => _currentUserName;
   bool get isLoading => _isLoading;
 
-  // Validar usuario usando el sistema existente de 502+ usuarios
+  // Validar usuario Y guardar sesión
   Future<bool> validateUser(String email) async {
     _isLoading = true;
     notifyListeners();
 
     try {
-      // Usar el servicio existente que ya tiene los 502+ usuarios
       final users = await FirebaseUserService.getAllUsers();
       
-      // Buscar usuario por email (case insensitive)
       final user = users.firstWhere(
         (user) => user['email']?.toString().toLowerCase() == email.toLowerCase(),
         orElse: () => <String, dynamic>{},
       );
 
       if (user.isNotEmpty) {
-        // Usuario encontrado
         _isUserValidated = true;
         _currentUserEmail = email;
         _currentUserName = user['name']?.toString() ?? '';
         
-        if (kDebugMode) {
-          print('✅ Usuario validado: $email - ${_currentUserName}');
-        }
+        // Guardar en localStorage
+        WebStorageService.saveSession(_currentUserEmail!, _currentUserName!);
+        
+        print('=== Usuario validado: $email ===');
         
         _isLoading = false;
         notifyListeners();
         return true;
       } else {
-        // Usuario no encontrado
         _isUserValidated = false;
         _currentUserEmail = null;
         _currentUserName = null;
         
-        if (kDebugMode) {
-          print('âŒ Usuario no encontrado: $email');
-        }
+        print('=== Usuario no encontrado: $email ===');
         
         _isLoading = false;
         notifyListeners();
         return false;
       }
     } catch (e) {
-      if (kDebugMode) {
-        print('âŒ Error validando usuario: $e');
-      }
+      print('=== Error validando usuario: $e ===');
       
       _isUserValidated = false;
       _currentUserEmail = null;
@@ -72,39 +65,79 @@ class AuthProvider with ChangeNotifier {
     }
   }
 
-  // Logout / cambiar usuario
-  void logout() {
+  // Logout
+  Future<void> logout() async {
+    WebStorageService.clearSession();
+    
     _isUserValidated = false;
     _currentUserEmail = null;
     _currentUserName = null;
     _isLoading = false;
     notifyListeners();
     
-    if (kDebugMode) {
-      print('ðŸ”“ Usuario deslogueado');
-    }
+    print('=== Usuario deslogueado ===');
   }
 
-  // Verificar si hay parámetros URL para auto-login
+  // Auto-login desde localStorage
   Future<void> checkAutoLogin() async {
+    print('=== INICIO checkAutoLogin ===');
+    _isLoading = true;
+    notifyListeners();
+
     try {
-      final uri = Uri.base;
-      final email = uri.queryParameters['email'];
-      
-      if (email != null && email.isNotEmpty) {
-        if (kDebugMode) {
-          print('ðŸ” Auto-login detectado para: $email');
+      // Verificar si hay sesión guardada
+      if (WebStorageService.hasSession()) {
+        final session = WebStorageService.getSession();
+        final savedEmail = session['email'];
+        final savedName = session['name'];
+
+        if (savedEmail != null && savedEmail.isNotEmpty) {
+          print('=== Sesión encontrada: $savedEmail ===');
+          
+          // Verificar que el usuario aún existe en Firebase
+          final users = await FirebaseUserService.getAllUsers();
+          final userExists = users.any(
+            (user) => user['email']?.toString().toLowerCase() == savedEmail.toLowerCase(),
+          );
+
+          if (userExists) {
+            _isUserValidated = true;
+            _currentUserEmail = savedEmail;
+            _currentUserName = savedName ?? '';
+            
+            print('=== Auto-login exitoso ===');
+            
+            _isLoading = false;
+            notifyListeners();
+            return;
+          } else {
+            print('=== Usuario no existe, limpiando sesión ===');
+            await logout();
+          }
         }
-        await validateUser(email);
       }
+
+      // Backward compatibility: verificar parámetros URL
+      final uri = Uri.base;
+      final emailFromUrl = uri.queryParameters['email'];
+      
+      if (emailFromUrl != null && emailFromUrl.isNotEmpty) {
+        print('=== Email desde URL: $emailFromUrl ===');
+        await validateUser(emailFromUrl);
+        return;
+      }
+
+      print('=== No hay sesión guardada ===');
+
     } catch (e) {
-      if (kDebugMode) {
-        print('âŒ Error en auto-login: $e');
-      }
+      print('=== Error en checkAutoLogin: $e ===');
+      await logout();
+    } finally {
+      _isLoading = false;
+      notifyListeners();
     }
   }
 
-  // Obtener información del usuario actual
   Map<String, dynamic> getCurrentUser() {
     return {
       'email': _currentUserEmail,
@@ -114,9 +147,6 @@ class AuthProvider with ChangeNotifier {
   }
   
   void signOut() {
-    // Aquí puedes limpiar tokens, cerrar sesión en Firebase, etc.
-    print('[LOG] Usuario ha cerrado sesión');
-    // notifyListeners(); si aplica
+    logout();
   }
 }
-

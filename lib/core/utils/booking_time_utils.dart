@@ -7,7 +7,7 @@ class BookingTimeUtils {
   
   // Horarios predefinidos tennis/padel (verano) - intervalos de 90 minutos  
   static const List<String> summerTimeSlots = [
-    "09:00", "10:30", "12:00", "13:30", "15:00", "16:30", "18:00", "19:30"
+    "09:00", "10:30", "12:00", "13:30", "15:00", "16:30"
   ];
   
   static DateTime get now => DateTime.now();
