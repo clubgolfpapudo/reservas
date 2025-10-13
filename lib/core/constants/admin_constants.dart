@@ -57,6 +57,14 @@ class AdminConstants {
       permission: 'reservations_management',
     ),
     AdminFunction(
+      id: 'reports',
+      title: 'Reportes y Estadísticas',
+      icon: Icons.analytics,
+      description: 'Ver estadísticas y generar reportes',
+      route: '/admin/reports',
+      permission: 'reports',
+    ),
+    AdminFunction(
       id: 'user_management',
       title: 'Gestión de Usuarios',
       icon: Icons.people,
@@ -71,14 +79,6 @@ class AdminConstants {
       description: 'Configurar canchas y horarios',
       route: '/admin/courts',
       permission: 'court_management',
-    ),
-    AdminFunction(
-      id: 'reports',
-      title: 'Reportes y Estadísticas',
-      icon: Icons.analytics,
-      description: 'Ver estadísticas y generar reportes',
-      route: '/admin/reports',
-      permission: 'reports',
     ),
     AdminFunction(
       id: 'notifications',

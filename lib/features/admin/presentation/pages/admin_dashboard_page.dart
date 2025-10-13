@@ -1,4 +1,5 @@
 ﻿// lib/features/admin/presentation/pages/admin_dashboard_page.dart
+import 'admin_reports_page.dart';
 import 'package:cgp_reservas/presentation/pages/admin_reservations_page.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
@@ -881,17 +882,26 @@ class _AdminDashboardPageState extends State<AdminDashboardPage>
     );
   }
 
-  // ===== MÉTODOS DE NAVEGACIÓN Y ACCIONES =====
+// ===== MÉTODOS DE NAVEGACIÓN Y ACCIONES =====
 
   void _navigateToFunction(AdminFunction function) {
     switch (function.route) {
-      case '/admin/reservations': // ✅ Usamos la ruta existente
+      case '/admin/reservations': // ✅ Gestión de Reservas
         Navigator.of(context).push(
           MaterialPageRoute(
             builder: (context) => AdminReservationsPage(),
           ),
         );
         break;
+      
+      case '/admin/reports': // ✅ Reportes y Estadísticas
+        Navigator.of(context).push(
+          MaterialPageRoute(
+            builder: (context) => const AdminReportsPage(),
+          ),
+        );
+        break;
+      
       default:
         // Código para funciones no implementadas o con rutas no coincidentes
         showDialog(
@@ -939,7 +949,7 @@ class _AdminDashboardPageState extends State<AdminDashboardPage>
                       adminProvider.markAllNotificationsAsRead();
                       Navigator.pop(context);
                     },
-                    child: const Text('Marcar todo como leí­do'),
+                    child: const Text('Marcar todo como leído'),
                   ),
               ],
             ),
@@ -1029,9 +1039,7 @@ class _AdminDashboardPageState extends State<AdminDashboardPage>
     } else if (difference.inDays < 1) {
       return '${difference.inHours} h ago';
     } else {
-      return '${difference.inDays} dí­as ago';
+      return '${difference.inDays} días ago';
     }
   }
 }
-
-
