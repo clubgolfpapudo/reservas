@@ -552,7 +552,7 @@ class _ReservationFormModalState extends State<ReservationFormModal> {
     if (!validation.isValid) {
       // PERF: print('DEBUG: Conflict detected: ${validation.reason}');
       
-      // ðŸ†• MOSTRAR TOAST EN LUGAR DEL MENSAJE ABAJO
+      // MOSTRAR TOAST EN LUGAR DEL MENSAJE ABAJO
       _showConflictToast(
         player.name, 
         validation.reason ?? 'El jugador ya tiene una reserva en este horario'
@@ -560,7 +560,7 @@ class _ReservationFormModalState extends State<ReservationFormModal> {
       return; // No agregar el jugador
     }
 
-    // ðŸ†• SOLO UN setState - CORREGIDO
+    // SOLO UN setState - CORREGIDO
     // PERF: print('DEBUG: No conflict - adding player');
     setState(() {
       _selectedPlayers.add(player);
@@ -586,7 +586,7 @@ class _ReservationFormModalState extends State<ReservationFormModal> {
     }
   }
 
-  // 🔧 AGREGAR ESTE MÃ‰TODO AQUÃ (después de los otros helpers)
+  // 🔧 AGREGAR ESTE METODO AQUI (después de los otros helpers)
   String _extractCourtNumber(String courtId) {
     // Extraer número del final del ID
     if (courtId.contains('_court_')) {
@@ -666,14 +666,14 @@ class _ReservationFormModalState extends State<ReservationFormModal> {
       }
 
       // En el método _createReservation, ANTES de createBookingWithEmails
-      // PERF: print('ðŸš¨ CREANDO RESERVA:');
+      // PERF: print('CREANDO RESERVA:');
       // PERF: print('  🔧 widget.courtId: ${widget.courtId}');
       // PERF: print('  🔧 widget.courtName: ${widget.courtName}');
       // PERF: print('  🔧 widget.sport: ${widget.sport}');
-      // PERF: print('ðŸ”¥ Creando reserva con emails: ${widget.courtId} ${widget.date} ${widget.timeSlot}');
-      // PERF: print('ðŸ”¥ Jugadores: ${playerNames.join(", ")}');
+      // PERF: print('Creando reserva con emails: ${widget.courtId} ${widget.date} ${widget.timeSlot}');
+      // PERF: print('Jugadores: ${playerNames.join(", ")}');
 
-      // ✅ CRÃTICO: Crear reserva CON emails automáticos
+      // ✅ CRITICO: Crear reserva CON emails automáticos
       final success = await provider.createBookingWithEmails(
         courtId: widget.courtId,  // ↑ USAR courtId COMPLETO
         date: widget.date,

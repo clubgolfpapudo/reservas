@@ -335,10 +335,39 @@ class BookingProvider extends ChangeNotifier {
   }
 
   /// Verifica si un jugador es especial (tipo VISITA)
-  bool _isSpecialVisitPlayer(String playerName) {
+  bool _isSpecialVisitPlayer(String? playerName) {
+    if (playerName == null || playerName.isEmpty) return false;
+    
     final cleanName = playerName.trim().toUpperCase();
-    return ['PADEL1 VISITA', 'PADEL2 VISITA', 'PADEL3 VISITA', 'PADEL4 VISITA']
-        .contains(cleanName);
+    
+    // Usuarios genéricos de pádel
+    final padelGuests = [
+      'PADEL1 VISITA', 
+      'PADEL2 VISITA', 
+      'PADEL3 VISITA', 
+      'PADEL4 VISITA'
+    ];
+    
+    // Usuarios genéricos de golf
+    final golfGuests = [
+      'GOLF VISITA 1',
+      'GOLF VISITA 2',
+      'GOLF VISITA 3',
+      'GOLF VISITA 4'
+    ];
+      
+    // Usuarios genéricos de tenis
+    final tenisGuests = [
+      'TENIS VISITA 1',
+      'TENIS VISITA 2',
+      'TENIS VISITA 3',
+      'TENIS VISITA 4'
+    ];
+
+    // Combinar ambas listas
+    final allGuests = [...padelGuests, ...golfGuests, ...tenisGuests];
+    
+    return allGuests.contains(cleanName);
   }
 
   /// Compara nombres de jugadores con limpieza y case-insensitive
@@ -668,6 +697,20 @@ class BookingProvider extends ChangeNotifier {
     String timeSlot, 
     String sport
   ) async {
+    // ✅ NUEVO: Excepción para usuarios genéricos de golf
+    // Estos usuarios pueden tener múltiples reservas en horarios paralelos y secuenciales
+    final guestEmails = [
+      'golf visita 1',
+      'golf visita 2',
+      'golf visita 3',
+      'golf visita 4',
+    ];
+    
+    if (guestEmails.contains(userEmail.toLowerCase())) {
+      print('⚠️ Usuario genérico detectado ($userEmail) - sin restricción de horarios');
+      return false; // No hay conflicto para usuarios genéricos
+    }
+    
     try {
       // Obtener todas las reservas para esa fecha
       final querySnapshot = await _firestore
@@ -730,7 +773,7 @@ class BookingProvider extends ChangeNotifier {
     }
   }
 
-  // ✅ NUEVO MÃ‰TODO: Determinar si es temporada de verano
+  // ✅ NUEVO METODO: Determinar si es temporada de verano
   bool _isSummerSeason(DateTime date) {
     int month = date.month;
     // Verano en Chile: Octubre a Marzo
@@ -758,10 +801,10 @@ class BookingProvider extends ChangeNotifier {
   }
 
   void forceRegenerateAvailableDates() {
-    // PERFORMANCE: print('ðŸ”§ FORZANDO REGENERACIÃ“N DE FECHAS');
+    // PERFORMANCE: print('FORZANDO REGENERACION DE FECHAS');
     _generateAvailableDates();
     notifyListeners();
-    // PERFORMANCE: print('ðŸ”§ REGENERACIÃ“N COMPLETADA');
+    // PERFORMANCE: print('REGENERACION COMPLETADA');
   }
 
   List<String> getFilteredTimeSlots(DateTime date) {
@@ -775,7 +818,7 @@ class BookingProvider extends ChangeNotifier {
     }
   }
 
-  // ðŸ†• MÃ‰TODO NUEVO #2 - SIMPLIFICADO (solo para Golf)
+  // METODO NUEVO #2 - SIMPLIFICADO (solo para Golf)
   List<String> _getGolfTimeSlots() {
     final bool isSummer = _isSummerSeason(DateTime.now());
     
@@ -944,15 +987,15 @@ class BookingProvider extends ChangeNotifier {
   // ============================================================================
   
   void selectCourt(String courtId) {
-    // PERFORMANCE: print('ðŸ”§ LLAMANDO: selectCourt recibió = $courtId');
-    // PERFORMANCE: print('ðŸ”§ ESTADO ANTES: _selectedCourtId = $_selectedCourtId');
+    // PERFORMANCE: print('LLAMANDO: selectCourt recibió = $courtId');
+    // PERFORMANCE: print('ESTADO ANTES: _selectedCourtId = $_selectedCourtId');
     
     if (_selectedCourtId != courtId) {
       _selectedCourtId = courtId;
-      // DEBUG: print('ðŸ”§ ESTADO DESPUÃ‰S: _selectedCourtId = $_selectedCourtId');
+      // DEBUG: print('ESTADO DESPUES: _selectedCourtId = $_selectedCourtId');
       notifyListeners();
     } else {
-      // PERFORMANCE: print('ðŸ”§ NO CAMBIÃ“: courtId ya era el mismo');
+      // PERFORMANCE: print('NO CAMBIO: courtId ya era el mismo');
     }
   }
   

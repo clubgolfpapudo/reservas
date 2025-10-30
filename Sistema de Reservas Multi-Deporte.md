@@ -1124,3 +1124,142 @@ Este documento es la fuente única de verdad para el estado del proyecto. Debe a
 - `🔧` → `Ã°Å¸"Â§` (llave inglesa)
 - `🔔` → `Ã°Å¸""` (campana)
 - `⛳` → `Ã°Å¸Å'Ã¯Â¸` (bandera de golf)
+
+
+
+---
+
+## 📅 Registro de Cambios - Sesión 30.10.2025
+
+### Versión 2.1.2 - Corrección Integral Sistema de Reservas
+
+**Fecha:** 30 de octubre de 2025  
+**Tag Git:** `v2.1.2`  
+**Commit:** [hash del commit]
+
+#### 🐛 Problemas Identificados y Corregidos:
+
+1. **CRÍTICO - Ventanas de Reserva Incorrectas**
+   - **Problema:** Lógica hardcoded con hora fija (16:00) no se ajustaba a cambios de horario
+   - **Solución:** Implementación de verificación dinámica de slots disponibles
+   - **Impacto:** Golf mostraba días incorrectos, Pádel/Tenis no mostraban reservas del día actual después de las 16:00
+
+2. **Header de Tenis Mostraba "Pádel"**
+   - **Problema:** Título hardcodeado incorrectamente
+   - **Solución:** Corregido a "Tenis" en `tennis_reservations_page.dart`
+
+3. **Navegación Entre Deportes**
+   - **Problema:** Al cambiar de deporte, mantenía estado del deporte anterior
+   - **Solución:** Reset de provider al cargar cada página de deporte
+
+4. **Botón Retroceso Congelaba App**
+   - **Problema:** `DateNavigationHeader` usaba `Navigator.pop()` hardcodeado
+   - **Solución:** Implementar callbacks `onBackPressed` correctamente
+
+#### ⚙️ Cambios Técnicos Implementados:
+
+##### 1. Ventanas de Tiempo Dinámicas (`booking_provider.dart`)
+```dart
+// ANTES: Lógica hardcoded
+bool hasSlotsToday = now.hour < 16; // ❌ Fijo a 16:00
+
+// DESPUÉS: Verificación dinámica
+final todaySlots = AppConstants.getTimeSlotsForSport(sport, today);
+bool hasSlotsToday = todaySlots.any((timeSlot) {
+  // Verifica si hay slots después de la hora actual
+  return slotTimeInMinutes > currentTimeInMinutes;
+});
+```
+
+**Lógica de Ventanas:**
+- **Golf:** 48 horas desde ahora
+  - Si la ventana cae dentro del horario de golf de un día → ese día se muestra completo
+  - Ejemplo: 30.10 08:13 → muestra 30.10, 31.10, 01.11
+  
+- **Pádel/Tenis:** 72 horas desde ahora
+  - Similar a Golf pero con ventana de 3 días
+  - Ejemplo: 30.10 17:20 → muestra 30.10 (slots 18:00, 19:30), 31.10, 01.11, 02.11
+
+##### 2. Ajuste de Horarios
+
+**Archivos modificados:**
+- `lib/core/constants/app_constants.dart`
+- `lib/core/utils/booking_time_utils.dart`
+
+**Cambio:** Horario final de Pádel/Tenis extendido de 16:30 a 19:30
+
+##### 3. Corrección Header de Navegación
+
+**Archivo:** `lib/presentation/widgets/date_navigation_header.dart`
+```dart
+// ANTES: Siempre usaba Navigator.pop()
+IconButton(
+  onPressed: () => Navigator.of(context).pop(), // ❌
+  ...
+)
+
+// DESPUÉS: Usa callback proporcionado
+IconButton(
+  onPressed: onBackPressed ?? () => Navigator.of(context).pop(), // ✅
+  ...
+)
+```
+
+#### 🧪 Casos de Prueba Validados:
+
+**Escenario 1: 30.10.2025 a las 08:00**
+- Golf: ✅ Muestra 30.10, 31.10
+- Pádel/Tenis: ✅ Muestra 30.10, 31.10, 01.11
+
+**Escenario 2: 30.10.2025 a las 17:20**
+- Golf: ✅ Muestra 31.10, 01.11 (sin slots disponibles hoy)
+- Pádel/Tenis: ✅ Muestra 30.10 (18:00, 19:30), 31.10, 01.11, 02.11
+
+**Escenario 3: 30.10.2025 a las 20:00**
+- Golf: ✅ Muestra 31.10, 01.11
+- Pádel/Tenis: ✅ Muestra 31.10, 01.11, 02.11 (sin HOY)
+
+**Escenario 4: Navegación Entre Deportes**
+- ✅ Pádel → Tenis: Cambia correctamente sin estado residual
+- ✅ Botón "←" vuelve al hub sin congelarse
+- ✅ Cada deporte muestra su título correcto
+
+#### 📊 Archivos Modificados:
+
+- `lib/presentation/providers/booking_provider.dart` - Lógica ventanas dinámicas
+- `lib/presentation/pages/tennis_reservations_page.dart` - Corrección título
+- `lib/core/constants/app_constants.dart` - Horarios hasta 19:30
+- `lib/core/utils/booking_time_utils.dart` - Utilidades horarios
+- `lib/presentation/widgets/date_navigation_header.dart` - Fix navegación
+- `lib/core/services/firebase_user_service.dart` - Ajustes menores
+- `lib/data/services/firestore_service.dart` - Ajustes menores
+- `lib/presentation/widgets/booking/enhanced_court_tabs.dart` - Mejoras UI
+
+#### 🎯 Resultado Final:
+
+Sistema de reservas funcionando correctamente con:
+- ✅ Ventanas de tiempo dinámicas (48h Golf, 72h Pádel/Tenis)
+- ✅ Visualización correcta de slots disponibles HOY
+- ✅ Navegación fluida entre deportes
+- ✅ Títulos correctos en headers
+- ✅ Horarios extendidos hasta 19:30 para Pádel/Tenis
+
+#### 🔄 Proceso de Rollback (si necesario):
+```bash
+# Volver a versión anterior
+git checkout v2.1.1
+
+# O revertir este commit específico
+git revert [hash del commit v2.1.2]
+```
+
+#### 👥 Responsables:
+
+- **Desarrollo:** Claude + Felipe García B
+- **Testing:** Validado en ambiente de desarrollo
+- **Deploy:** Firebase Hosting
+
+---
+
+*Última actualización: 30 de octubre de 2025*
+```
