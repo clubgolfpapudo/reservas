@@ -490,7 +490,7 @@ class BookingProvider extends ChangeNotifier {
   }
   
   Future<void> _initializeProvider() async {
-    // PERFORMANCE: print('ðŸ”¥ Inicializando BookingProvider con Firebase...');
+    // PERFORMANCE: print('Inicializando BookingProvider con Firebase...');
     _generateAvailableDates();
     await _loadCourts();
     await _loadBookings();
@@ -540,54 +540,38 @@ class BookingProvider extends ChangeNotifier {
     _availableDates.clear();
     
     final now = DateTime.now();
+    final today = DateTime(now.year, now.month, now.day);
     
-    // Para golf: mantener lógica actual (48 horas exactas)
+    // Detectar deporte actual
     final bool isGolf = _selectedCourtId?.startsWith('golf_') ?? false;
     
+    // Determinar cuántos días completos mostrar
+    int totalDaysToShow;
+    
     if (isGolf) {
-      final DateTime endTime = now.add(Duration(hours: 48));
-      DateTime current = DateTime(now.year, now.month, now.day);
-      
-      while (current.isBefore(endTime.add(Duration(days: 1)))) {
-        _availableDates.add(current);
-        current = current.add(Duration(days: 1));
-      }
+      // Golf: 48 horas = 2 días completos
+      totalDaysToShow = 2;
     } else {
-      // CORRECCIÓN: Tennis/Paddle empezar desde HOY, no mañana
-      DateTime today = DateTime(now.year, now.month, now.day);
-      
-      // TEMPORAL: Siempre empezar desde HOY (simplificado)
-      bool hasSlotsToday = now.hour < 16; // Lógica simple temporal
-      
-      DateTime startDate = hasSlotsToday ? today : today.add(Duration(days: 1));
-      
-      // DEBUG: Imprimir para verificar
-      // PERFORMANCE: print('DEBUG: Hora actual: $now');
-      // PERFORMANCE: print('DEBUG: ¿Empezar desde hoy?: $hasSlotsToday (hora: ${now.hour})');
-      // PERFORMANCE: print('DEBUG: Fecha de inicio: $startDate');
-      
-      DateTime current = startDate;
-      
-      // Generar 3 dí­as desde la fecha de inicio
-      for (int i = 0; i < 3; i++) {
-        _availableDates.add(current);
-        // PERFORMANCE: print('DEBUG: Agregando fecha: $current');
-        current = current.add(Duration(days: 1));
-      }
-      
-      // Si no incluimos hoy, agregar un dí­a más para mantener 3 dí­as de ventana
-      if (!hasSlotsToday) {
-        _availableDates.add(current);
-        // PERFORMANCE: print('DEBUG: Agregando dí­a extra: $current');
-      }
+      // Tennis/Pádel: 72 horas = 3 días completos
+      totalDaysToShow = 3;
+    }
+    
+    // Generar fechas desde MAÑANA
+    DateTime currentDate = today.add(Duration(days: 1));
+    
+    for (int i = 0; i < totalDaysToShow; i++) {
+      _availableDates.add(currentDate);
+      currentDate = currentDate.add(Duration(days: 1));
     }
     
     _currentDateIndex = 0;
     _selectedDate = _availableDates.isNotEmpty ? _availableDates.first : now;
     
-    // DEBUG: Ver resultado final
-    // PERFORMANCE: print('DEBUG: Fechas disponibles finales: $_availableDates');
-    // PERFORMANCE: print('DEBUG: Fecha seleccionada: $_selectedDate');
+    // DEBUG
+    print('📅 Fechas generadas para ${isGolf ? "GOLF (2 días)" : "TENIS/PÁDEL (3 días)"}:');
+    for (var date in _availableDates) {
+      print('   - ${date.day}/${date.month}/${date.year}');
+    }
   }
 
   // ✅ Verificar slots disponibles hoy  

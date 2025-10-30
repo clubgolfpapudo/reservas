@@ -1,14 +1,8 @@
 ﻿// lib/core/utils/booking_time_utils.dart
+import '../../../core/constants/app_constants.dart';
+
 class BookingTimeUtils {
-  // Horarios predefinidos tennis/padel (invierno) - intervalos de 90 minutos
-  static const List<String> winterTimeSlots = [
-    "09:00", "10:30", "12:00", "13:30", "15:00", "16:30"
-  ];
-  
-  // Horarios predefinidos tennis/padel (verano) - intervalos de 90 minutos  
-  static const List<String> summerTimeSlots = [
-    "09:00", "10:30", "12:00", "13:30", "15:00", "16:30"
-  ];
+  // Usamos directamente AppConstants.winterTimeSlots y AppConstants.summerTimeSlots
   
   static DateTime get now => DateTime.now();
   
@@ -32,9 +26,11 @@ class BookingTimeUtils {
     return currentDate.month >= 10 || currentDate.month <= 3;
   }
   
-  // Obtener slots según temporada
+  // Obtener slots según temporada - USA AppConstants como fuente única
   static List<String> _getCurrentSeasonSlots() {
-    return _isSummerSeason() ? summerTimeSlots : winterTimeSlots;
+    return _isSummerSeason() 
+        ? AppConstants.summerTimeSlots 
+        : AppConstants.winterTimeSlots;
   }
   
   // Encontrar el siguiente slot disponible desde el momento actual
@@ -112,5 +108,3 @@ extension DateTimeExtension on DateTime {
     return year == other.year && month == other.month && day == other.day;
   }
 }
-
-

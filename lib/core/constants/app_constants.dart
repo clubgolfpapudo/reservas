@@ -1,4 +1,4 @@
-﻿// lib/core/constants/app_constants.dart - VERSIÃ“N REFACTORIZADA CON HORARIOS CENTRALIZADOS
+﻿// lib/core/constants/app_constants.dart - VERSION REFACTORIZADA CON HORARIOS CENTRALIZADOS
 import 'package:flutter/material.dart';
 
 abstract class AppConstants {
@@ -40,19 +40,19 @@ abstract class AppConstants {
   // â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
   
   // Configuración de horarios por deporte
-  static const Map<String, Map<String, dynamic>> _sportScheduleConfig = {
+  static const Map<String, Map<String, dynamic>> sportScheduleConfig = {
     'padel': {
       'startTime': '09:00',
-      'winterEndTime': '16:30',
-      'summerEndTime': '16:30',
+      'winterEndTime': '19:30',
+      'summerEndTime': '19:30',
       // 'summerEndTime': '21:00',
       'intervalMinutes': 90, // slots de 90 minutos
       'customSlots': true,   // usa slots predefinidos en lugar de intervalos
     },
     'tennis': {
       'startTime': '09:00',
-      'winterEndTime': '16:30',
-      'summerEndTime': '16:30',
+      'winterEndTime': '19:30',
+      'summerEndTime': '19:30',
       // 'summerEndTime': '21:00',
       'intervalMinutes': 90, // slots de 90 minutos
       'customSlots': true,   // usa slots predefinidos en lugar de intervalos
@@ -67,31 +67,36 @@ abstract class AppConstants {
   };
   
   // Horarios predefinidos para Pádel y Tenis (invierno)
-  static const List<String> _winterTimeSlots = [
+  // FUENTE ÚNICA DE VERDAD - Usar AppConstants.winterTimeSlots en toda la app
+  static const List<String> winterTimeSlots = [
     '09:00',
     '10:30',
     '12:00',
     '13:30',
     '15:00',
     '16:30',
+    '18:00',
+    '19:30',
+    // '21:00',
   ];
   
   // Horarios predefinidos para Pádel y Tenis (verano)
-  static const List<String> _summerTimeSlots = [
+  // FUENTE ÚNICA DE VERDAD - Usar AppConstants.summerTimeSlots en toda la app
+  static const List<String> summerTimeSlots = [
     '09:00',
     '10:30',
     '12:00',
     '13:30',
     '15:00',
     '16:30',
-    // '18:00',
-    // '19:30',
+    '18:00',
+    '19:30',
     // '21:00',
   ];
 
   /// Genera horarios automáticamente para Golf basado en intervalos
   static List<String> _generateGolfTimeSlots(bool isSummer) {
-    final config = _sportScheduleConfig['golf']!;
+    final config = sportScheduleConfig['golf']!;
     final startTime = config['startTime'] as String;
     final endTime = isSummer ? config['summerEndTime'] as String : config['winterEndTime'] as String;
     final intervalMinutes = config['intervalMinutes'] as int;
@@ -123,11 +128,11 @@ abstract class AppConstants {
     switch (sport.toLowerCase()) {
       case 'padel':
       case 'tennis':
-        return isSummer ? _summerTimeSlots : _winterTimeSlots;
+        return isSummer ? summerTimeSlots : winterTimeSlots;
       case 'golf':
         return _generateGolfTimeSlots(isSummer);
       default:
-        return _winterTimeSlots; // Fallback
+        return winterTimeSlots; // Fallback
     }
   }
 
@@ -156,11 +161,19 @@ abstract class AppConstants {
     }
     
     final endTime = fromTime.add(Duration(hours: 72)); // 72 horas desde ahora
+    
+    // Determinar el último día que incluye la ventana (día completo)
+    final lastDay = DateTime(endTime.year, endTime.month, endTime.day);
+    
     DateTime currentDate = DateTime(fromTime.year, fromTime.month, fromTime.day);
     
-    while (currentDate.isBefore(endTime) || currentDate.isAtSameMomentAs(DateTime(endTime.year, endTime.month, endTime.day))) {
+    while (currentDate.isBefore(lastDay) || currentDate.isAtSameMomentAs(lastDay)) {
       final allSlotsForDate = getTimeSlotsForSport(sport, currentDate);
       final availableSlots = <String>[];
+      
+      final isToday = currentDate.year == fromTime.year && 
+                      currentDate.month == fromTime.month && 
+                      currentDate.day == fromTime.day;
       
       for (String timeSlot in allSlotsForDate) {
         final parts = timeSlot.split(':');
@@ -172,10 +185,13 @@ abstract class AppConstants {
           int.parse(parts[1])
         );
         
-        // Solo incluir slots que estén dentro de la ventana de 72 horas
-        if (slotDateTime.isAfter(fromTime) && slotDateTime.isBefore(endTime)) {
-          availableSlots.add(timeSlot);
+        // Para HOY: solo slots futuros
+        // Para ÚLTIMO DÍA y días intermedios: TODOS los slots del día completo
+        if (isToday && slotDateTime.isBefore(fromTime)) {
+          continue; // Saltar slots pasados solo para hoy
         }
+        
+        availableSlots.add(timeSlot);
       }
       
       if (availableSlots.isNotEmpty) {
