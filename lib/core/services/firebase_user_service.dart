@@ -42,7 +42,7 @@ class FirebaseUserService {
   /// Indica que el servicio está en modo debug activo para facilitar
   /// identificación de problemas durante desarrollo.
   FirebaseUserService() {
-    print('ðŸ”¥ FirebaseUserService INITIALIZED - DEBUG MODE ACTIVE');
+    print('FirebaseUserService INITIALIZED - DEBUG MODE ACTIVE');
   }
   
   /// Email por defecto para desarrollo y testing
@@ -135,14 +135,14 @@ class FirebaseUserService {
       // ✅ VERIFICAR CACHE VÃLIDO PRIMERO
       if (_isCacheValid()) {
         if (_cacheDebugEnabled) {
-          print('âš¡ CACHE HIT: Retornando ${_cachedUsers!.length} usuarios desde memoria (${_getTimeSinceLoad()}min ago)');
+          print('CACHE HIT: Retornando ${_cachedUsers!.length} usuarios desde memoria (${_getTimeSinceLoad()}min ago)');
         }
         return _cachedUsers!;
       }
 
       // âŒ CACHE EXPIRADO O NO EXISTE - CARGAR DESDE FIREBASE
       if (_cacheDebugEnabled) {
-        print('ðŸ”„ CACHE MISS: Cargando usuarios desde Firebase...');
+        print('CACHE MISS: Cargando usuarios desde Firebase...');
       }
       final startTime = DateTime.now();
 
@@ -206,12 +206,12 @@ class FirebaseUserService {
       return finalUsers;
 
     } catch (e) {
-      print('âŒ Error cargando usuarios: $e');
+      print('Error cargando usuarios: $e');
       
       // Si hay cache (aunque esté expirado), usarlo como fallback
       if (_cachedUsers != null && _cachedUsers!.isNotEmpty) {
         if (_cacheDebugEnabled) {
-          print('âš ï¸ CACHE FALLBACK: Usando cache expirado debido a error');
+          print('CACHE FALLBACK: Usando cache expirado debido a error');
         }
         return _cachedUsers!;
       }
@@ -282,7 +282,7 @@ class FirebaseUserService {
   static String _extractNameFromRealStructure(Map<String, dynamic> data) {
     try {
       // DEBUG: Imprimir todos los campos disponibles
-      // PERF-CRITICAL: print('ðŸ” DEBUG - Campos disponibles en data:');
+      // PERF-CRITICAL: print('DEBUG - Campos disponibles en data:');
     // PERF-CRITICAL: Logging masivo comentado
     // data.forEach((key, value) {
         // PERF-CRITICAL: print('  $key: $value');
@@ -297,7 +297,7 @@ class FirebaseUserService {
         // PERF-CRITICAL: print('✅ USANDO CAMPO NAME: $nameFromFirebase');
         return nameFromFirebase;
       } else {
-        // PERF-CRITICAL: print('âŒ Campo name no disponible, usando fallback');
+        // PERF-CRITICAL: print('Campo name no disponible, usando fallback');
       }
       
       // PRIORIDAD 2: Usar displayName si existe y no está vacío
@@ -311,11 +311,11 @@ class FirebaseUserService {
         print('✅ USANDO DISPLAYNAME (sin puntos): $displayNameFromFirebase');
         return displayNameFromFirebase;
       } else {
-        print('âŒ Campo displayName no disponible');
+        print('Campo displayName no disponible');
       }
       
       // PRIORIDAD 3: Construir desde campos separados (FALLBACK)
-      print('âš ï¸ USANDO FALLBACK - construyendo desde campos separados');
+      print('USANDO FALLBACK - construyendo desde campos separados');
       List<String> nameParts = [];
       
       // Procesar nombres: primer nombre + inicial segundo nombre (sin punto)
@@ -350,22 +350,22 @@ class FirebaseUserService {
       
       if (nameParts.isNotEmpty) {
         String resultado = nameParts.join(' ').toUpperCase();
-        print('ðŸ”§ RESULTADO FALLBACK: $resultado');
+        print('RESULTADO FALLBACK: $resultado');
         return resultado;
       }
       
       // PRIORIDAD 4: Fallback desde email
       if (data.containsKey('email')) {
         String emailFallback = _generateNameFromEmail(data['email'].toString());
-        print('ðŸ“§ USANDO EMAIL FALLBACK: $emailFallback');
+        print('USANDO EMAIL FALLBACK: $emailFallback');
         return emailFallback;
       }
       
-      print('âŒ NO SE PUDO GENERAR NOMBRE');
+      print('NO SE PUDO GENERAR NOMBRE');
       return '';
       
     } catch (e) {
-      print('âŒ Error extrayendo nombre: $e');
+      print('Error extrayendo nombre: $e');
       return '';
     }
   }
@@ -432,7 +432,7 @@ class FirebaseUserService {
   /// 
   /// @return Lista de 15 usuarios de fallback con estructura consistente
   static List<Map<String, dynamic>> _getFallbackUsers() {
-    print('ðŸ”„ Usando usuarios de fallback (Firebase no disponible)...');
+    print('Usando usuarios de fallback (Firebase no disponible)...');
     
     return [
       {'name': 'ANA M BELMAR P', 'email': 'ana@buzeta.cl'},

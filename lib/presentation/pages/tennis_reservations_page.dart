@@ -32,17 +32,17 @@ class _TennisReservationsPageState extends State<TennisReservationsPage> {
       initialPage: context.read<BookingProvider>().currentDateIndex,
     );
     
-    // ðŸ”§ DEBUG: Ver estado inicial del provider y forzar Tenis
+    // DEBUG: Ver estado inicial del provider y forzar Tenis
     WidgetsBinding.instance.addPostFrameCallback((_) {
       final provider = context.read<BookingProvider>();
-      print('ðŸŽ¾ TENNIS INIT: provider.selectedCourtId = ${provider.selectedCourtId}');
+      print('TENNIS INIT: provider.selectedCourtId = ${provider.selectedCourtId}');
       
       // Forzar selección inicial de Tenis
       provider.selectCourt('tennis_court_1');
-      print('ðŸŽ¾ TENNIS INIT: Forzado a tennis_court_1');
+      print('TENNIS INIT: Forzado a tennis_court_1');
 
       provider.forceRegenerateAvailableDates();
-      print('ðŸŽ¾ TENNIS INIT: Fechas regeneradas para tenis');
+      print('TENNIS INIT: Fechas regeneradas para tenis');
     });
   }
 
@@ -53,14 +53,14 @@ class _TennisReservationsPageState extends State<TennisReservationsPage> {
   }
 
   String _mapCourtIdToTennisName(String? courtId) {
-    print('ðŸ” DEBUG MAPPING: courtId recibido = $courtId');
+    print('DEBUG MAPPING: courtId recibido = $courtId');
     switch (courtId) {
       case 'tennis_court_1': return 'C.1';    // ðŸ”§ NUEVO ID
       case 'tennis_court_2': return 'C.2';    // ðŸ”§ NUEVO ID
       case 'tennis_court_3': return 'C.3';    // ðŸ”§ NUEVO ID
       case 'tennis_court_4': return 'C.4';    // ðŸ”§ NUEVO ID
       default: 
-        print('âš ï¸ DEFAULT CASE: courtId no reconocido = $courtId');
+        print('DEFAULT CASE: courtId no reconocido = $courtId');
         return 'C.1';
     }
   }
@@ -118,7 +118,7 @@ class _TennisReservationsPageState extends State<TennisReservationsPage> {
           courtNames: TennisConstants.COURT_NAMES,
           selectedCourt: _mapCourtIdToTennisName(provider.selectedCourtId),
           onCourtSelected: (courtName) {
-            print('ðŸŽ¾ Seleccionando cancha: $courtName');
+            print('Seleccionando cancha: $courtName');
             
             // Mapear nombre a ID de TENIS
             String courtId;
@@ -140,12 +140,12 @@ class _TennisReservationsPageState extends State<TennisReservationsPage> {
             }
             
             // ðŸ”§ AGREGAR ESTAS LÃNEAS DE DEBUG
-            print('ðŸ”§ ANTES: provider.selectedCourtId = ${provider.selectedCourtId}');
-            print('ðŸ”§ LLAMANDO: provider.selectCourt($courtId)');
+            print('ANTES: provider.selectedCourtId = ${provider.selectedCourtId}');
+            print('LLAMANDO: provider.selectCourt($courtId)');
             
             provider.selectCourt(courtId);
             
-            print('ðŸ”§ DESPUÃ‰S: provider.selectedCourtId = ${provider.selectedCourtId}');
+            print('DESPUES: provider.selectedCourtId = ${provider.selectedCourtId}');
           },
         ),
 
@@ -664,16 +664,16 @@ class _TennisReservationsPageState extends State<TennisReservationsPage> {
     );
   }
 
-  /// MÃ‰TODO PRINCIPAL - Muestra el modal nativo de reservas Flutter-Firebase
+  /// METODO PRINCIPAL - Muestra el modal nativo de reservas Flutter-Firebase
   void _handleReserveSlot(BuildContext context, String timeSlot) async {
     final provider = context.read<BookingProvider>();
 
-    print('ðŸš¨ DEBUG MODAL: provider.selectedCourtId = ${provider.selectedCourtId}');
+    print('DEBUG MODAL: provider.selectedCourtId = ${provider.selectedCourtId}');
 
-    // ðŸ”§ NUEVO DEBUG ADICIONAL
-    print('ðŸ”§ DEBUG: Esperando 100ms para verificar si cambia...');
+    // NUEVO DEBUG ADICIONAL
+    print('DEBUG: Esperando 100ms para verificar si cambia...');
     await Future.delayed(Duration(milliseconds: 100));
-    print('ðŸ”§ DEBUG: Después de 100ms: provider.selectedCourtId = ${provider.selectedCourtId}');
+    print('DEBUG: Después de 100ms: provider.selectedCourtId = ${provider.selectedCourtId}');
     
     final courtName = _mapCourtIdToTennisName(provider.selectedCourtId);
     

@@ -542,24 +542,64 @@ class BookingProvider extends ChangeNotifier {
     final now = DateTime.now();
     final today = DateTime(now.year, now.month, now.day);
     
-    // Detectar deporte actual
+    // Detectar deporte
     final bool isGolf = _selectedCourtId?.startsWith('golf_') ?? false;
+    final bool isTennis = _selectedCourtId?.startsWith('tennis_') ?? false;
+    final sport = isTennis ? 'tennis' : isGolf ? 'golf' : 'padel';
     
-    // Determinar cuántos días completos mostrar
-    int totalDaysToShow;
+    // Calcular ventana de tiempo
+    final hours = isGolf ? 48 : 72;
+    final DateTime windowEnd = now.add(Duration(hours: hours));
     
-    if (isGolf) {
-      // Golf: 48 horas = 2 días completos
-      totalDaysToShow = 2;
-    } else {
-      // Tennis/Pádel: 72 horas = 3 días completos
-      totalDaysToShow = 3;
+    // Obtener horarios del deporte para hoy
+    final todaySlots = AppConstants.getTimeSlotsForSport(sport, today);
+    
+    // Verificar si HOY tiene slots disponibles (después de la hora actual)
+    final currentTimeInMinutes = now.hour * 60 + now.minute;
+    bool hasSlotsToday = todaySlots.any((timeSlot) {
+      final parts = timeSlot.split(':');
+      final slotHour = int.parse(parts[0]);
+      final slotMinute = int.parse(parts[1]);
+      final slotTimeInMinutes = slotHour * 60 + slotMinute;
+      return slotTimeInMinutes > currentTimeInMinutes;
+    });
+    
+    // Determinar fecha de inicio
+    DateTime startDate = hasSlotsToday ? today : today.add(Duration(days: 1));
+    
+    // Determinar último día a incluir basado en la ventana de tiempo
+    final lastDayPotential = DateTime(windowEnd.year, windowEnd.month, windowEnd.day);
+    
+    // Verificar si windowEnd cae dentro del horario laboral del último día
+    final lastDaySlots = AppConstants.getTimeSlotsForSport(sport, lastDayPotential);
+    bool includeLastDay = false;
+    
+    if (lastDaySlots.isNotEmpty) {
+      // Obtener el primer slot del día
+      final firstSlot = lastDaySlots.first.split(':');
+      final firstSlotHour = int.parse(firstSlot[0]);
+      final firstSlotMinute = int.parse(firstSlot[1]);
+      final firstSlotTime = DateTime(
+        lastDayPotential.year,
+        lastDayPotential.month,
+        lastDayPotential.day,
+        firstSlotHour,
+        firstSlotMinute,
+      );
+      
+      // Si windowEnd es después del primer slot del día, incluir ese día completo
+      if (windowEnd.isAfter(firstSlotTime)) {
+        includeLastDay = true;
+      }
     }
     
-    // Generar fechas desde MAÑANA
-    DateTime currentDate = today.add(Duration(days: 1));
+    final endDate = includeLastDay 
+        ? lastDayPotential 
+        : lastDayPotential.subtract(Duration(days: 1));
     
-    for (int i = 0; i < totalDaysToShow; i++) {
+    // Generar fechas desde startDate hasta endDate (inclusive)
+    DateTime currentDate = startDate;
+    while (currentDate.isBefore(endDate) || currentDate.isAtSameMomentAs(endDate)) {
       _availableDates.add(currentDate);
       currentDate = currentDate.add(Duration(days: 1));
     }
@@ -568,9 +608,15 @@ class BookingProvider extends ChangeNotifier {
     _selectedDate = _availableDates.isNotEmpty ? _availableDates.first : now;
     
     // DEBUG
-    print('📅 Fechas generadas para ${isGolf ? "GOLF (2 días)" : "TENIS/PÁDEL (3 días)"}:');
+    print('📅 ${isGolf ? "GOLF" : isTennis ? "TENIS" : "PÁDEL"}:');
+    print('   Hora actual: ${now.day}/${now.month} a las ${now.hour}:${now.minute.toString().padLeft(2, '0')}');
+    print('   Ventana: $hours horas → hasta ${windowEnd.day}/${windowEnd.month} ${windowEnd.hour}:${windowEnd.minute.toString().padLeft(2, '0')}');
+    print('   ¿Slots disponibles hoy?: $hasSlotsToday');
+    print('   Inicio: ${startDate.day}/${startDate.month}');
+    print('   Fin: ${endDate.day}/${endDate.month}');
+    print('   Fechas generadas:');
     for (var date in _availableDates) {
-      print('   - ${date.day}/${date.month}/${date.year}');
+      print('     - ${date.day}/${date.month}');
     }
   }
 

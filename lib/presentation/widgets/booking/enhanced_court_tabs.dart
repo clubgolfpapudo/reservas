@@ -75,14 +75,14 @@ class _EnhancedCourtTabsState extends State<EnhancedCourtTabs>
 
     return GestureDetector(
       onTap: () {
-        print('ðŸŽ¾ Seleccionando cancha: $courtName');
+        print('Seleccionando cancha: $courtName');
         widget.onCourtSelected(courtName);
       },
       child: AnimatedContainer(
         duration: const Duration(milliseconds: 250), // ✅ Más lento para Android
         padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
         decoration: BoxDecoration(
-          // ✅ USAR COLOR SÃ“LIDO en lugar de gradiente para Android
+          // ✅ USAR COLOR SOLIDO en lugar de gradiente para Android
           color: isSelected ? primaryColor : _getCourtLightColor(courtName),
           borderRadius: BorderRadius.circular(8),
           border: isSelected
@@ -114,25 +114,25 @@ class _EnhancedCourtTabsState extends State<EnhancedCourtTabs>
     );
   }
 
-  // ✅ MÃ‰TODOS HELPER PARA COLORES CONSISTENTES
+  // ✅ METODOS HELPER PARA COLORES CONSISTENTES
   Color _getCourtPrimaryColor(String courtName) {
     switch (courtName) {
       case 'PITE':
-        return const Color(0xFF00BCD4); // ðŸ”µ Cyan (Pádel)
+        return const Color(0xFF00BCD4); // Cyan (Pádel)
       case 'LILEN':
-        return const Color(0xFF00C851); // ðŸŸ¢ Verde Esmeralda (Pádel)
+        return const Color(0xFF00C851); // Verde Esmeralda (Pádel)
       case 'PLAIYA':
-        return const Color(0xFF8E44AD); // ðŸŸ£ Púrpura Vibrante (Pádel)
+        return const Color(0xFF8E44AD); // Púrpura Vibrante (Pádel)
       
       // ðŸŽ¾ TENIS - NUEVOS COLORES
       case 'C.1':
-        return const Color(0xFF2196F3); // ðŸ”µ Azul
+        return const Color(0xFF2196F3); // Azul
       case 'C.2':
-        return const Color(0xFF4CAF50); // ðŸŸ¢ Verde
+        return const Color(0xFF4CAF50); // Verde
       case 'C.3':
-        return const Color(0xFF00BCD4); // ðŸ”µ Turquesa
+        return const Color(0xFF00BCD4); // Turquesa
       case 'C.4':
-        return const Color(0xFF9C27B0); // ðŸŸ£ Púrpura
+        return const Color(0xFF9C27B0); // Púrpura
       
       default:
         return const Color(0xFF2196F3); // Azul por defecto
@@ -142,7 +142,7 @@ class _EnhancedCourtTabsState extends State<EnhancedCourtTabs>
   Color _getCourtDarkColor(String courtName) {
     switch (courtName) {
       case 'PITE':
-        return const Color(0xFF0097A7); // ðŸ”µ Cyan oscuro (Pádel)
+        return const Color(0xFF0097A7); // Cyan oscuro (Pádel)
       case 'LILEN':
         return const Color(0xFF007E33); // Verde más oscuro (Pádel)
       case 'PLAIYA':
@@ -166,7 +166,7 @@ class _EnhancedCourtTabsState extends State<EnhancedCourtTabs>
   Color _getCourtLightColor(String courtName) {
     switch (courtName) {
       case 'PITE':
-        return const Color(0xFFB2EBF2);  // ðŸ”µ Cyan muy claro (Pádel)
+        return const Color(0xFFB2EBF2);  // Cyan muy claro (Pádel)
       case 'LILEN':
         return const Color(0xFFE8F5E8);  // Verde claro (Pádel)
       case 'PLAIYA':

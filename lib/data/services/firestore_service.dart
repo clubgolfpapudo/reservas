@@ -41,8 +41,8 @@ class FirestoreService {
               .where((booking) => booking.date == dateStr)
               .toList();
           
-          print('ðŸ” Total documentos en BD: ${snapshot.docs.length}');
-          print('ðŸ” Reservas filtradas para $dateStr: ${bookings.length}');
+          print('Total documentos en BD: ${snapshot.docs.length}');
+          print('Reservas filtradas para $dateStr: ${bookings.length}');
           
           return bookings;
         });
@@ -73,7 +73,7 @@ class FirestoreService {
       }
       return null;
     } catch (e) {
-      print('âŒ Error obteniendo reserva: $e');
+      print('Error obteniendo reserva: $e');
       return null;
     }
   }
@@ -139,7 +139,7 @@ class FirestoreService {
       await _firestore.collection('bookings').doc(bookingId).delete();
       print('✅ Reserva eliminada: $bookingId');
     } catch (e) {
-      print('âŒ Error eliminando reserva: $e');
+      print('Error eliminando reserva: $e');
       throw Exception('Error eliminando reserva: $e');
     }
   }
