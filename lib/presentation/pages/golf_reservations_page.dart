@@ -1,8 +1,9 @@
-ï»¿// lib/presentation/pages/golf_reservations_page.dart
+// lib/presentation/pages/golf_reservations_page.dart
 import 'package:cgp_reservas/core/services/firebase_user_service.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import '../mixins/date_navigation_mixin.dart';
 import '../providers/auth_provider.dart' as AppAuthProvider;
 import '../providers/booking_provider.dart';
 import '../widgets/booking/animated_compact_stats.dart';
@@ -23,8 +24,14 @@ class GolfReservationsPage extends StatefulWidget {
   State<GolfReservationsPage> createState() => _GolfReservationsPageState();
 }
 
-class _GolfReservationsPageState extends State<GolfReservationsPage> {
+class _GolfReservationsPageState extends State<GolfReservationsPage>
+    with DateNavigationMixin {
   late PageController _pageController;
+
+  // ?? NUEVO: Variables de estado para navegación
+  bool _isNavigating = false;
+  DateTime? _lastNavigationTime;
+  static const _navigationDebounceMs = 350;
 
   @override
   void initState() {
@@ -33,19 +40,30 @@ class _GolfReservationsPageState extends State<GolfReservationsPage> {
       initialPage: context.read<BookingProvider>().currentDateIndex,
     );
     
+    // ?? NUEVO: Listener para resetear estado cuando animación termina
+    _pageController.addListener(_handlePageControllerChange);
+
     WidgetsBinding.instance.addPostFrameCallback((_) {
       final provider = context.read<BookingProvider>();
-      
-      // CAMBIAR: En lugar del mÃ©todo anterior
-      provider.initializeGolfDates(); // Usar la nueva lÃ³gica de ventana deslizante
-      
+      provider.initializeGolfDates();
       provider.fetchUsers();
       provider.selectCourt('golf_tee_1');
     });
   }
 
+  // Maneja cambios del PageController
+  void _handlePageControllerChange() {
+    if (!_pageController.position.isScrollingNotifier.value) {
+      _isNavigating = false;
+      if (mounted) {
+        setState(() {});
+      }
+    }
+  }
+
   @override
   void dispose() {
+    _pageController.removeListener(_handlePageControllerChange); // ?? NUEVO
     _pageController.dispose();
     super.dispose();
   }
@@ -59,7 +77,7 @@ class _GolfReservationsPageState extends State<GolfReservationsPage> {
         builder: (context, bookingProvider, child) {
           return Column(
             children: [
-              // Header con navegaciÃ³n de fechas
+              // Header con navegación de fechas
               DateNavigationHeader(
                 title: 'Golf',
                 selectedDate: bookingProvider.selectedDate,
@@ -67,31 +85,40 @@ class _GolfReservationsPageState extends State<GolfReservationsPage> {
                 totalDays: bookingProvider.totalAvailableDays,
                 onBackPressed: () => Navigator.of(context).pop(),
                 onAddPressed: () => _handleAddReservation(context),
-                onPreviousDate: bookingProvider.canGoToPreviousDate
-                    ? () => _goToPreviousDate(bookingProvider)
-                    : null,
-                onNextDate: bookingProvider.canGoToNextDate
-                    ? () => _goToNextDate(bookingProvider)
-                    : null,
-                onDateTap: () => _showDateSelector(context, bookingProvider),
+                onPreviousDate: (_isNavigating || !bookingProvider.canGoToPreviousDate)
+                    ? null
+                    : () => _goToPreviousDate(bookingProvider),
+                onNextDate: (_isNavigating || !bookingProvider.canGoToNextDate)
+                    ? null
+                    : () => _goToNextDate(bookingProvider),
+                onDateTap: _isNavigating
+                    ? null
+                    : () => _showDateSelector(context, bookingProvider),
               ),
 
-              // EstadÃ­sticas compactas
+              // Estadísticas compactas
               AnimatedCompactStats(
                 bookings: bookingProvider.currentBookings,
               ),
 
               // Contenido principal con PageView para swipe
               Expanded(
-                child: PageView.builder(
-                  controller: _pageController,
-                  itemCount: bookingProvider.totalAvailableDays,
-                  onPageChanged: (index) {
-                    bookingProvider.selectDateByIndex(index);
-                  },
-                  itemBuilder: (context, index) {
-                    return _buildDateContent(context, bookingProvider);
-                  },
+                child: IgnorePointer(
+                  ignoring: _isNavigating, // ?? Bloquea gestos del usuario durante navegación
+                  child: PageView.builder(
+                    controller: _pageController,
+                    itemCount: bookingProvider.totalAvailableDays,
+                    physics: const PageScrollPhysics(), // ?? Siempre permitir navegación
+                    onPageChanged: (index) {
+                      if (!_isNavigating) {
+                        bookingProvider.selectDateByIndex(index);
+                      } else {
+                      }
+                    },
+                    itemBuilder: (context, index) {
+                      return _buildDateContent(context, bookingProvider);
+                    },
+                  ),
                 ),
               ),
             ],
@@ -163,12 +190,12 @@ class _GolfReservationsPageState extends State<GolfReservationsPage> {
         Expanded(
           child: Column(
             children: [
-              // Header Hoyo 1 - Verde estÃ¡ndar
+              // Header Hoyo 1 - Verde estándar
               Container(
                 padding: const EdgeInsets.all(12),
                 margin: const EdgeInsets.symmetric(horizontal: 8),
                 decoration: BoxDecoration(
-                  color: Color(0xFF4CAF50), // Verde estÃ¡ndar mÃ¡s contrastante
+                  color: Color(0xFF4CAF50), // Verde estándar más contrastante
                   borderRadius: BorderRadius.circular(8),
                 ),
                 child: Row(
@@ -243,7 +270,7 @@ class _GolfReservationsPageState extends State<GolfReservationsPage> {
     );
   }
 
-  // Nuevo mÃ©todo en la clase _GolfReservationsPageState
+  // Nuevo método en la clase _GolfReservationsPageState
   Widget _buildAddPlayerModal(BuildContext context, List<BookingPlayer> allUsers, List<BookingPlayer> bookedPlayers) {
     final bookedPlayerIds = bookedPlayers.map((p) => p.id).toSet();
     final availablePlayers = allUsers.where((user) => !bookedPlayerIds.contains(user.id)).toList();
@@ -308,7 +335,7 @@ class _GolfReservationsPageState extends State<GolfReservationsPage> {
       itemBuilder: (context, index) {
         final timeSlot = availableSlots[index];
         
-        // BÃºsqueda directa sin filtros previos
+        // Búsqueda directa sin filtros previos
         Booking? booking;
         for (var b in provider.bookings) {  // Usar bookings en lugar de currentBookings
           if (b.courtId == hoyoId && 
@@ -329,7 +356,7 @@ class _GolfReservationsPageState extends State<GolfReservationsPage> {
           // PERF: // PERF: print('DEBUG booking != null}');
         }
 
-        // Determinar nÃºmero de jugadores
+        // Determinar número de jugadores
         int playerCount = 0;
         BookingStatus? status;
         List<BookingPlayer> players = [];
@@ -374,7 +401,7 @@ class _GolfReservationsPageState extends State<GolfReservationsPage> {
                   
                   const SizedBox(height: 4),
                   
-                  // Estado/AcciÃ³n
+                  // Estado/Acción
                   if (playerCount == 4)
                     GestureDetector(
                       onTap: () => _showCompleteSlotInfo(context, booking!),
@@ -417,17 +444,17 @@ class _GolfReservationsPageState extends State<GolfReservationsPage> {
                           ),
                           const SizedBox(height: 4),
                         ],
-                        // Reemplaza el GestureDetector que estÃ¡ en el bloque 'else'
+                        // Reemplaza el GestureDetector que está en el bloque 'else'
                         GestureDetector(
                           onTap: () {
                             if (playerCount == 0) {
-                              // Slot vacÃ­o - crear nueva reserva
+                              // Slot vacío - crear nueva reserva
                               _handleReserveSlot(context, hoyoId, timeSlot);
                             } else if (playerCount < 4) {
                               // Slot incompleto - usar el modal mejorado para unirse
                               _handleSlotTap(context, booking!);
                             } else {
-                              // Slot completo - mostrar informaciÃ³n detallada
+                              // Slot completo - mostrar información detallada
                               _showCompleteSlotInfo(context, booking!);
                             }
                           },
@@ -458,7 +485,7 @@ class _GolfReservationsPageState extends State<GolfReservationsPage> {
     );
   }
 
-  // Colores especÃ­ficos para golf
+  // Colores específicos para golf
   Color _getGolfSlotBackgroundColor(int playerCount, bool isSuspended) {
     if (isSuspended) {
       return Colors.grey[100]!;
@@ -517,25 +544,113 @@ class _GolfReservationsPageState extends State<GolfReservationsPage> {
   }
 
   // ============================================================================
-  // NAVEGACIÃƒâ€œN DE FECHAS
+  // NAVEGACION DE FECHAS
   // ============================================================================
 
   void _goToPreviousDate(BookingProvider provider) {
-    if (provider.canGoToPreviousDate) {
-      _pageController.previousPage(
-        duration: const Duration(milliseconds: 300),
-        curve: Curves.easeInOut,
-      );
+    // ?? DEBUG TEMPORAL
+    
+    // Prevenir navegación si ya está en progreso
+    if (_isNavigating || !provider.canGoToPreviousDate) {
+      return;
     }
+    
+    // Debouncing: Prevenir clicks demasiado rápidos
+    final now = DateTime.now();
+    if (_lastNavigationTime != null) {
+      final diff = now.difference(_lastNavigationTime!).inMilliseconds;
+      if (diff < _navigationDebounceMs) {
+        return;
+      }
+    }
+    
+    // ?? CRÍTICO: Capturar índice objetivo ANTES de la animación
+    final targetIndex = provider.currentDateIndex - 1;
+    
+    // Marcar como navegando
+    setState(() {
+      _isNavigating = true;
+      _lastNavigationTime = now;
+    });
+    
+    if (_pageController.hasClients) {
+    }
+    
+    // Animar PageView
+    _pageController.previousPage(
+      duration: const Duration(milliseconds: 300),
+      curve: Curves.easeInOut,
+    ).then((_) {
+      // La animación terminó
+      if (mounted) {
+        // ?? USAR el índice capturado, NO recalcular
+        provider.selectDateByIndex(targetIndex);
+        setState(() {
+          _isNavigating = false;
+        });
+      } else {
+      }
+    }).catchError((error) {
+      // Manejar error de navegación
+      if (mounted) {
+        setState(() {
+          _isNavigating = false;
+        });
+      }
+    });
   }
 
   void _goToNextDate(BookingProvider provider) {
-    if (provider.canGoToNextDate) {
-      _pageController.nextPage(
-        duration: const Duration(milliseconds: 300),
-        curve: Curves.easeInOut,
-      );
+    // ?? DEBUG TEMPORAL
+    
+    // Prevenir navegación si ya está en progreso
+    if (_isNavigating || !provider.canGoToNextDate) {
+      return;
     }
+    
+    // Debouncing: Prevenir clicks demasiado rápidos
+    final now = DateTime.now();
+    if (_lastNavigationTime != null) {
+      final diff = now.difference(_lastNavigationTime!).inMilliseconds;
+      if (diff < _navigationDebounceMs) {
+        return;
+      }
+    }
+    
+    // ?? CRÍTICO: Capturar índice objetivo ANTES de la animación
+    final targetIndex = provider.currentDateIndex + 1;
+    
+    // Marcar como navegando
+    setState(() {
+      _isNavigating = true;
+      _lastNavigationTime = now;
+    });
+    
+    if (_pageController.hasClients) {
+    }
+    
+    // Animar PageView
+    _pageController.nextPage(
+      duration: const Duration(milliseconds: 300),
+      curve: Curves.easeInOut,
+    ).then((_) {
+      // La animación terminó
+      if (mounted) {
+        // ?? USAR el índice capturado, NO recalcular
+        provider.selectDateByIndex(targetIndex);
+        setState(() {
+          _isNavigating = false;
+        });
+      } else {
+      }
+    }).catchError((error) {
+      // Manejar error de navegación
+      if (mounted) {
+        setState(() {
+          _isNavigating = false;
+        });
+      }
+    });
   }
 
   void _showDateSelector(BuildContext context, BookingProvider provider) {
@@ -654,7 +769,7 @@ class _GolfReservationsPageState extends State<GolfReservationsPage> {
                     mainAxisSize: MainAxisSize.min,
                     children: [
                       Text(
-                        'Ver reservas de maÃ±ana',
+                        'Ver reservas de mañana',
                         style: TextStyle(
                           color: Colors.white,
                           fontSize: 16,
@@ -675,7 +790,7 @@ class _GolfReservationsPageState extends State<GolfReservationsPage> {
   }
 
   // ============================================================================
-  // MÃƒâ€°TODOS DE FORMATO
+  // MÃ‰TODOS DE FORMATO
   // ============================================================================
 
   String _formatDate(DateTime date) {
@@ -689,7 +804,7 @@ class _GolfReservationsPageState extends State<GolfReservationsPage> {
 
   String _getDayName(DateTime date) {
     const days = [
-      '', 'Lunes', 'Martes', 'MiÃ©rcoles', 'Jueves', 'Viernes', 'SÃ¡bado', 'Domingo'
+      '', 'Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado', 'Domingo'
     ];
     return days[date.weekday];
   }
@@ -701,13 +816,13 @@ class _GolfReservationsPageState extends State<GolfReservationsPage> {
   void _handleAddReservation(BuildContext context) {
     ScaffoldMessenger.of(context).showSnackBar(
       const SnackBar(
-        content: Text('FunciÃ³n de agregar reserva prÃ³ximamente'),
+        content: Text('Función de agregar reserva próximamente'),
         backgroundColor: GolfColors.primaryGreen,
       ),
     );
   }
 
-  /// MÃ©todo principal - Muestra el modal de reservas para golf
+  /// Método principal - Muestra el modal de reservas para golf
   void _handleReserveSlot(BuildContext context, String hoyoId, String timeSlot) async {
     final provider = context.read<BookingProvider>();
     
@@ -729,7 +844,7 @@ class _GolfReservationsPageState extends State<GolfReservationsPage> {
   Future<void> _handleAddPlayerToBooking(BuildContext context, Booking booking) async {
     final provider = context.read<BookingProvider>();
 
-    // âœ… 1. Primero, asegura que los datos estÃ©n cargados antes de cualquier navegaciÃ³n
+    // ? 1. Primero, asegura que los datos estén cargados antes de cualquier navegación
     if (provider.users == null || provider.users!.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
@@ -738,7 +853,7 @@ class _GolfReservationsPageState extends State<GolfReservationsPage> {
       );
       await provider.fetchUsers();
       
-      // Si la carga sigue fallando, notifica y detÃ©n
+      // Si la carga sigue fallando, notifica y detén
       if (provider.users == null || provider.users!.isEmpty) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
@@ -749,17 +864,17 @@ class _GolfReservationsPageState extends State<GolfReservationsPage> {
       }
     }
 
-    // âœ… 2. Abre el modal de forma segura, esperando a que el usuario interactÃºe
+    // ? 2. Abre el modal de forma segura, esperando a que el usuario interactúe
     final selectedPlayer = await showDialog<BookingPlayer>(
       context: context,
       builder: (context) => _buildAddPlayerModal(context, provider.users!, booking.players)
     );
     
-    // âœ… 3. Si se selecciona un jugador, realiza la acciÃ³n y muestra un mensaje
+    // ? 3. Si se selecciona un jugador, realiza la acción y muestra un mensaje
     if (selectedPlayer != null) {
       await provider.addPlayerToBooking(booking.id!, selectedPlayer.id, selectedPlayer.name);
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Jugador agregado con Ã©xito'))
+        const SnackBar(content: Text('Jugador agregado con éxito'))
       );
     }
   }
@@ -768,7 +883,7 @@ class _GolfReservationsPageState extends State<GolfReservationsPage> {
     return '${date.year}-${date.month.toString().padLeft(2, '0')}-${date.day.toString().padLeft(2, '0')}';
   }
 
-// MÃ©todo para terminar despliegue de pantalla para 'hoy'
+// Método para terminar despliegue de pantalla para 'hoy'
 DateTime _getSmartInitialDate() {
   final now = DateTime.now();
   final lastSlot = GolfConstants.DEFAULT_TIME_SLOTS.last;
@@ -781,7 +896,7 @@ DateTime _getSmartInitialDate() {
   return now.isAfter(lastSlotToday) ? now.add(Duration(days: 1)) : now;
 }
 
-// MÃ©todo mejorado para slots incompletos
+// Método mejorado para slots incompletos
 Future<void> _handleSlotTap(BuildContext context, Booking booking) async {
   final currentPlayers = booking.players.map((player) => ' ${player.name}').join('\n');
   final remainingSlots = 4 - booking.players.length - 1;
@@ -800,7 +915,7 @@ Future<void> _handleSlotTap(BuildContext context, Booking booking) async {
         mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // InformaciÃ³n del slot
+          // Información del slot
           Container(
             padding: EdgeInsets.all(12),
             decoration: BoxDecoration(
@@ -844,7 +959,7 @@ Future<void> _handleSlotTap(BuildContext context, Booking booking) async {
           ),
           SizedBox(height: 16),
 
-          // InformaciÃ³n de espacios disponibles
+          // Información de espacios disponibles
           Container(
             padding: EdgeInsets.all(8),
             decoration: BoxDecoration(
@@ -857,7 +972,7 @@ Future<void> _handleSlotTap(BuildContext context, Booking booking) async {
                 SizedBox(width: 8),
                 Expanded(
                   child: Text(
-                    'QuedarÃ¡n $remainingSlots espacio${remainingSlots > 1 ? 's' : ''} disponible${remainingSlots > 1 ? 's' : ''} despuÃ©s de unirte',
+                    'Quedarán $remainingSlots espacio${remainingSlots > 1 ? 's' : ''} disponible${remainingSlots > 1 ? 's' : ''} después de unirte',
                     style: TextStyle(fontSize: 12, color: Colors.blue[800]),
                   ),
                 ),
@@ -867,7 +982,7 @@ Future<void> _handleSlotTap(BuildContext context, Booking booking) async {
         ],
       ),
       actions: [
-        // âœ… BOTÃ“N CANCELAR MEJORADO - Ahora con fondo rojo y mismo tamaÃ±o
+        // ? BOTÓN CANCELAR MEJORADO - Ahora con fondo rojo y mismo tamaño
         ElevatedButton(
           onPressed: () => Navigator.pop(context, false),
           style: ElevatedButton.styleFrom(
@@ -888,7 +1003,7 @@ Future<void> _handleSlotTap(BuildContext context, Booking booking) async {
           ),
         ),
         SizedBox(width: 8), // Espaciado entre botones
-        // âœ… BOTÃ“N CONFIRMAR - Mantiene estilo verde
+        // ? BOTÓN CONFIRMAR - Mantiene estilo verde
         ElevatedButton(
           onPressed: () => Navigator.pop(context, true),
           style: ElevatedButton.styleFrom(
@@ -909,7 +1024,7 @@ Future<void> _handleSlotTap(BuildContext context, Booking booking) async {
           ),
         ),
       ],
-      // âœ… IMPORTANTE: Configurar para que los botones estÃ©n en fila
+      // ? IMPORTANTE: Configurar para que los botones estén en fila
       actionsPadding: EdgeInsets.fromLTRB(24, 0, 24, 16),
       actionsAlignment: MainAxisAlignment.end,
     ),
@@ -935,7 +1050,7 @@ Future<void> _handleSlotTap(BuildContext context, Booking booking) async {
       // Agregar jugador
       await provider.addPlayerToBooking(booking.id!, userEmail, userName);
 
-      // EnvÃ­o de correo de confirmaciÃ³n
+      // Envío de correo de confirmación
       try {
         final updatedBooking = provider.bookings.firstWhere((b) => b.id == booking.id);
         await EmailService.sendBookingConfirmation(updatedBooking);
@@ -944,13 +1059,13 @@ Future<void> _handleSlotTap(BuildContext context, Booking booking) async {
       }
 
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('$userName se uniÃ³ a la reserva con Ã©xito')),
+        SnackBar(content: Text('$userName se unió a la reserva con éxito')),
       );
     }
   }
 }
 
-// Nuevo mÃ©todo para mostrar informaciÃ³n de slots completos
+// Nuevo método para mostrar información de slots completos
 void _showCompleteSlotInfo(BuildContext context, Booking booking) {
   final playersList = booking.players.map((player) => ' ${player.name}').join('\n');
   
@@ -968,7 +1083,7 @@ void _showCompleteSlotInfo(BuildContext context, Booking booking) {
         mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // InformaciÃ³n del slot
+          // Información del slot
           Container(
             padding: EdgeInsets.all(12),
             decoration: BoxDecoration(
@@ -1025,7 +1140,7 @@ void _showCompleteSlotInfo(BuildContext context, Booking booking) {
                 Icon(Icons.check_circle, size: 16, color: Colors.green[600]),
                 SizedBox(width: 8),
                 Text(
-                  'Esta reserva estÃ¡ confirmada y completa',
+                  'Esta reserva está confirmada y completa',
                   style: TextStyle(fontSize: 12, color: Colors.green[800]),
                 ),
               ],

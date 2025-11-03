@@ -1,6 +1,7 @@
-﻿// lib/presentation/pages/reservations_page.dart - VERSIÃ“N CORREGIDA
+﻿// lib/presentation/pages/reservations_page.dart - VERSION CORREGIDA
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import '../mixins/date_navigation_mixin.dart';
 import '../providers/booking_provider.dart';
 import '../widgets/booking/animated_compact_stats.dart';
 import '../widgets/booking/enhanced_court_tabs.dart';
@@ -20,8 +21,14 @@ class PaddleReservationsPage extends StatefulWidget {
   State<PaddleReservationsPage> createState() => _ReservationsPageState();
 }
 
-class _ReservationsPageState extends State<PaddleReservationsPage> {
+class _ReservationsPageState extends State<PaddleReservationsPage> 
+    with DateNavigationMixin{
+
   late PageController _pageController;
+
+  bool _isNavigating = false;
+  DateTime? _lastNavigationTime;
+  static const _navigationDebounceMs = 350;
 
   @override
   void initState() {
@@ -33,16 +40,29 @@ class _ReservationsPageState extends State<PaddleReservationsPage> {
       provider.forceRegenerateAvailableDates();
     });
     // BUGFIX: Removed duplicate call - already handled in addPostFrameCallback above
-    print('ðŸ“ PADDLE INIT: Fechas regeneradas para paddle');
+    print('PADDLE INIT: Fechas regeneradas para paddle');
 
-    // PageController DESPUÃ‰S de regenerar fechas
+    // PageController DESPUÉS de regenerar fechas
     _pageController = PageController(
       initialPage: provider.currentDateIndex,
     );
+    
+    // 🔥 NUEVO: Agregar listener
+    _pageController.addListener(_handlePageControllerChange);
+  }
+
+  void _handlePageControllerChange() {
+    if (!_pageController.position.isScrollingNotifier.value) {
+      _isNavigating = false;
+      if (mounted) {
+        setState(() {});
+      }
+    }
   }
 
   @override
   void dispose() {
+    _pageController.removeListener(_handlePageControllerChange);  // ← AGREGAR
     _pageController.dispose();
     super.dispose();
   }
@@ -63,26 +83,34 @@ class _ReservationsPageState extends State<PaddleReservationsPage> {
                 totalDays: bookingProvider.totalAvailableDays,
                 onBackPressed: () => Navigator.of(context).pop(),
                 onAddPressed: () => _handleAddReservation(context),
-                onPreviousDate: bookingProvider.canGoToPreviousDate
-                    ? () => _goToPreviousDate(bookingProvider)
-                    : null,
-                onNextDate: bookingProvider.canGoToNextDate
-                    ? () => _goToNextDate(bookingProvider)
-                    : null,
-                onDateTap: () => _showDateSelector(context, bookingProvider),
+                onPreviousDate: (_isNavigating || !bookingProvider.canGoToPreviousDate)
+                    ? null
+                    : () => _goToPreviousDate(bookingProvider),
+                onNextDate: (_isNavigating || !bookingProvider.canGoToNextDate)
+                    ? null
+                    : () => _goToNextDate(bookingProvider),
+                onDateTap: _isNavigating
+                    ? null
+                    : () => _showDateSelector(context, bookingProvider),
               ),
 
               // Contenido principal con PageView para swipe
               Expanded(
-                child: PageView.builder(
-                  controller: _pageController,
-                  itemCount: bookingProvider.totalAvailableDays,
-                  onPageChanged: (index) {
-                    bookingProvider.selectDateByIndex(index);
-                  },
-                  itemBuilder: (context, index) {
-                    return _buildDateContent(context, bookingProvider);
-                  },
+                child: IgnorePointer(
+                  ignoring: _isNavigating,
+                  child: PageView.builder(
+                    controller: _pageController,
+                    itemCount: bookingProvider.totalAvailableDays,
+                    physics: const PageScrollPhysics(),
+                    onPageChanged: (index) {
+                      if (!_isNavigating) {
+                        bookingProvider.selectDateByIndex(index);
+                      }
+                    },
+                    itemBuilder: (context, index) {
+                      return _buildDateContent(context, bookingProvider);
+                    },
+                  ),
                 ),
               ),
             ],
@@ -270,25 +298,85 @@ class _ReservationsPageState extends State<PaddleReservationsPage> {
   }
 
   // ============================================================================
-  // NAVEGACIÃ“N DE FECHAS
+  // NAVEGACION DE FECHAS
   // ============================================================================
 
   void _goToPreviousDate(BookingProvider provider) {
-    if (provider.canGoToPreviousDate) {
-      _pageController.previousPage(
-        duration: const Duration(milliseconds: 300),
-        curve: Curves.easeInOut,
-      );
+    if (_isNavigating || !provider.canGoToPreviousDate) {
+      return;
     }
+    
+    final now = DateTime.now();
+    if (_lastNavigationTime != null) {
+      final diff = now.difference(_lastNavigationTime!).inMilliseconds;
+      if (diff < _navigationDebounceMs) {
+        return;
+      }
+    }
+    
+    final targetIndex = provider.currentDateIndex - 1;
+    
+    setState(() {
+      _isNavigating = true;
+      _lastNavigationTime = now;
+    });
+    
+    _pageController.previousPage(
+      duration: const Duration(milliseconds: 300),
+      curve: Curves.easeInOut,
+    ).then((_) {
+      if (mounted) {
+        provider.selectDateByIndex(targetIndex);
+        setState(() {
+          _isNavigating = false;
+        });
+      }
+    }).catchError((error) {
+      if (mounted) {
+        setState(() {
+          _isNavigating = false;
+        });
+      }
+    });
   }
 
   void _goToNextDate(BookingProvider provider) {
-    if (provider.canGoToNextDate) {
-      _pageController.nextPage(
-        duration: const Duration(milliseconds: 300),
-        curve: Curves.easeInOut,
-      );
+    if (_isNavigating || !provider.canGoToNextDate) {
+      return;
     }
+    
+    final now = DateTime.now();
+    if (_lastNavigationTime != null) {
+      final diff = now.difference(_lastNavigationTime!).inMilliseconds;
+      if (diff < _navigationDebounceMs) {
+        return;
+      }
+    }
+    
+    final targetIndex = provider.currentDateIndex + 1;
+    
+    setState(() {
+      _isNavigating = true;
+      _lastNavigationTime = now;
+    });
+    
+    _pageController.nextPage(
+      duration: const Duration(milliseconds: 300),
+      curve: Curves.easeInOut,
+    ).then((_) {
+      if (mounted) {
+        provider.selectDateByIndex(targetIndex);
+        setState(() {
+          _isNavigating = false;
+        });
+      }
+    }).catchError((error) {
+      if (mounted) {
+        setState(() {
+          _isNavigating = false;
+        });
+      }
+    });
   }
 
   void _showDateSelector(BuildContext context, BookingProvider provider) {
@@ -368,7 +456,7 @@ class _ReservationsPageState extends State<PaddleReservationsPage> {
   }
 
   // ============================================================================
-  // MÃ‰TODOS DE UTILIDAD Y COLORES - ðŸ”§ CORREGIDOS (solo colores que existen)
+  // METODOS DE UTILIDAD Y COLORES - CORREGIDOS (solo colores que existen)
   // ============================================================================
 
   Color _getSlotBackgroundColor(BookingStatus? status) {
@@ -376,40 +464,40 @@ class _ReservationsPageState extends State<PaddleReservationsPage> {
       case BookingStatus.complete:
         return const Color(0xFF2E7AFF); // ðŸ”§ HARDCODE (AppColors.confirmed NO EXISTE)
       case BookingStatus.incomplete:
-        return AppColors.incomplete; // ✅ ESTE SÃ EXISTE
+        return AppColors.incomplete; // ✅ ESTE SI EXISTE
       default:
-        return const Color(0xFFE8F4F9); // ðŸ”§ HARDCODE (AppColors.available NO EXISTE)
+        return const Color(0xFFE8F4F9); // HARDCODE (AppColors.available NO EXISTE)
     }
   }
 
   Color _getSlotBorderColor(BookingStatus? status) {
     switch (status) {
       case BookingStatus.complete:
-        return const Color(0xFF1a5ce6); // ðŸ”§ HARDCODE (AppColors.confirmedBorder NO EXISTE)
+        return const Color(0xFF1a5ce6); // HARDCODE (AppColors.confirmedBorder NO EXISTE)
       case BookingStatus.incomplete:
-        return AppColors.incompleteBorder; // ✅ ESTE SÃ EXISTE
+        return AppColors.incompleteBorder; // ✅ ESTE SI EXISTE
       default:
-        return const Color(0xFF2E7AFF).withOpacity(0.2); // ðŸ”§ HARDCODE
+        return const Color(0xFF2E7AFF).withOpacity(0.2); // HARDCODE
     }
   }
 
   Color _getTextColor(BookingStatus? status) {
     switch (status) {
       case BookingStatus.complete:
-        return Colors.white; // ðŸ”§ HARDCODE (AppColors.confirmedText NO EXISTE)
+        return Colors.white; // HARDCODE (AppColors.confirmedText NO EXISTE)
       case BookingStatus.incomplete:
-        return AppColors.incompleteText; // ✅ ESTE SÃ EXISTE
+        return AppColors.incompleteText; // ✅ ESTE SI EXISTE
       default:
-        return Colors.black87; // ðŸ”§ HARDCODE
+        return Colors.black87; // HARDCODE
     }
   }
 
   Color _getSubtextColor(BookingStatus? status) {
     switch (status) {
       case BookingStatus.complete:
-        return Colors.white.withOpacity(0.9); // ðŸ”§ HARDCODE
+        return Colors.white.withOpacity(0.9); // HARDCODE
       case BookingStatus.incomplete:
-        return AppColors.incompleteText.withOpacity(0.7); // ✅ ESTE SÃ EXISTE
+        return AppColors.incompleteText.withOpacity(0.7); // ✅ ESTE SI EXISTE
       default:
         return Colors.grey[600]!; // Para disponible
     }
@@ -520,7 +608,7 @@ class _ReservationsPageState extends State<PaddleReservationsPage> {
                 child: Text(
                   'Reservada',
                   style: TextStyle(
-                    color: Colors.white, // ðŸ”§ HARDCODE (AppColors.confirmedText NO EXISTE)
+                    color: Colors.white, // HARDCODE (AppColors.confirmedText NO EXISTE)
                     fontSize: 11,
                     fontWeight: FontWeight.w600,
                   ),
@@ -536,20 +624,20 @@ class _ReservationsPageState extends State<PaddleReservationsPage> {
           height: 32,
           padding: const EdgeInsets.symmetric(horizontal: 8),
           decoration: BoxDecoration(
-            color: AppColors.incomplete, // ✅ ESTE SÃ EXISTE
+            color: AppColors.incomplete, // ✅ ESTE SI EXISTE
             borderRadius: BorderRadius.circular(6),
           ),
           child: Row(
             mainAxisSize: MainAxisSize.min,
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              Icon(Icons.group, color: AppColors.incompleteText, size: 14), // ✅ ESTE SÃ EXISTE
+              Icon(Icons.group, color: AppColors.incompleteText, size: 14), // ✅ ESTE SI EXISTE
               const SizedBox(width: 4),
               Flexible(
                 child: Text(
                   'Incompleta',
                   style: TextStyle(
-                    color: AppColors.incompleteText, // ✅ ESTE SÃ EXISTE
+                    color: AppColors.incompleteText, // ✅ ESTE SI EXISTE
                     fontSize: 11,
                     fontWeight: FontWeight.w600,
                   ),
@@ -587,7 +675,7 @@ class _ReservationsPageState extends State<PaddleReservationsPage> {
   }
 
   // ============================================================================
-  // MÃ‰TODOS DE FORMATO
+  // METODOS DE FORMATO
   // ============================================================================
 
   String _formatDate(DateTime date) {
@@ -619,7 +707,7 @@ class _ReservationsPageState extends State<PaddleReservationsPage> {
     );
   }
 
-  /// MÃ‰TODO PRINCIPAL - Muestra el modal nativo de reservas Flutter-Firebase
+  /// METODO PRINCIPAL - Muestra el modal nativo de reservas Flutter-Firebase
   void _handleReserveSlot(BuildContext context, String timeSlot) async {
     final provider = context.read<BookingProvider>();
     final courtName = AppConstants.getCourtName(provider.selectedCourtId);

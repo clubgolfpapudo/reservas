@@ -1,6 +1,7 @@
-﻿// lib/presentation/pages/tennis_reservations_page.dart - VERSIÃ“N CORREGIDA
+// lib/presentation/pages/tennis_reservations_page.dart - VERSION CORREGIDA
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import '../mixins/date_navigation_mixin.dart';
 import '../providers/booking_provider.dart';
 import '../widgets/booking/animated_compact_stats.dart';
 import '../widgets/booking/enhanced_court_tabs.dart';
@@ -22,9 +23,15 @@ class TennisReservationsPage extends StatefulWidget {
   State<TennisReservationsPage> createState() => _TennisReservationsPageState();
 }
 
-class _TennisReservationsPageState extends State<TennisReservationsPage> {
+class _TennisReservationsPageState extends State<TennisReservationsPage>
+    with DateNavigationMixin {
+
   late PageController _pageController;
 
+  bool _isNavigating = false;
+  DateTime? _lastNavigationTime;
+  static const _navigationDebounceMs = 350;
+  
   @override
   void initState() {
     super.initState();
@@ -32,12 +39,15 @@ class _TennisReservationsPageState extends State<TennisReservationsPage> {
       initialPage: context.read<BookingProvider>().currentDateIndex,
     );
     
+    // ?? NUEVO: Listener
+    _pageController.addListener(_handlePageControllerChange);
+
     // DEBUG: Ver estado inicial del provider y forzar Tenis
     WidgetsBinding.instance.addPostFrameCallback((_) {
       final provider = context.read<BookingProvider>();
       print('TENNIS INIT: provider.selectedCourtId = ${provider.selectedCourtId}');
       
-      // Forzar selección inicial de Tenis
+      // Forzar selecci�n inicial de Tenis
       provider.selectCourt('tennis_court_1');
       print('TENNIS INIT: Forzado a tennis_court_1');
 
@@ -46,8 +56,18 @@ class _TennisReservationsPageState extends State<TennisReservationsPage> {
     });
   }
 
+  void _handlePageControllerChange() {
+    if (!_pageController.position.isScrollingNotifier.value) {
+      _isNavigating = false;
+      if (mounted) {
+        setState(() {});
+      }
+    }
+  }
+
   @override
   void dispose() {
+    _pageController.removeListener(_handlePageControllerChange);  // ? AGREGAR
     _pageController.dispose();
     super.dispose();
   }
@@ -55,10 +75,10 @@ class _TennisReservationsPageState extends State<TennisReservationsPage> {
   String _mapCourtIdToTennisName(String? courtId) {
     print('DEBUG MAPPING: courtId recibido = $courtId');
     switch (courtId) {
-      case 'tennis_court_1': return 'C.1';    // ðŸ”§ NUEVO ID
-      case 'tennis_court_2': return 'C.2';    // ðŸ”§ NUEVO ID
-      case 'tennis_court_3': return 'C.3';    // ðŸ”§ NUEVO ID
-      case 'tennis_court_4': return 'C.4';    // ðŸ”§ NUEVO ID
+      case 'tennis_court_1': return 'C.1';    // 🔧 NUEVO ID
+      case 'tennis_court_2': return 'C.2';    // 🔧 NUEVO ID
+      case 'tennis_court_3': return 'C.3';    // 🔧 NUEVO ID
+      case 'tennis_court_4': return 'C.4';    // 🔧 NUEVO ID
       default: 
         print('DEFAULT CASE: courtId no reconocido = $courtId');
         return 'C.1';
@@ -73,7 +93,7 @@ class _TennisReservationsPageState extends State<TennisReservationsPage> {
         builder: (context, bookingProvider, child) {
           return Column(
             children: [
-              // Header con navegación de fechas
+              // Header con navegaci�n de fechas
               DateNavigationHeader(
                 title: 'Tenis',
                 selectedDate: bookingProvider.selectedDate,
@@ -81,26 +101,34 @@ class _TennisReservationsPageState extends State<TennisReservationsPage> {
                 totalDays: bookingProvider.totalAvailableDays,
                 onBackPressed: () => Navigator.of(context).pop(),
                 onAddPressed: () => _handleAddReservation(context),
-                onPreviousDate: bookingProvider.canGoToPreviousDate
-                    ? () => _goToPreviousDate(bookingProvider)
-                    : null,
-                onNextDate: bookingProvider.canGoToNextDate
-                    ? () => _goToNextDate(bookingProvider)
-                    : null,
-                onDateTap: () => _showDateSelector(context, bookingProvider),
+                onPreviousDate: (_isNavigating || !bookingProvider.canGoToPreviousDate)
+                    ? null
+                    : () => _goToPreviousDate(bookingProvider),
+                onNextDate: (_isNavigating || !bookingProvider.canGoToNextDate)
+                    ? null
+                    : () => _goToNextDate(bookingProvider),
+                onDateTap: _isNavigating
+                    ? null
+                    : () => _showDateSelector(context, bookingProvider),
               ),
 
               // Contenido principal con PageView para swipe
               Expanded(
-                child: PageView.builder(
-                  controller: _pageController,
-                  itemCount: bookingProvider.totalAvailableDays,
-                  onPageChanged: (index) {
-                    bookingProvider.selectDateByIndex(index);
-                  },
-                  itemBuilder: (context, index) {
-                    return _buildDateContent(context, bookingProvider);
-                  },
+                child: IgnorePointer(
+                  ignoring: _isNavigating,
+                  child: PageView.builder(
+                    controller: _pageController,
+                    itemCount: bookingProvider.totalAvailableDays,
+                    physics: const PageScrollPhysics(),
+                    onPageChanged: (index) {
+                      if (!_isNavigating) {
+                        bookingProvider.selectDateByIndex(index);
+                      }
+                    },
+                    itemBuilder: (context, index) {
+                      return _buildDateContent(context, bookingProvider);
+                    },
+                  ),
                 ),
               ),
             ],
@@ -139,7 +167,7 @@ class _TennisReservationsPageState extends State<TennisReservationsPage> {
                 courtId = 'tennis_court_1';
             }
             
-            // ðŸ”§ AGREGAR ESTAS LÃNEAS DE DEBUG
+            // 🔧 AGREGAR ESTAS LÍNEAS DE DEBUG
             print('ANTES: provider.selectedCourtId = ${provider.selectedCourtId}');
             print('LLAMANDO: provider.selectCourt($courtId)');
             
@@ -149,7 +177,7 @@ class _TennisReservationsPageState extends State<TennisReservationsPage> {
           },
         ),
 
-        // Estadísticas compactas
+        // Estad�sticas compactas
         AnimatedCompactStats(
           bookings: provider.currentBookings,
         ),
@@ -285,7 +313,7 @@ class _TennisReservationsPageState extends State<TennisReservationsPage> {
                   
                   const SizedBox(width: 16),
                   
-                  // Status/Botón en ancho fijo
+                  // Status/Bot�n en ancho fijo
                   SizedBox(
                     width: 110,
                     child: _buildActionWidget(status, timeSlot),
@@ -300,25 +328,85 @@ class _TennisReservationsPageState extends State<TennisReservationsPage> {
   }
 
   // ============================================================================
-  // NAVEGACIÃ“N DE FECHAS
+  // NAVEGACIÓN DE FECHAS
   // ============================================================================
 
   void _goToPreviousDate(BookingProvider provider) {
-    if (provider.canGoToPreviousDate) {
-      _pageController.previousPage(
-        duration: const Duration(milliseconds: 300),
-        curve: Curves.easeInOut,
-      );
+    if (_isNavigating || !provider.canGoToPreviousDate) {
+      return;
     }
+    
+    final now = DateTime.now();
+    if (_lastNavigationTime != null) {
+      final diff = now.difference(_lastNavigationTime!).inMilliseconds;
+      if (diff < _navigationDebounceMs) {
+        return;
+      }
+    }
+    
+    final targetIndex = provider.currentDateIndex - 1;
+    
+    setState(() {
+      _isNavigating = true;
+      _lastNavigationTime = now;
+    });
+    
+    _pageController.previousPage(
+      duration: const Duration(milliseconds: 300),
+      curve: Curves.easeInOut,
+    ).then((_) {
+      if (mounted) {
+        provider.selectDateByIndex(targetIndex);
+        setState(() {
+          _isNavigating = false;
+        });
+      }
+    }).catchError((error) {
+      if (mounted) {
+        setState(() {
+          _isNavigating = false;
+        });
+      }
+    });
   }
 
   void _goToNextDate(BookingProvider provider) {
-    if (provider.canGoToNextDate) {
-      _pageController.nextPage(
-        duration: const Duration(milliseconds: 300),
-        curve: Curves.easeInOut,
-      );
+    if (_isNavigating || !provider.canGoToNextDate) {
+      return;
     }
+    
+    final now = DateTime.now();
+    if (_lastNavigationTime != null) {
+      final diff = now.difference(_lastNavigationTime!).inMilliseconds;
+      if (diff < _navigationDebounceMs) {
+        return;
+      }
+    }
+    
+    final targetIndex = provider.currentDateIndex + 1;
+    
+    setState(() {
+      _isNavigating = true;
+      _lastNavigationTime = now;
+    });
+    
+    _pageController.nextPage(
+      duration: const Duration(milliseconds: 300),
+      curve: Curves.easeInOut,
+    ).then((_) {
+      if (mounted) {
+        provider.selectDateByIndex(targetIndex);
+        setState(() {
+          _isNavigating = false;
+        });
+      }
+    }).catchError((error) {
+      if (mounted) {
+        setState(() {
+          _isNavigating = false;
+        });
+      }
+    });
   }
 
   void _showDateSelector(BuildContext context, BookingProvider provider) {
@@ -398,48 +486,48 @@ class _TennisReservationsPageState extends State<TennisReservationsPage> {
   }
 
   // ============================================================================
-  // MÃ‰TODOS DE UTILIDAD Y COLORES - ðŸ”§ CORREGIDOS (solo colores que existen)
+  // MÉTODOS DE UTILIDAD Y COLORES - 🔧 CORREGIDOS (solo colores que existen)
   // ============================================================================
 
   Color _getSlotBackgroundColor(BookingStatus? status) {
     switch (status) {
       case BookingStatus.complete:
-        return AppColors.primaryBlue; // ðŸ”§ HARDCODE (AppColors.confirmed NO EXISTE)
+        return AppColors.primaryBlue; // 🔧 HARDCODE (AppColors.confirmed NO EXISTE)
       case BookingStatus.incomplete:
-        return AppColors.incomplete; // ✅ ESTE SÃ EXISTE
+        return AppColors.incomplete; // ? ESTE SÍ EXISTE
       default:
-        return const Color(0xFFE8F4F9); // ðŸ”§ HARDCODE (AppColors.available NO EXISTE)
+        return const Color(0xFFE8F4F9); // 🔧 HARDCODE (AppColors.available NO EXISTE)
     }
   }
 
   Color _getSlotBorderColor(BookingStatus? status) {
     switch (status) {
       case BookingStatus.complete:
-        return const Color(0xFF1a5ce6); // ðŸ”§ HARDCODE (AppColors.confirmedBorder NO EXISTE)
+        return const Color(0xFF1a5ce6); // 🔧 HARDCODE (AppColors.confirmedBorder NO EXISTE)
       case BookingStatus.incomplete:
-        return AppColors.incompleteBorder; // ✅ ESTE SÃ EXISTE
+        return AppColors.incompleteBorder; // ? ESTE SÍ EXISTE
       default:
-        return AppColors.primaryBlue.withOpacity(0.2); // ðŸ”§ HARDCODE
+        return AppColors.primaryBlue.withOpacity(0.2); // 🔧 HARDCODE
     }
   }
 
   Color _getTextColor(BookingStatus? status) {
     switch (status) {
       case BookingStatus.complete:
-        return Colors.white; // ðŸ”§ HARDCODE (AppColors.confirmedText NO EXISTE)
+        return Colors.white; // 🔧 HARDCODE (AppColors.confirmedText NO EXISTE)
       case BookingStatus.incomplete:
-        return AppColors.incompleteText; // ✅ ESTE SÃ EXISTE
+        return AppColors.incompleteText; // ? ESTE SÍ EXISTE
       default:
-        return Colors.black87; // ðŸ”§ HARDCODE
+        return Colors.black87; // 🔧 HARDCODE
     }
   }
 
   Color _getSubtextColor(BookingStatus? status) {
     switch (status) {
       case BookingStatus.complete:
-        return Colors.white.withOpacity(0.9); // ðŸ”§ HARDCODE
+        return Colors.white.withOpacity(0.9); // 🔧 HARDCODE
       case BookingStatus.incomplete:
-        return AppColors.incompleteText.withOpacity(0.7); // ✅ ESTE SÃ EXISTE
+        return AppColors.incompleteText.withOpacity(0.7); // ? ESTE SÍ EXISTE
       default:
         return Colors.grey[600]!; // Para disponible
     }
@@ -496,7 +584,7 @@ class _TennisReservationsPageState extends State<TennisReservationsPage> {
                     mainAxisSize: MainAxisSize.min,
                     children: [
                       Text(
-                        'Ver reservas de mañana',
+                        'Ver reservas de ma�ana',
                         style: TextStyle(
                           color: Colors.white,
                           fontSize: 16,
@@ -632,7 +720,7 @@ class _TennisReservationsPageState extends State<TennisReservationsPage> {
 }
 
   // ============================================================================
-  // MÃ‰TODOS DE FORMATO
+  // MÉTODOS DE FORMATO
   // ============================================================================
 
   String _formatDate(DateTime date) {
@@ -646,7 +734,7 @@ class _TennisReservationsPageState extends State<TennisReservationsPage> {
 
   String _getDayName(DateTime date) {
     const days = [
-      '', 'Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado', 'Domingo'
+      '', 'Lunes', 'Martes', 'Mi�rcoles', 'Jueves', 'Viernes', 'S�bado', 'Domingo'
     ];
     return days[date.weekday];
   }
@@ -658,7 +746,7 @@ class _TennisReservationsPageState extends State<TennisReservationsPage> {
   void _handleAddReservation(BuildContext context) {
     ScaffoldMessenger.of(context).showSnackBar(
       const SnackBar(
-        content: Text('Función de agregar reserva próximamente'),
+        content: Text('Funci�n de agregar reserva pr�ximamente'),
         backgroundColor: AppColors.primaryBlue,
       ),
     );
@@ -673,7 +761,7 @@ class _TennisReservationsPageState extends State<TennisReservationsPage> {
     // NUEVO DEBUG ADICIONAL
     print('DEBUG: Esperando 100ms para verificar si cambia...');
     await Future.delayed(Duration(milliseconds: 100));
-    print('DEBUG: Después de 100ms: provider.selectedCourtId = ${provider.selectedCourtId}');
+    print('DEBUG: Despu�s de 100ms: provider.selectedCourtId = ${provider.selectedCourtId}');
     
     final courtName = _mapCourtIdToTennisName(provider.selectedCourtId);
     
@@ -685,12 +773,12 @@ class _TennisReservationsPageState extends State<TennisReservationsPage> {
         courtName: courtName,
         date: _formatDateForSystem(provider.selectedDate),
         timeSlot: timeSlot,
-        sport: 'TENIS', // ðŸ”§ NUEVO PARÃMETRO
+        sport: 'TENIS', // 🔧 NUEVO PARÁMETRO
       ),
     );
   }
 
-  /// Método original para WebView (backup - no se usa actualmente)
+  /// M�todo original para WebView (backup - no se usa actualmente)
   Future<void> _showGASWebView(
     BuildContext context,
     BookingProvider provider, 
@@ -732,7 +820,7 @@ class _TennisReservationsPageState extends State<TennisReservationsPage> {
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text('Cancha: ${AppConstants.getCourtName(booking.courtId)}'),  // â† CAMBIADO
+              Text('Cancha: ${AppConstants.getCourtName(booking.courtId)}'),  // ← CAMBIADO
               Text('Fecha: ${_formatDate(context.read<BookingProvider>().selectedDate)}'),
               Text('Estado: ${_getStatusText(booking.status)}'),
               const SizedBox(height: 8),
