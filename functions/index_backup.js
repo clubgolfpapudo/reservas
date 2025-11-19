@@ -2097,608 +2097,608 @@ function generateErrorHtml(errorMessage) {
     </body>
     </html>
   `;
-}
-// === PLANTILLAS PARA ACCIONES DE ADMIN (reutilizan plantillas existentes) ===
+  // === PLANTILLAS PARA ACCIONES DE ADMIN (reutilizan plantillas existentes) ===
 
-// === GOLF - REUTILIZAR PLANTILLA EXISTENTE ===
-function generateGolfPlayerAddedTemplate(booking, organizerName, isVisitorBooking, email) {
-  return generateGolfEmailTemplate(booking, organizerName, isVisitorBooking, email)
-    .replace('Confirmación de Reserva', 'Has sido agregado a una reserva')
-    .replace('¡Tu reserva ha sido confirmada exitosamente!', '¡El administrador te ha agregado a una reserva de Golf!')
-    .replace('Nos complace confirmar tu reserva', 'Has sido incluido en la siguiente reserva')
-    .replace('¡Nos vemos en el campo!', '¡Confirma tu asistencia y nos vemos en el campo!');
-}
-
-function generateGolfPlayerRemovedTemplate(booking, organizerName, isVisitorBooking, email) {
-  return generateGolfEmailTemplate(booking, organizerName, isVisitorBooking, email)
-    .replace('Confirmación de Reserva', 'Has sido removido de una reserva')
-    .replace('¡Tu reserva ha sido confirmada exitosamente!', 'Has sido removido de una reserva de Golf')
-    .replace('Nos complace confirmar tu reserva', 'El administrador te ha removido de la siguiente reserva')
-    .replace('background: linear-gradient(135deg, #4CAF50 0%, #2E7D32 100%)', 'background: linear-gradient(135deg, #f44336, #d32f2f)')
-    .replace('¡Nos vemos en el campo!', 'Si tienes dudas, contacta al club directamente.')
-    .replace(/<tr>\s*<td style="padding: 0 40px 20px 40px; text-align: center;">[\s\S]*?❌ Cancelar mi Participación[\s\S]*?<\/tr>/g, '');
-}
-
-// === TENIS - REUTILIZAR PLANTILLA EXISTENTE ===
-function generateTennisPlayerAddedTemplate(booking, organizerName, isVisitorBooking, email) {
-  return generateTennisEmailTemplate(booking, organizerName, isVisitorBooking, email)
-    .replace('Confirmación de Reserva', 'Has sido agregado a una reserva')
-    .replace('¡Tu reserva ha sido confirmada exitosamente!', '¡El administrador te ha agregado a una reserva de Tenis!')
-    .replace('Nos complace confirmar tu reserva', 'Has sido incluido en la siguiente reserva')
-    .replace('¡Nos vemos en la cancha!', '¡Confirma tu asistencia y nos vemos en la cancha!');
-}
-
-function generateTennisPlayerRemovedTemplate(booking, organizerName, isVisitorBooking, email) {
-  return generateTennisEmailTemplate(booking, organizerName, isVisitorBooking, email)
-    .replace('Confirmación de Reserva', 'Has sido removido de una reserva')
-    .replace('¡Tu reserva ha sido confirmada exitosamente!', 'Has sido removido de una reserva de Tenis')
-    .replace('Nos complace confirmar tu reserva', 'El administrador te ha removido de la siguiente reserva')
-    .replace('background: linear-gradient(135deg, #2196F3, #1976D2)', 'background: linear-gradient(135deg, #f44336, #d32f2f)')
-    .replace('¡Nos vemos en la cancha!', 'Si tienes dudas, contacta al club directamente.')
-    .replace(/<tr>\s*<td style="padding: 0 40px 20px 40px; text-align: center;">[\s\S]*?❌ Cancelar mi Participación[\s\S]*?<\/tr>/g, '');
-}
-
-// === PADEL - REUTILIZAR PLANTILLA EXISTENTE ===
-function generatePadelPlayerAddedTemplate(booking, organizerName, isVisitorBooking, email) {
-  return generatePadelEmailTemplate(booking, organizerName, isVisitorBooking, email)
-    .replace('Confirmación de Reserva', 'Has sido agregado a una reserva')
-    .replace('¡Tu reserva ha sido confirmada exitosamente!', '¡El administrador te ha agregado a una reserva de Pádel!')
-    .replace('Nos complace confirmar tu reserva', 'Has sido incluido en la siguiente reserva')
-    .replace('¡Nos vemos en la cancha!', '¡Confirma tu asistencia y nos vemos en la cancha!');
-}
-
-function generatePadelPlayerRemovedTemplate(booking, organizerName, isVisitorBooking, email) {
-  return generatePadelEmailTemplate(booking, organizerName, isVisitorBooking, email)
-    .replace('Confirmación de Reserva', 'Has sido removido de una reserva')
-    .replace('¡Tu reserva ha sido confirmada exitosamente!', 'Has sido removido de una reserva de Pádel')
-    .replace('Nos complace confirmar tu reserva', 'El administrador te ha removido de la siguiente reserva')
-    .replace('background: linear-gradient(135deg, #2E7AFF, #1E5AFF)', 'background: linear-gradient(135deg, #f44336, #d32f2f)')
-    .replace('¡Nos vemos en la cancha!', 'Si tienes dudas, contacta al club directamente.')
-    .replace(/❌ Cancelar mi Participación/g, '')  // Elimina el texto del botón
-    .replace(/href="https:\/\/us-central1-cgpreservas\.cloudfunctions\.net\/cancelBooking[^"]*"/g, 'href="#"')  // Desactiva el link
-    .replace(/background: #dc2626/g, 'background: #cccccc');  // Desactiva visualmente
-} 
-
-// ============================================================================
-// SOLUCIÓN BUG: Email Link Prefetching - Landing Page de Confirmación
-// Fecha: 2 de noviembre, 2025
-// ============================================================================
-
-/**
- * Nueva función para manejar cancelaciones con confirmación intermedia
- * Previene que sistemas de email prefetching cancelen automáticamente
- */
-exports.cancelBookingConfirm = onRequest({
-  cors: true,
-  region: 'us-central1',
-}, async (req, res) => {
-  // Configurar CORS
-  if (req.method === "OPTIONS") {
-    res.set('Access-Control-Allow-Origin', '*');
-    res.set('Access-Control-Allow-Methods', 'GET, OPTIONS');
-    res.set('Access-Control-Allow-Headers', 'Content-Type');
-    return res.status(204).send('');
+  // === GOLF - REUTILIZAR PLANTILLA EXISTENTE ===
+  function generateGolfPlayerAddedTemplate(booking, organizerName, isVisitorBooking, email) {
+    return generateGolfEmailTemplate(booking, organizerName, isVisitorBooking, email)
+      .replace('Confirmación de Reserva', 'Has sido agregado a una reserva')
+      .replace('¡Tu reserva ha sido confirmada exitosamente!', '¡El administrador te ha agregado a una reserva de Golf!')
+      .replace('Nos complace confirmar tu reserva', 'Has sido incluido en la siguiente reserva')
+      .replace('¡Nos vemos en el campo!', '¡Confirma tu asistencia y nos vemos en el campo!');
   }
 
-  try {
-    const bookingId = req.query.id;
-    const playerEmail = req.query.email;
-    const confirmParam = req.query.confirm;
-    
-    console.log('🔵 === CANCEL BOOKING CONFIRM ===');
-    console.log('🔵 Booking ID:', bookingId);
-    console.log('🔵 Player Email:', playerEmail);
-    console.log('🔵 Confirm:', confirmParam);
-    
-    if (!bookingId || !playerEmail) {
-      const errorHtml = generateErrorHtml('Faltan parámetros requeridos');
-      res.set('Content-Type', 'text/html');
-      return res.status(400).send(errorHtml);
+  function generateGolfPlayerRemovedTemplate(booking, organizerName, isVisitorBooking, email) {
+    return generateGolfEmailTemplate(booking, organizerName, isVisitorBooking, email)
+      .replace('Confirmación de Reserva', 'Has sido removido de una reserva')
+      .replace('¡Tu reserva ha sido confirmada exitosamente!', 'Has sido removido de una reserva de Golf')
+      .replace('Nos complace confirmar tu reserva', 'El administrador te ha removido de la siguiente reserva')
+      .replace('background: linear-gradient(135deg, #4CAF50 0%, #2E7D32 100%)', 'background: linear-gradient(135deg, #f44336, #d32f2f)')
+      .replace('¡Nos vemos en el campo!', 'Si tienes dudas, contacta al club directamente.')
+      .replace(/<tr>\s*<td style="padding: 0 40px 20px 40px; text-align: center;">[\s\S]*?❌ Cancelar mi Participación[\s\S]*?<\/tr>/g, '');
+  }
+
+  // === TENIS - REUTILIZAR PLANTILLA EXISTENTE ===
+  function generateTennisPlayerAddedTemplate(booking, organizerName, isVisitorBooking, email) {
+    return generateTennisEmailTemplate(booking, organizerName, isVisitorBooking, email)
+      .replace('Confirmación de Reserva', 'Has sido agregado a una reserva')
+      .replace('¡Tu reserva ha sido confirmada exitosamente!', '¡El administrador te ha agregado a una reserva de Tenis!')
+      .replace('Nos complace confirmar tu reserva', 'Has sido incluido en la siguiente reserva')
+      .replace('¡Nos vemos en la cancha!', '¡Confirma tu asistencia y nos vemos en la cancha!');
+  }
+
+  function generateTennisPlayerRemovedTemplate(booking, organizerName, isVisitorBooking, email) {
+    return generateTennisEmailTemplate(booking, organizerName, isVisitorBooking, email)
+      .replace('Confirmación de Reserva', 'Has sido removido de una reserva')
+      .replace('¡Tu reserva ha sido confirmada exitosamente!', 'Has sido removido de una reserva de Tenis')
+      .replace('Nos complace confirmar tu reserva', 'El administrador te ha removido de la siguiente reserva')
+      .replace('background: linear-gradient(135deg, #2196F3, #1976D2)', 'background: linear-gradient(135deg, #f44336, #d32f2f)')
+      .replace('¡Nos vemos en la cancha!', 'Si tienes dudas, contacta al club directamente.')
+      .replace(/<tr>\s*<td style="padding: 0 40px 20px 40px; text-align: center;">[\s\S]*?❌ Cancelar mi Participación[\s\S]*?<\/tr>/g, '');
+  }
+
+  // === PADEL - REUTILIZAR PLANTILLA EXISTENTE ===
+  function generatePadelPlayerAddedTemplate(booking, organizerName, isVisitorBooking, email) {
+    return generatePadelEmailTemplate(booking, organizerName, isVisitorBooking, email)
+      .replace('Confirmación de Reserva', 'Has sido agregado a una reserva')
+      .replace('¡Tu reserva ha sido confirmada exitosamente!', '¡El administrador te ha agregado a una reserva de Pádel!')
+      .replace('Nos complace confirmar tu reserva', 'Has sido incluido en la siguiente reserva')
+      .replace('¡Nos vemos en la cancha!', '¡Confirma tu asistencia y nos vemos en la cancha!');
+  }
+
+  function generatePadelPlayerRemovedTemplate(booking, organizerName, isVisitorBooking, email) {
+    return generatePadelEmailTemplate(booking, organizerName, isVisitorBooking, email)
+      .replace('Confirmación de Reserva', 'Has sido removido de una reserva')
+      .replace('¡Tu reserva ha sido confirmada exitosamente!', 'Has sido removido de una reserva de Pádel')
+      .replace('Nos complace confirmar tu reserva', 'El administrador te ha removido de la siguiente reserva')
+      .replace('background: linear-gradient(135deg, #2E7AFF, #1E5AFF)', 'background: linear-gradient(135deg, #f44336, #d32f2f)')
+      .replace('¡Nos vemos en la cancha!', 'Si tienes dudas, contacta al club directamente.')
+      .replace(/❌ Cancelar mi Participación/g, '')  // Elimina el texto del botón
+      .replace(/href="https:\/\/us-central1-cgpreservas\.cloudfunctions\.net\/cancelBooking[^"]*"/g, 'href="#"')  // Desactiva el link
+      .replace(/background: #dc2626/g, 'background: #cccccc');  // Desactiva visualmente
+  } 
+
+  // ============================================================================
+  // SOLUCIÓN BUG: Email Link Prefetching - Landing Page de Confirmación
+  // Fecha: 2 de noviembre, 2025
+  // ============================================================================
+
+  /**
+   * Nueva función para manejar cancelaciones con confirmación intermedia
+   * Previene que sistemas de email prefetching cancelen automáticamente
+   */
+  exports.cancelBookingConfirm = onRequest({
+    cors: true,
+    region: 'us-central1',
+  }, async (req, res) => {
+    // Configurar CORS
+    if (req.method === "OPTIONS") {
+      res.set('Access-Control-Allow-Origin', '*');
+      res.set('Access-Control-Allow-Methods', 'GET, OPTIONS');
+      res.set('Access-Control-Allow-Headers', 'Content-Type');
+      return res.status(204).send('');
     }
-    
-    // Si NO viene con confirm=true, mostrar página de confirmación
-    if (confirmParam !== 'true') {
-      console.log('🔵 Mostrando página de confirmación');
-      const confirmationHtml = generateCancellationConfirmationPageNew(bookingId, playerEmail);
-      res.set('Content-Type', 'text/html');
-      return res.status(200).send(confirmationHtml);
-    }
-    
-    // Si viene con confirm=true, procesar cancelación
-    console.log('🔵 Procesando cancelación confirmada...');
-    
-    const db = admin.firestore();
-    const bookingsRef = db.collection('bookings');
-    
-    let bookingData = null;
-    let originalPlayers = [];
-    let docRef = null;
-    
-    // Buscar la reserva
-    console.log(`🔍 Buscando reserva: ${bookingId}`);
-    const snapshot = await bookingsRef.where('id', '==', bookingId).get();
-    
-    if (snapshot.empty) {
-      // Búsqueda alternativa por campos
-      const idParts = bookingId.split('-');
-      console.log(`🔍 ID parts:`, idParts);
+
+    try {
+      const bookingId = req.query.id;
+      const playerEmail = req.query.email;
+      const confirmParam = req.query.confirm;
       
-      if (idParts.length >= 5) {
-        const courtId = idParts[0];
-        const date = `${idParts[1]}-${idParts[2]}-${idParts[3]}`;
-        const timeRaw = idParts[4];
-        const timeSlot = `${timeRaw.substring(0,2)}:${timeRaw.substring(2,4)}`;
+      console.log('🔵 === CANCEL BOOKING CONFIRM ===');
+      console.log('🔵 Booking ID:', bookingId);
+      console.log('🔵 Player Email:', playerEmail);
+      console.log('🔵 Confirm:', confirmParam);
+      
+      if (!bookingId || !playerEmail) {
+        const errorHtml = generateErrorHtml('Faltan parámetros requeridos');
+        res.set('Content-Type', 'text/html');
+        return res.status(400).send(errorHtml);
+      }
+      
+      // Si NO viene con confirm=true, mostrar página de confirmación
+      if (confirmParam !== 'true') {
+        console.log('🔵 Mostrando página de confirmación');
+        const confirmationHtml = generateCancellationConfirmationPageNew(bookingId, playerEmail);
+        res.set('Content-Type', 'text/html');
+        return res.status(200).send(confirmationHtml);
+      }
+      
+      // Si viene con confirm=true, procesar cancelación
+      console.log('🔵 Procesando cancelación confirmada...');
+      
+      const db = admin.firestore();
+      const bookingsRef = db.collection('bookings');
+      
+      let bookingData = null;
+      let originalPlayers = [];
+      let docRef = null;
+      
+      // Buscar la reserva
+      console.log(`🔍 Buscando reserva: ${bookingId}`);
+      const snapshot = await bookingsRef.where('id', '==', bookingId).get();
+      
+      if (snapshot.empty) {
+        // Búsqueda alternativa por campos
+        const idParts = bookingId.split('-');
+        console.log(`🔍 ID parts:`, idParts);
         
-        console.log(`🔍 Buscando: court=${courtId}, date=${date}, time=${timeSlot}`);
-        
-        const alternativeSnapshot = await bookingsRef
-          .where('courtId', '==', courtId)
-          .where('date', '==', date)
-          .where('timeSlot', '==', timeSlot)
-          .get();
+        if (idParts.length >= 5) {
+          const courtId = idParts[0];
+          const date = `${idParts[1]}-${idParts[2]}-${idParts[3]}`;
+          const timeRaw = idParts[4];
+          const timeSlot = `${timeRaw.substring(0,2)}:${timeRaw.substring(2,4)}`;
           
-        if (!alternativeSnapshot.empty) {
-          const doc = alternativeSnapshot.docs[0];
-          bookingData = doc.data();
-          originalPlayers = [...(bookingData.players || [])];
-          docRef = doc.ref;
-          console.log('✅ Reserva encontrada por búsqueda alternativa');
-        }
-      }
-    } else {
-      const doc = snapshot.docs[0];
-      bookingData = doc.data();
-      originalPlayers = [...(bookingData.players || [])];
-      docRef = doc.ref;
-      console.log('✅ Reserva encontrada por ID directo');
-    }
-    
-    // Si no se encontró la reserva
-    if (!bookingData || !docRef) {
-      const errorHtml = generateErrorHtml('Reserva no encontrada');
-      res.set('Content-Type', 'text/html');
-      return res.status(404).send(errorHtml);
-    }
-    
-    // Procesar cancelación
-    console.log('👥 Jugadores originales:', originalPlayers.map(p => p.email));
-    
-    const decodedPlayerEmail = decodeURIComponent(playerEmail);
-    const updatedPlayers = originalPlayers.filter(player => 
-      player.email !== decodedPlayerEmail
-    );
-    
-    console.log('👥 Jugadores después de cancelación:', updatedPlayers.map(p => p.email));
-    
-    const cancelingPlayer = originalPlayers.find(player => 
-      player.email === decodedPlayerEmail
-    );
-    const cancelingPlayerName = cancelingPlayer ? 
-      (cancelingPlayer.name || cancelingPlayer.displayName || 'Un compañero') : 
-      'Un compañero';
-    
-    console.log(`👤 Jugador que cancela: ${cancelingPlayerName} (${decodedPlayerEmail})`);
-    
-    if (updatedPlayers.length === 0) {
-      // Si no quedan jugadores, eliminar reserva completa
-      console.log('🗑️ No quedan jugadores, eliminando reserva completa...');
-      await docRef.delete();
-      console.log('✅ Reserva eliminada completamente');
-    } else {
-      // Enviar notificaciones a jugadores restantes
-      console.log('📧 === ENVIANDO NOTIFICACIONES DE CANCELACIÓN ===');
-      
-      try {
-        const reservationInfo = {
-          date: bookingData.date,
-          timeSlot: bookingData.timeSlot,
-          courtId: bookingData.courtId,
-          originalPlayers: originalPlayers,
-          remainingPlayers: updatedPlayers,
-          cancelingPlayerName: cancelingPlayerName,
-          cancelingPlayerEmail: decodedPlayerEmail
-        };
-        
-        const notificationPromises = updatedPlayers.map(player => 
-          sendCancellationNotification(player, reservationInfo)
-        );
-        
-        const notificationResults = await Promise.allSettled(notificationPromises);
-        
-        let successCount = 0;
-        let failureCount = 0;
-        
-        notificationResults.forEach((result, index) => {
-          if (result.status === 'fulfilled') {
-            successCount++;
-            console.log(`✅ Notificación enviada a: ${updatedPlayers[index].email}`);
-          } else {
-            failureCount++;
-            console.log(`❌ Error notificando a ${updatedPlayers[index].email}:`, result.reason);
+          console.log(`🔍 Buscando: court=${courtId}, date=${date}, time=${timeSlot}`);
+          
+          const alternativeSnapshot = await bookingsRef
+            .where('courtId', '==', courtId)
+            .where('date', '==', date)
+            .where('timeSlot', '==', timeSlot)
+            .get();
+            
+          if (!alternativeSnapshot.empty) {
+            const doc = alternativeSnapshot.docs[0];
+            bookingData = doc.data();
+            originalPlayers = [...(bookingData.players || [])];
+            docRef = doc.ref;
+            console.log('✅ Reserva encontrada por búsqueda alternativa');
           }
-        });
-        
-        console.log(`📧 Notificaciones: ${successCount} exitosas, ${failureCount} fallos`);
-        
-      } catch (notificationError) {
-        console.error('❌ Error en notificaciones:', notificationError);
+        }
+      } else {
+        const doc = snapshot.docs[0];
+        bookingData = doc.data();
+        originalPlayers = [...(bookingData.players || [])];
+        docRef = doc.ref;
+        console.log('✅ Reserva encontrada por ID directo');
       }
       
-      // Actualizar reserva con jugadores restantes
-      console.log('📄 Actualizando reserva con jugadores restantes...');
-      const newStatus = updatedPlayers.length === 4 ? 'complete' : 'incomplete';
+      // Si no se encontró la reserva
+      if (!bookingData || !docRef) {
+        const errorHtml = generateErrorHtml('Reserva no encontrada');
+        res.set('Content-Type', 'text/html');
+        return res.status(404).send(errorHtml);
+      }
       
-      await docRef.update({
-        players: updatedPlayers,
-        status: newStatus,
-        lastModified: new Date()
-      });
-      console.log(`✅ Jugador removido. Quedan ${updatedPlayers.length} jugadores`);
+      // Procesar cancelación
+      console.log('👥 Jugadores originales:', originalPlayers.map(p => p.email));
+      
+      const decodedPlayerEmail = decodeURIComponent(playerEmail);
+      const updatedPlayers = originalPlayers.filter(player => 
+        player.email !== decodedPlayerEmail
+      );
+      
+      console.log('👥 Jugadores después de cancelación:', updatedPlayers.map(p => p.email));
+      
+      const cancelingPlayer = originalPlayers.find(player => 
+        player.email === decodedPlayerEmail
+      );
+      const cancelingPlayerName = cancelingPlayer ? 
+        (cancelingPlayer.name || cancelingPlayer.displayName || 'Un compañero') : 
+        'Un compañero';
+      
+      console.log(`👤 Jugador que cancela: ${cancelingPlayerName} (${decodedPlayerEmail})`);
+      
+      if (updatedPlayers.length === 0) {
+        // Si no quedan jugadores, eliminar reserva completa
+        console.log('🗑️ No quedan jugadores, eliminando reserva completa...');
+        await docRef.delete();
+        console.log('✅ Reserva eliminada completamente');
+      } else {
+        // Enviar notificaciones a jugadores restantes
+        console.log('📧 === ENVIANDO NOTIFICACIONES DE CANCELACIÓN ===');
+        
+        try {
+          const reservationInfo = {
+            date: bookingData.date,
+            timeSlot: bookingData.timeSlot,
+            courtId: bookingData.courtId,
+            originalPlayers: originalPlayers,
+            remainingPlayers: updatedPlayers,
+            cancelingPlayerName: cancelingPlayerName,
+            cancelingPlayerEmail: decodedPlayerEmail
+          };
+          
+          const notificationPromises = updatedPlayers.map(player => 
+            sendCancellationNotification(player, reservationInfo)
+          );
+          
+          const notificationResults = await Promise.allSettled(notificationPromises);
+          
+          let successCount = 0;
+          let failureCount = 0;
+          
+          notificationResults.forEach((result, index) => {
+            if (result.status === 'fulfilled') {
+              successCount++;
+              console.log(`✅ Notificación enviada a: ${updatedPlayers[index].email}`);
+            } else {
+              failureCount++;
+              console.log(`❌ Error notificando a ${updatedPlayers[index].email}:`, result.reason);
+            }
+          });
+          
+          console.log(`📧 Notificaciones: ${successCount} exitosas, ${failureCount} fallos`);
+          
+        } catch (notificationError) {
+          console.error('❌ Error en notificaciones:', notificationError);
+        }
+        
+        // Actualizar reserva con jugadores restantes
+        console.log('📄 Actualizando reserva con jugadores restantes...');
+        const newStatus = updatedPlayers.length === 4 ? 'complete' : 'incomplete';
+        
+        await docRef.update({
+          players: updatedPlayers,
+          status: newStatus,
+          lastModified: new Date()
+        });
+        console.log(`✅ Jugador removido. Quedan ${updatedPlayers.length} jugadores`);
+      }
+      
+      // Mostrar página de éxito
+      const successHtml = generateCancellationSuccessPageNew(bookingId, playerEmail);
+      res.set('Content-Type', 'text/html');
+      return res.status(200).send(successHtml);
+      
+    } catch (error) {
+      console.error('❌ Error en cancelBookingConfirm:', error);
+      const errorHtml = generateErrorHtml(error.message);
+      res.set('Content-Type', 'text/html');
+      return res.status(500).send(errorHtml);
+    }
+  });
+
+  /**
+   * Genera página de confirmación intermedia
+   * Esta página requiere click manual, previniendo prefetching automático
+   */
+  function generateCancellationConfirmationPageNew(bookingId, playerEmail) {
+    // Parsear información de la reserva del ID
+    const parts = bookingId.split('-');
+    const courtId = parts[0] || 'Cancha';
+    const date = parts.length >= 4 ? `${parts[3]}-${parts[2]}-${parts[1]}` : 'Fecha';
+    const time = parts[4] ? `${parts[4].substring(0,2)}:${parts[4].substring(2,4)}` : 'Hora';
+    
+    // Nombres de canchas más amigables
+    let courtName = courtId;
+    if (courtId.includes('golf_tee')) {
+      const teeNum = courtId.replace('golf_tee_', '');
+      courtName = `Hoyo ${teeNum}`;
+    } else if (courtId.includes('tennis_court')) {
+      const courtNum = courtId.replace('tennis_court_', '');
+      courtName = `Tenis Cancha ${courtNum}`;
+    } else if (courtId.includes('Pádel_court') || courtId.includes('padel_court')) {
+      const courtNum = courtId.replace(/[Pp]ádel_court_/, '');
+      courtName = `Pádel Cancha ${courtNum}`;
     }
     
-    // Mostrar página de éxito
-    const successHtml = generateCancellationSuccessPageNew(bookingId, playerEmail);
-    res.set('Content-Type', 'text/html');
-    return res.status(200).send(successHtml);
-    
-  } catch (error) {
-    console.error('❌ Error en cancelBookingConfirm:', error);
-    const errorHtml = generateErrorHtml(error.message);
-    res.set('Content-Type', 'text/html');
-    return res.status(500).send(errorHtml);
-  }
-});
-
-/**
- * Genera página de confirmación intermedia
- * Esta página requiere click manual, previniendo prefetching automático
- */
-function generateCancellationConfirmationPageNew(bookingId, playerEmail) {
-  // Parsear información de la reserva del ID
-  const parts = bookingId.split('-');
-  const courtId = parts[0] || 'Cancha';
-  const date = parts.length >= 4 ? `${parts[3]}-${parts[2]}-${parts[1]}` : 'Fecha';
-  const time = parts[4] ? `${parts[4].substring(0,2)}:${parts[4].substring(2,4)}` : 'Hora';
-  
-  // Nombres de canchas más amigables
-  let courtName = courtId;
-  if (courtId.includes('golf_tee')) {
-    const teeNum = courtId.replace('golf_tee_', '');
-    courtName = `Hoyo ${teeNum}`;
-  } else if (courtId.includes('tennis_court')) {
-    const courtNum = courtId.replace('tennis_court_', '');
-    courtName = `Tenis Cancha ${courtNum}`;
-  } else if (courtId.includes('Pádel_court') || courtId.includes('padel_court')) {
-    const courtNum = courtId.replace(/[Pp]ádel_court_/, '');
-    courtName = `Pádel Cancha ${courtNum}`;
-  }
-  
-  return `
-    <!DOCTYPE html>
-    <html lang="es">
-    <head>
-      <meta charset="UTF-8">
-      <meta name="viewport" content="width=device-width, initial-scale=1.0">
-      <meta name="robots" content="noindex, nofollow">
-      <title>Confirmar Cancelación - Club de Golf Papudo</title>
-      <style>
-        * { margin: 0; padding: 0; box-sizing: border-box; }
-        body {
-          font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif;
-          background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-          min-height: 100vh;
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          padding: 20px;
-        }
-        .container {
-          background: white;
-          border-radius: 20px;
-          box-shadow: 0 20px 60px rgba(0,0,0,0.3);
-          max-width: 550px;
-          width: 100%;
-          padding: 40px;
-          text-align: center;
-        }
-        .icon {
-          font-size: 72px;
-          margin-bottom: 24px;
-          animation: pulse 2s ease-in-out infinite;
-        }
-        @keyframes pulse {
-          0%, 100% { transform: scale(1); }
-          50% { transform: scale(1.1); }
-        }
-        h1 {
-          color: #1a202c;
-          font-size: 32px;
-          margin-bottom: 12px;
-          font-weight: 700;
-        }
-        .subtitle {
-          color: #64748b;
-          font-size: 17px;
-          margin-bottom: 32px;
-          line-height: 1.6;
-        }
-        .booking-details {
-          background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
-          border-radius: 16px;
-          padding: 28px;
-          margin-bottom: 32px;
-          text-align: left;
-          border: 2px solid #cbd5e1;
-        }
-        .booking-details h3 {
-          color: #1e293b;
-          font-size: 20px;
-          margin-bottom: 20px;
-          padding-bottom: 16px;
-          border-bottom: 2px solid #cbd5e1;
-          font-weight: 600;
-        }
-        .detail-row {
-          display: flex;
-          justify-content: space-between;
-          padding: 10px 0;
-          color: #475569;
-          font-size: 15px;
-        }
-        .detail-label { font-weight: 600; color: #334155; }
-        .detail-value { font-weight: 500; color: #64748b; }
-        .warning-box {
-          background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);
-          border-left: 6px solid #f59e0b;
-          padding: 20px;
-          border-radius: 12px;
-          margin-bottom: 32px;
-          text-align: left;
-        }
-        .warning-box strong {
-          color: #92400e;
-          display: block;
-          margin-bottom: 10px;
-          font-size: 18px;
-        }
-        .warning-box p {
-          color: #78350f;
-          font-size: 15px;
-          line-height: 1.6;
-        }
-        .button-group {
-          display: flex;
-          gap: 16px;
-          flex-direction: column;
-        }
-        .btn {
-          padding: 18px 36px;
-          border: none;
-          border-radius: 12px;
-          font-size: 17px;
-          font-weight: 700;
-          cursor: pointer;
-          text-decoration: none;
-          display: inline-block;
-          transition: all 0.3s ease;
-          box-shadow: 0 4px 6px rgba(0,0,0,0.1);
-        }
-        .btn-danger {
-          background: linear-gradient(135deg, #dc2626 0%, #b91c1c 100%);
-          color: white;
-        }
-        .btn-danger:hover {
-          background: linear-gradient(135deg, #b91c1c 0%, #991b1b 100%);
-          transform: translateY(-3px);
-          box-shadow: 0 8px 16px rgba(220, 38, 38, 0.4);
-        }
-        .btn-secondary {
-          background: linear-gradient(135deg, #64748b 0%, #475569 100%);
-          color: white;
-        }
-        .btn-secondary:hover {
-          background: linear-gradient(135deg, #475569 0%, #334155 100%);
-          transform: translateY(-2px);
-        }
-        .footer {
-          margin-top: 32px;
-          padding-top: 24px;
-          border-top: 2px solid #e2e8f0;
-          color: #94a3b8;
-          font-size: 14px;
-        }
-      </style>
-    </head>
-    <body>
-      <div class="container">
-        <div class="icon">⚠️</div>
-        <h1>Confirmar Cancelación</h1>
-        <p class="subtitle">
-          Estás a punto de cancelar tu participación en esta reserva.<br>
-          Esta acción no se puede deshacer.
-        </p>
-        
-        <div class="booking-details">
-          <h3>📋 Detalles de la Reserva</h3>
-          <div class="detail-row">
-            <span class="detail-label">Cancha:</span>
-            <span class="detail-value">${courtName}</span>
-          </div>
-          <div class="detail-row">
-            <span class="detail-label">Fecha:</span>
-            <span class="detail-value">${date}</span>
-          </div>
-          <div class="detail-row">
-            <span class="detail-label">Hora:</span>
-            <span class="detail-value">${time}</span>
-          </div>
-          <div class="detail-row">
-            <span class="detail-label">Tu email:</span>
-            <span class="detail-value">${decodeURIComponent(playerEmail)}</span>
-          </div>
-        </div>
-        
-        <div class="warning-box">
-          <strong>⚠️ Importante</strong>
-          <p>
-            Al confirmar la cancelación, se enviará una notificación automática 
-            a los demás jugadores informándoles que te has retirado de la reserva.
+    return `
+      <!DOCTYPE html>
+      <html lang="es">
+      <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <meta name="robots" content="noindex, nofollow">
+        <title>Confirmar Cancelación - Club de Golf Papudo</title>
+        <style>
+          * { margin: 0; padding: 0; box-sizing: border-box; }
+          body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+          }
+          .container {
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            max-width: 550px;
+            width: 100%;
+            padding: 40px;
+            text-align: center;
+          }
+          .icon {
+            font-size: 72px;
+            margin-bottom: 24px;
+            animation: pulse 2s ease-in-out infinite;
+          }
+          @keyframes pulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.1); }
+          }
+          h1 {
+            color: #1a202c;
+            font-size: 32px;
+            margin-bottom: 12px;
+            font-weight: 700;
+          }
+          .subtitle {
+            color: #64748b;
+            font-size: 17px;
+            margin-bottom: 32px;
+            line-height: 1.6;
+          }
+          .booking-details {
+            background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
+            border-radius: 16px;
+            padding: 28px;
+            margin-bottom: 32px;
+            text-align: left;
+            border: 2px solid #cbd5e1;
+          }
+          .booking-details h3 {
+            color: #1e293b;
+            font-size: 20px;
+            margin-bottom: 20px;
+            padding-bottom: 16px;
+            border-bottom: 2px solid #cbd5e1;
+            font-weight: 600;
+          }
+          .detail-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 10px 0;
+            color: #475569;
+            font-size: 15px;
+          }
+          .detail-label { font-weight: 600; color: #334155; }
+          .detail-value { font-weight: 500; color: #64748b; }
+          .warning-box {
+            background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);
+            border-left: 6px solid #f59e0b;
+            padding: 20px;
+            border-radius: 12px;
+            margin-bottom: 32px;
+            text-align: left;
+          }
+          .warning-box strong {
+            color: #92400e;
+            display: block;
+            margin-bottom: 10px;
+            font-size: 18px;
+          }
+          .warning-box p {
+            color: #78350f;
+            font-size: 15px;
+            line-height: 1.6;
+          }
+          .button-group {
+            display: flex;
+            gap: 16px;
+            flex-direction: column;
+          }
+          .btn {
+            padding: 18px 36px;
+            border: none;
+            border-radius: 12px;
+            font-size: 17px;
+            font-weight: 700;
+            cursor: pointer;
+            text-decoration: none;
+            display: inline-block;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+          }
+          .btn-danger {
+            background: linear-gradient(135deg, #dc2626 0%, #b91c1c 100%);
+            color: white;
+          }
+          .btn-danger:hover {
+            background: linear-gradient(135deg, #b91c1c 0%, #991b1b 100%);
+            transform: translateY(-3px);
+            box-shadow: 0 8px 16px rgba(220, 38, 38, 0.4);
+          }
+          .btn-secondary {
+            background: linear-gradient(135deg, #64748b 0%, #475569 100%);
+            color: white;
+          }
+          .btn-secondary:hover {
+            background: linear-gradient(135deg, #475569 0%, #334155 100%);
+            transform: translateY(-2px);
+          }
+          .footer {
+            margin-top: 32px;
+            padding-top: 24px;
+            border-top: 2px solid #e2e8f0;
+            color: #94a3b8;
+            font-size: 14px;
+          }
+        </style>
+      </head>
+      <body>
+        <div class="container">
+          <div class="icon">⚠️</div>
+          <h1>Confirmar Cancelación</h1>
+          <p class="subtitle">
+            Estás a punto de cancelar tu participación en esta reserva.<br>
+            Esta acción no se puede deshacer.
           </p>
+          
+          <div class="booking-details">
+            <h3>📋 Detalles de la Reserva</h3>
+            <div class="detail-row">
+              <span class="detail-label">Cancha:</span>
+              <span class="detail-value">${courtName}</span>
+            </div>
+            <div class="detail-row">
+              <span class="detail-label">Fecha:</span>
+              <span class="detail-value">${date}</span>
+            </div>
+            <div class="detail-row">
+              <span class="detail-label">Hora:</span>
+              <span class="detail-value">${time}</span>
+            </div>
+            <div class="detail-row">
+              <span class="detail-label">Tu email:</span>
+              <span class="detail-value">${decodeURIComponent(playerEmail)}</span>
+            </div>
+          </div>
+          
+          <div class="warning-box">
+            <strong>⚠️ Importante</strong>
+            <p>
+              Al confirmar la cancelación, se enviará una notificación automática 
+              a los demás jugadores informándoles que te has retirado de la reserva.
+            </p>
+          </div>
+          
+          <div class="button-group">
+            <a href="?id=${encodeURIComponent(bookingId)}&email=${encodeURIComponent(playerEmail)}&confirm=true" 
+              class="btn btn-danger"
+              onclick="return confirm('¿Estás completamente seguro de que deseas cancelar tu participación?');">
+              ✅ Sí, Cancelar mi Participación
+            </a>
+            <a href="https://cgpreservas.web.app" class="btn btn-secondary">
+              ← Volver al Sistema de Reservas
+            </a>
+          </div>
+          
+          <div class="footer">
+            <strong>Club de Golf Papudo</strong><br>
+            Sistema de Reservas Multi-Deporte
+          </div>
         </div>
-        
-        <div class="button-group">
-          <a href="?id=${encodeURIComponent(bookingId)}&email=${encodeURIComponent(playerEmail)}&confirm=true" 
-            class="btn btn-danger"
-            onclick="return confirm('¿Estás completamente seguro de que deseas cancelar tu participación?');">
-            ✅ Sí, Cancelar mi Participación
-          </a>
-          <a href="https://cgpreservas.web.app" class="btn btn-secondary">
+      </body>
+      </html>
+    `;
+  }
+
+  /**
+   * Genera página de éxito después de cancelar
+   */
+  function generateCancellationSuccessPageNew(bookingId, playerEmail) {
+    return `
+      <!DOCTYPE html>
+      <html lang="es">
+      <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <meta name="robots" content="noindex, nofollow">
+        <title>Cancelación Exitosa</title>
+        <style>
+          * { margin: 0; padding: 0; box-sizing: border-box; }
+          body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif;
+            background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+          }
+          .container {
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            max-width: 500px;
+            width: 100%;
+            padding: 50px 40px;
+            text-align: center;
+          }
+          .icon {
+            font-size: 80px;
+            margin-bottom: 24px;
+            animation: checkmark 0.6s ease-in-out;
+          }
+          @keyframes checkmark {
+            0% { transform: scale(0); opacity: 0; }
+            50% { transform: scale(1.2); }
+            100% { transform: scale(1); opacity: 1; }
+          }
+          h1 { color: #1a202c; font-size: 32px; margin-bottom: 16px; font-weight: 700; }
+          .subtitle { color: #64748b; font-size: 17px; margin-bottom: 36px; line-height: 1.6; }
+          .info-box {
+            background: #f0fdf4;
+            border: 2px solid #86efac;
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 32px;
+          }
+          .info-box p { color: #166534; font-size: 15px; margin: 0; }
+          .btn {
+            padding: 18px 40px;
+            background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%);
+            color: white;
+            border: none;
+            border-radius: 12px;
+            font-size: 17px;
+            font-weight: 700;
+            text-decoration: none;
+            display: inline-block;
+            margin-top: 8px;
+            transition: all 0.3s ease;
+          }
+          .btn:hover {
+            background: linear-gradient(135deg, #1d4ed8 0%, #1e40af 100%);
+            transform: translateY(-3px);
+          }
+          .footer {
+            margin-top: 32px;
+            padding-top: 24px;
+            border-top: 2px solid #e2e8f0;
+            color: #94a3b8;
+            font-size: 14px;
+          }
+        </style>
+      </head>
+      <body>
+        <div class="container">
+          <div class="icon">✅</div>
+          <h1>Cancelación Exitosa</h1>
+          <p class="subtitle">Tu participación ha sido cancelada correctamente.</p>
+          
+          <div class="info-box">
+            <p>📧 Los demás jugadores han sido notificados por email.</p>
+          </div>
+          
+          <a href="https://cgpreservas.web.app" class="btn">
             ← Volver al Sistema de Reservas
           </a>
+          
+          <div class="footer">
+            Club de Golf Papudo • Sistema de Reservas
+          </div>
         </div>
-        
-        <div class="footer">
-          <strong>Club de Golf Papudo</strong><br>
-          Sistema de Reservas Multi-Deporte
-        </div>
-      </div>
-    </body>
-    </html>
-  `;
-}
+      </body>
+      </html>
+    `;
+  }
 
-/**
- * Genera página de éxito después de cancelar
- */
-function generateCancellationSuccessPageNew(bookingId, playerEmail) {
-  return `
-    <!DOCTYPE html>
-    <html lang="es">
-    <head>
-      <meta charset="UTF-8">
-      <meta name="viewport" content="width=device-width, initial-scale=1.0">
-      <meta name="robots" content="noindex, nofollow">
-      <title>Cancelación Exitosa</title>
-      <style>
-        * { margin: 0; padding: 0; box-sizing: border-box; }
-        body {
-          font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif;
-          background: linear-gradient(135deg, #10b981 0%, #059669 100%);
-          min-height: 100vh;
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          padding: 20px;
-        }
-        .container {
-          background: white;
-          border-radius: 20px;
-          box-shadow: 0 20px 60px rgba(0,0,0,0.3);
-          max-width: 500px;
-          width: 100%;
-          padding: 50px 40px;
-          text-align: center;
-        }
-        .icon {
-          font-size: 80px;
-          margin-bottom: 24px;
-          animation: checkmark 0.6s ease-in-out;
-        }
-        @keyframes checkmark {
-          0% { transform: scale(0); opacity: 0; }
-          50% { transform: scale(1.2); }
-          100% { transform: scale(1); opacity: 1; }
-        }
-        h1 { color: #1a202c; font-size: 32px; margin-bottom: 16px; font-weight: 700; }
-        .subtitle { color: #64748b; font-size: 17px; margin-bottom: 36px; line-height: 1.6; }
-        .info-box {
-          background: #f0fdf4;
-          border: 2px solid #86efac;
-          border-radius: 12px;
-          padding: 20px;
-          margin-bottom: 32px;
-        }
-        .info-box p { color: #166534; font-size: 15px; margin: 0; }
-        .btn {
-          padding: 18px 40px;
-          background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%);
-          color: white;
-          border: none;
-          border-radius: 12px;
-          font-size: 17px;
-          font-weight: 700;
-          text-decoration: none;
-          display: inline-block;
-          margin-top: 8px;
-          transition: all 0.3s ease;
-        }
-        .btn:hover {
-          background: linear-gradient(135deg, #1d4ed8 0%, #1e40af 100%);
-          transform: translateY(-3px);
-        }
-        .footer {
-          margin-top: 32px;
-          padding-top: 24px;
-          border-top: 2px solid #e2e8f0;
-          color: #94a3b8;
-          font-size: 14px;
-        }
-      </style>
-    </head>
-    <body>
-      <div class="container">
-        <div class="icon">✅</div>
-        <h1>Cancelación Exitosa</h1>
-        <p class="subtitle">Tu participación ha sido cancelada correctamente.</p>
-        
-        <div class="info-box">
-          <p>📧 Los demás jugadores han sido notificados por email.</p>
-        </div>
-        
-        <a href="https://cgpreservas.web.app" class="btn">
-          ← Volver al Sistema de Reservas
-        </a>
-        
-        <div class="footer">
-          Club de Golf Papudo • Sistema de Reservas
-        </div>
-      </div>
-    </body>
-    </html>
-  `;
-}
+  // === FUNCIONES DE PLANTILLAS ADMIN (al final del archivo) ===
+  function generatePlayerAddedByAdminEmailTemplate(booking, organizerName, isVisitorBooking, email) {
+    const sport = getSportFromCourtId(booking.courtId);
+    
+    if (sport === 'GOLF') {
+      return generateGolfEmailTemplate(booking, organizerName, isVisitorBooking, email)
+        .replace('Confirmación de Reserva', 'Has sido agregado a una reserva')
+        .replace('¡Tu reserva ha sido confirmada exitosamente!', '¡El administrador te ha agregado a una reserva!')
+        .replace('¡Nos vemos en el campo!', '¡Confirma tu asistencia y nos vemos en el campo!');
+    } else if (sport === 'TENIS') {
+      return generateTennisEmailTemplate(booking, organizerName, isVisitorBooking, email)
+        .replace('Confirmación de Reserva', 'Has sido agregado a una reserva')
+        .replace('¡Tu reserva ha sido confirmada exitosamente!', '¡El administrador te ha agregado a una reserva!')
+        .replace('¡Nos vemos en la cancha!', '¡Confirma tu asistencia y nos vemos en la cancha!');
+    } else {
+      return generatePadelEmailTemplate(booking, organizerName, isVisitorBooking, email)
+        .replace('Confirmación de Reserva', 'Has sido agregado a una reserva')
+        .replace('¡Tu reserva ha sido confirmada exitosamente!', '¡El administrador te ha agregado a una reserva!')
+        .replace('¡Nos vemos en la cancha!', '¡Confirma tu asistencia y nos vemos en la cancha!');
+    }
+  }
 
-// === FUNCIONES DE PLANTILLAS ADMIN (al final del archivo) ===
-function generatePlayerAddedByAdminEmailTemplate(booking, organizerName, isVisitorBooking, email) {
+function generatePlayerRemovedByAdminEmailTemplate(booking, organizerName, isVisitorBooking, email) {
   const sport = getSportFromCourtId(booking.courtId);
   
   if (sport === 'GOLF') {
-    return generateGolfEmailTemplate(booking, organizerName, isVisitorBooking, email)
-      .replace('Confirmación de Reserva', 'Has sido agregado a una reserva')
-      .replace('¡Tu reserva ha sido confirmada exitosamente!', '¡El administrador te ha agregado a una reserva!')
-      .replace('¡Nos vemos en el campo!', '¡Confirma tu asistencia y nos vemos en el campo!');
+    return generateGolfPlayerRemovedTemplate(booking, organizerName, isVisitorBooking, email);
   } else if (sport === 'TENIS') {
-    return generateTennisEmailTemplate(booking, organizerName, isVisitorBooking, email)
-      .replace('Confirmación de Reserva', 'Has sido agregado a una reserva')
-      .replace('¡Tu reserva ha sido confirmada exitosamente!', '¡El administrador te ha agregado a una reserva!')
-      .replace('¡Nos vemos en la cancha!', '¡Confirma tu asistencia y nos vemos en la cancha!');
+    return generateTennisPlayerRemovedTemplate(booking, organizerName, isVisitorBooking, email);
   } else {
-    return generatePadelEmailTemplate(booking, organizerName, isVisitorBooking, email)
-      .replace('Confirmación de Reserva', 'Has sido agregado a una reserva')
-      .replace('¡Tu reserva ha sido confirmada exitosamente!', '¡El administrador te ha agregado a una reserva!')
-      .replace('¡Nos vemos en la cancha!', '¡Confirma tu asistencia y nos vemos en la cancha!');
+    return generatePadelPlayerRemovedTemplate(booking, organizerName, isVisitorBooking, email);
   }
-}
-
-function generatePlayerRemovedByAdminEmailTemplate(booking, organizerName, isVisitorBooking, email) {
-const sport = getSportFromCourtId(booking.courtId);
-
-if (sport === 'GOLF') {
-  return generateGolfPlayerRemovedTemplate(booking, organizerName, isVisitorBooking, email);
-} else if (sport === 'TENIS') {
-  return generateTennisPlayerRemovedTemplate(booking, organizerName, isVisitorBooking, email);
-} else {
-  return generatePadelPlayerRemovedTemplate(booking, organizerName, isVisitorBooking, email);
 }
 }
 
