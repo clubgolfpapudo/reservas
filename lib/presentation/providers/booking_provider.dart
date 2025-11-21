@@ -141,10 +141,10 @@ class BookingProvider extends ChangeNotifier {
   List<Booking> get currentBookings {
     final selectedDateStr = _formatDateForFirebase(_selectedDate);
     
-    // DEBUG: print('ðŸ” DEBUG RESERVAS FILTRADAS:');
-    // DEBUG: print('   Court seleccionada: $_selectedCourtId');
-    // DEBUG: print('   Fecha seleccionada: $selectedDateStr ($_selectedDate)');
-    // DEBUG: print('   Total bookings en _bookings: ${_bookings.length}');
+    DEBUG: print('ðŸ” DEBUG RESERVAS FILTRADAS:');
+    DEBUG: print('   Court seleccionada: $_selectedCourtId');
+    DEBUG: print('   Fecha seleccionada: $selectedDateStr ($_selectedDate)');
+    DEBUG: print('   Total bookings en _bookings: ${_bookings.length}');
     
     // Debug: Mostrar TODAS las reservas primero
     for (var booking in _bookings) {
@@ -521,6 +521,7 @@ class BookingProvider extends ChangeNotifier {
   Future<void> _initializeProvider() async {
     // PERFORMANCE: print('Inicializando BookingProvider con Firebase...');
     _generateAvailableDates();
+    await Future.delayed(Duration(milliseconds: 50));
     await _loadCourts();
     await _loadBookings();
     await initializeCurrentUser();
@@ -531,7 +532,7 @@ class BookingProvider extends ChangeNotifier {
       final email = await UserService.getCurrentUserEmail();
       final name = await UserService.getCurrentUserName();
       
-      // PERFORMANCE: print('ðŸ”¥ Auto-completando primer jugador: $name ($email)');
+      // PERFORMANCE: print('Auto-completando primer jugador: $name ($email)');
       
       // Exponer usuario actual para formularios
       _currentUserEmail = email;
@@ -697,6 +698,8 @@ class BookingProvider extends ChangeNotifier {
     for (var date in _availableDates) {
       print('     - ${date.day}/${date.month}');
     }
+
+    notifyListeners();
   }
 
   // ✅ Verificar slots disponibles hoy  
@@ -1119,7 +1122,7 @@ class BookingProvider extends ChangeNotifier {
   
   Future<void> _loadBookings() async {
     try {
-      // PERFORMANCE: print('Cargando reservas desde Firestore...');
+       PERFORMANCE: print('Cargando reservas desde Firestore...');
       _bookingsSubscription?.cancel();
       
       _bookingsSubscription = FirestoreService.getBookingsByDate(_selectedDate).listen(
@@ -1132,7 +1135,7 @@ class BookingProvider extends ChangeNotifier {
             _bookings = bookings;
           }
           
-          // PERFORMANCE: print('Reservas cargadas: ${_bookings.length}');
+          PERFORMANCE: print('Reservas cargadas: ${_bookings.length}');
           notifyListeners();
         },
         onError: (error) {
