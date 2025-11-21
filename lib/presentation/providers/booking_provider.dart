@@ -543,16 +543,66 @@ class BookingProvider extends ChangeNotifier {
     }
   }
 
-  Future<void> addPlayerToBooking(String bookingId, String playerId, String playerName) async {
+  /// ✅ MODIFICADO: Agrega un jugador a una reserva existente CON VALIDACIÓN
+  /// Solo valida cuando el usuario se agrega a sí mismo (no cuando admin agrega)
+  Future<void> addPlayerToBooking(
+    String bookingId, 
+    String playerId, 
+    String playerName,
+    String playerEmail, // ✅ NUEVO PARÁMETRO
+  ) async {
     try {
+      // PERFORMANCE: print('➕ Agregando jugador a reserva...');
+      // PERFORMANCE: print('   Booking ID: $bookingId');
+      // PERFORMANCE: print('   Jugador: $playerName ($playerEmail)');
+      
+      // ✅ 1. OBTENER DATOS DE LA RESERVA
+      final bookingDoc = await _firestore
+          .collection('bookings')
+          .doc(bookingId)
+          .get();
+      
+      if (!bookingDoc.exists) {
+        throw Exception('Reserva no encontrada');
+      }
+      
+      final bookingData = bookingDoc.data()!;
+      final courtId = bookingData['courtId'] as String;
+      final date = bookingData['date'] as String;
+      final timeSlot = bookingData['timeSlot'] as String;
+      
+      // ✅ 2. VALIDAR CONFLICTOS DE 4 HORAS
+      final validation = await validatePlayerForBooking(
+        playerEmail: playerEmail,
+        bookingDate: date,
+        bookingTimeSlot: timeSlot,
+        bookingCourtId: courtId,
+      );
+      
+      if (!validation.isValid) {
+        // PERFORMANCE: print('   ❌ Validación falló: ${validation.reason}');
+        throw Exception(validation.reason);
+      }
+      
+      // ✅ 3. SI PASA VALIDACIÓN, AGREGAR JUGADOR
       await _firestore
         .collection('bookings')
         .doc(bookingId)
         .update({
-          'players': FieldValue.arrayUnion([{'id': playerId, 'name': playerName}]),
+          'players': FieldValue.arrayUnion([
+            {
+              'id': playerId, 
+              'name': playerName,
+              'email': playerEmail, // ✅ Asegurar que email se guarda
+            }
+          ]),
         });
+      
+      // PERFORMANCE: print('   ✅ Jugador agregado exitosamente');
+      
     } catch (e) {
-      print('Error al agregar jugador: $e');
+      print('❌ Error al agregar jugador: $e');
+      rethrow; // ✅ Re-lanzar para que la UI pueda manejarlo
     }
   }
 
@@ -770,6 +820,122 @@ class BookingProvider extends ChangeNotifier {
     } catch (e) {
       print('Error verificando conflictos: $e');
       return false; // En caso de error, permitir la reserva
+    }
+  }
+
+  /// ✅ NUEVO: Valida si un jugador puede agregarse a una reserva específica
+  /// Verifica conflictos de 4 horas con otras reservas del jugador
+  /// 
+  /// @param playerEmail Email del jugador a validar
+  /// @param bookingDate Fecha de la reserva (formato: "2025-11-19")
+  /// @param bookingTimeSlot Horario de la reserva (formato: "10:00")
+  /// @param bookingCourtId ID de la cancha para determinar el deporte
+  /// @return ValidationResult con isValid y mensaje de error si aplica
+  Future<ValidationResult> validatePlayerForBooking({
+    required String playerEmail,
+    required String bookingDate,
+    required String bookingTimeSlot,
+    required String bookingCourtId,
+  }) async {
+    // PERFORMANCE: print('🔍 Validando jugador para agregar a reserva...');
+    // PERFORMANCE: print('   Email: $playerEmail');
+    // PERFORMANCE: print('   Fecha: $bookingDate');
+    // PERFORMANCE: print('   Hora: $bookingTimeSlot');
+    // PERFORMANCE: print('   Cancha: $bookingCourtId');
+    
+    // 1. Excepción para usuarios genéricos VISITA
+    final cleanEmail = playerEmail.toLowerCase().trim();
+    final guestEmails = [
+      'golf visita 1', 'golf visita 2', 'golf visita 3', 'golf visita 4',
+      'padel1 visita', 'padel2 visita', 'padel3 visita', 'padel4 visita',
+      'tenis visita 1', 'tenis visita 2', 'tenis visita 3', 'tenis visita 4',
+    ];
+    
+    if (guestEmails.contains(cleanEmail)) {
+      // PERFORMANCE: print('   ⚪ Usuario VISITA - sin restricciones');
+      return ValidationResult(isValid: true, reason: null);
+    }
+    
+    // 2. Determinar deporte de la reserva objetivo
+    final targetSport = AppConstants.getSportFromCourtId(bookingCourtId);
+    // PERFORMANCE: print('   Deporte objetivo: $targetSport');
+    
+    // 3. Obtener todas las reservas del jugador en esa fecha
+    try {
+      final querySnapshot = await _firestore
+          .collection('bookings')
+          .where('date', isEqualTo: bookingDate)
+          .get();
+      
+      // PERFORMANCE: print('   Total reservas en fecha: ${querySnapshot.docs.length}');
+      
+      // 4. Filtrar reservas donde está el jugador
+      final playerBookings = <Booking>[];
+      
+      for (final doc in querySnapshot.docs) {
+        final data = doc.data();
+        final booking = Booking(
+          id: doc.id,
+          courtId: data['courtId'] ?? '',
+          date: data['date'] ?? '',
+          timeSlot: data['timeSlot'] ?? '',
+          players: (data['players'] as List<dynamic>?)
+              ?.map((playerData) => BookingPlayer.fromMap(playerData))
+              .toList() ?? [],
+          status: data['status'] != null ? BookingStatus.values.firstWhere(
+            (status) => status.toString() == 'BookingStatus.${data['status']}',
+            orElse: () => BookingStatus.complete,
+          ) : null,
+          createdAt: data['createdAt']?.toDate(),
+          updatedAt: data['updatedAt']?.toDate(),
+        );
+        
+        // Verificar si el jugador está en esta reserva
+        final isPlayerInBooking = booking.players.any((player) => 
+          (player.email?.toLowerCase().trim() ?? '') == cleanEmail
+        );
+        
+        if (isPlayerInBooking) {
+          playerBookings.add(booking);
+          // PERFORMANCE: print('   ✓ Encontrada reserva existente: ${booking.timeSlot} en ${booking.courtId}');
+        }
+      }
+      
+      // PERFORMANCE: print('   Total reservas del jugador: ${playerBookings.length}');
+      
+      // 5. Verificar conflictos de tiempo en el mismo deporte
+      for (final existingBooking in playerBookings) {
+        final existingSport = AppConstants.getSportFromCourtId(existingBooking.courtId);
+        
+        // Solo verificar conflictos dentro del mismo deporte
+        if (existingSport == targetSport) {
+          // PERFORMANCE: print('   ⚠️ Verificando conflicto con: ${existingBooking.timeSlot}');
+          
+          // Usar la validación de 4 horas
+          if (BookingTimeUtils.isWithin4Hours(
+            existingBooking.timeSlot, 
+            bookingTimeSlot
+          )) {
+            final courtName = AppConstants.getCourtName(existingBooking.courtId);
+            // PERFORMANCE: print('   ❌ CONFLICTO DETECTADO!');
+            return ValidationResult(
+              isValid: false,
+              reason: 'Ya tienes una reserva de $targetSport a las ${existingBooking.timeSlot} en $courtName (menos de 4 horas de diferencia).'
+            );
+          }
+        }
+      }
+      
+      // PERFORMANCE: print('   ✅ Sin conflictos - jugador puede agregarse');
+      return ValidationResult(isValid: true, reason: null);
+      
+    } catch (e) {
+      print('❌ Error validando jugador: $e');
+      // En caso de error, denegar por seguridad
+      return ValidationResult(
+        isValid: false,
+        reason: 'Error al verificar tu disponibilidad. Intenta nuevamente.'
+      );
     }
   }
 
@@ -1583,7 +1749,3 @@ class ValidationResult {
 
   ValidationResult({required this.isValid, this.reason});
 }
-
-
-
-
