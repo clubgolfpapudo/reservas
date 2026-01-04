@@ -59,8 +59,8 @@ abstract class AppConstants {
     },
     'golf': {
       'startTime': '08:00',
-      'winterEndTime': '16:00',
-      'summerEndTime': '16:00',
+      'winterEndTime': '18:00',
+      'summerEndTime': '18:00',
       'intervalMinutes': 12,  // slots de 12 minutos
       'customSlots': false,   // genera slots automáticamente
     },

@@ -382,12 +382,7 @@ class BookingProvider extends ChangeNotifier {
   // ============================================================================
 
   Map<String, int> getStatsForVisibleTimeSlots(List<String> visibleTimeSlots) {
-    // // DEBUG: print('=== CALCULANDO STATS ===');
-  
-    // FIX: Extraer solo la fecha sin timestamp
     final dateOnly = '${selectedDate.year}-${selectedDate.month.toString().padLeft(2, '0')}-${selectedDate.day.toString().padLeft(2, '0')}';
-    // DEBUG: print('selectedDate original: $selectedDate');
-    // DEBUG: print('dateOnly para comparar: $dateOnly');
     
     int completeCount = 0;
     int incompleteCount = 0;
@@ -405,19 +400,20 @@ class BookingProvider extends ChangeNotifier {
       courts = ['pite', 'lilen', 'plaiya'];
     }
     
-    // PERFORMANCE: print('selectedCourtId: $selectedCourtId');
-    // PERFORMANCE: print('courts array: $courts');
+    // Horarios bloqueados para golf_tee_10 (10:12 a 12:48)
+    final blockedSlotsForTee10 = [
+      '10:12', '10:24', '10:36', '10:48',
+      '11:00', '11:12', '11:24', '11:36', '11:48',
+      '12:00', '12:12', '12:24', '12:36', '12:48',
+    ];
 
     for (final timeSlot in visibleTimeSlots) {
       for (final court in courts) {
-        // PERFORMANCE: print('DEBUG COMPARACIÃ“N:');
-        // PERFORMANCE: print('  selectedDate: "$selectedDate"');
-        // PERFORMANCE: print('  court buscada: "$court"');
-        // PERFORMANCE: print('  timeSlot: "$timeSlot"');
-
-        // PERFORMANCE: print('BUSCANDO: timeSlot="$timeSlot", court="$court", selectedDate="$selectedDate"');
-        for (final b in bookings) {
-          }
+        
+        // Saltar horarios bloqueados para golf_tee_10
+        if (court == 'golf_tee_10' && blockedSlotsForTee10.contains(timeSlot)) {
+          continue;
+        }
 
         // Buscar reserva específica para esta cancha y horario
         final bookingsForCourtAndTime = bookings.where(
@@ -425,23 +421,17 @@ class BookingProvider extends ChangeNotifier {
         ).toList();
         
         if (bookingsForCourtAndTime.isEmpty) {
-          // No hay reserva en esta cancha para este horario
           availableCount++;
         } else {
           final booking = bookingsForCourtAndTime.first;
-
-          // PERFORMANCE: print('ENCONTRÃ“ RESERVA: Court=${booking.courtId}, TimeSlot=${booking.timeSlot}, Players=${booking.players.length}');
           
           try {
             final status = booking.calculatedStatus;
-            // PERFORMANCE: print('calculatedStatus: $status');
             
             if (status == BookingStatus.complete) {
               completeCount++;
-              // PERFORMANCE: print('CATEGORIZADO COMO COMPLETO');
             } else if (status == BookingStatus.incomplete) {
               incompleteCount++;
-              // PERFORMANCE: print('CATEGORIZADO COMO INCOMPLETO');
             }
           } catch (e) {
             print('ERROR al acceder calculatedStatus: $e');
@@ -455,10 +445,6 @@ class BookingProvider extends ChangeNotifier {
       'incomplete': incompleteCount,  
       'available': availableCount,
     };
-    
-    // PERFORMANCE: print('Slots: ${visibleTimeSlots.length}, Courts: ${courts.length}');
-    // PERFORMANCE: print('Total slots evaluados: ${visibleTimeSlots.length * courts.length}');
-    // PERFORMANCE: print('Resultado: complete=$completeCount, incomplete=$incompleteCount, available=$availableCount');
     
     return result;
   }
