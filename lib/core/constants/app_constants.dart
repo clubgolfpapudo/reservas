@@ -43,24 +43,30 @@ abstract class AppConstants {
   static const Map<String, Map<String, dynamic>> sportScheduleConfig = {
     'padel': {
       'startTime': '09:00',
-      'winterEndTime': '19:30',
-      'summerEndTime': '19:30',
+      'winterEndTime': '16:30',
+      'summerEndTime': '16:30',
+      //'winterEndTime': '19:30',
+      //'summerEndTime': '19:30',
       // 'summerEndTime': '21:00',
       'intervalMinutes': 90, // slots de 90 minutos
       'customSlots': true,   // usa slots predefinidos en lugar de intervalos
     },
     'tennis': {
       'startTime': '09:00',
-      'winterEndTime': '19:30',
-      'summerEndTime': '19:30',
+      'winterEndTime': '16:30',
+      'summerEndTime': '16:30',
+      //'winterEndTime': '19:30',
+      //'summerEndTime': '19:30',
       // 'summerEndTime': '21:00',
       'intervalMinutes': 90, // slots de 90 minutos
       'customSlots': true,   // usa slots predefinidos en lugar de intervalos
     },
     'golf': {
       'startTime': '08:00',
-      'winterEndTime': '18:00',
-      'summerEndTime': '18:00',
+      'winterEndTime': '16:00',
+      'summerEndTime': '16:00',
+      //'winterEndTime': '18:00',
+      //'summerEndTime': '18:00',
       'intervalMinutes': 12,  // slots de 12 minutos
       'customSlots': false,   // genera slots automáticamente
     },
@@ -75,8 +81,8 @@ abstract class AppConstants {
     '13:30',
     '15:00',
     '16:30',
-    '18:00',
-    '19:30',
+    //'18:00',
+    //'19:30',
     // '21:00',
   ];
   
@@ -89,8 +95,8 @@ abstract class AppConstants {
     '13:30',
     '15:00',
     '16:30',
-    '18:00',
-    '19:30',
+    //'18:00',
+    //'19:30',
     // '21:00',
   ];
 

@@ -695,10 +695,10 @@ class BookingProvider extends ChangeNotifier {
       '9:00', '10:30', '12:00', '13:30', '15:00', '16:30'
     ];
     
-    // Agregar slots de verano si aplica - USAR MÃ‰TODO EXISTENTE
-    if (_isSummerSeason(now)) {
-      allSlots.addAll(['18:00', '19:30']);
-    }
+    // Agregar slots de verano si aplica - USAR MÉTODO EXISTENTE
+    //if (_isSummerSeason(now)) {
+    //  allSlots.addAll(['18:00', '19:30']);
+    //}
     
     // Verificar si algún slot es posterior a ahora + 1 hora (margen mínimo)
     DateTime minimumTime = now.add(Duration(hours: 1));
