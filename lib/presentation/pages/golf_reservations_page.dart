@@ -308,11 +308,16 @@ class _GolfReservationsPageState extends State<GolfReservationsPage>
                     selectedDate.month == now.month && 
                     selectedDate.day == now.day;
 
-    // Filtrar horarios suspendidos para Hoyo 10
+    // Verificar si Hoyo 1 está en mantención
+    final inicioMantencionHoyo1 = DateTime(2026, 4, 6);
+    final finMantencionHoyo1 = DateTime(2026, 4, 17);
+    final hoyo1EnMantencion = now.isAfter(inicioMantencionHoyo1) && 
+                              now.isBefore(finMantencionHoyo1);
+    
+    // Filtrar horarios suspendidos para Hoyo 10 (excepto durante mantención Hoyo 1)
     List<String> availableSlots = timeSlots;
-    if (isHoyo10) {
+    if (isHoyo10 && !hoyo1EnMantencion) {
       availableSlots = timeSlots.where((slot) => !GolfConstants.isHoyo10Suspended(slot)).toList();
-      // availableSlots = timeSlots; // Sin filtro por ahora
     }
 
     // NUEVO: Filtrar horarios pasados si es hoy

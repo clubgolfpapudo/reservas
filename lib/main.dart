@@ -1,4 +1,4 @@
-﻿// lib/main.dart - CON RUTAS DE NAVEGACIÃ“N COMPLETAS
+﻿// lib/main.dart - CON RUTAS DE NAVEGACION COMPLETAS
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -152,7 +152,7 @@ class _AuthWrapperState extends State<AuthWrapper> {
   }
 }
 
-// PÃGINA DE LOGIN SIMPLE
+// PAGINA DE LOGIN SIMPLE
 class SimpleLoginPage extends StatefulWidget {
   const SimpleLoginPage({super.key});
 

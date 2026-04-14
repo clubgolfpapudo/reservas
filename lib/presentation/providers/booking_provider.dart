@@ -406,12 +406,21 @@ class BookingProvider extends ChangeNotifier {
       '11:00', '11:12', '11:24', '11:36', '11:48',
       '12:00', '12:12', '12:24', '12:36', '12:48',
     ];
+    
+    // Verificar si Hoyo 1 está en mantención (desbloquear Hoyo 10 solo durante este período)
+    final now = DateTime.now();
+    final inicioMantencionHoyo1 = DateTime(2026, 4, 6);
+    final finMantencionHoyo1 = DateTime(2026, 4, 17); // 17 de abril (no incluido)
+    final hoyo1EnMantencion = now.isAfter(inicioMantencionHoyo1) && 
+                              now.isBefore(finMantencionHoyo1);
 
     for (final timeSlot in visibleTimeSlots) {
       for (final court in courts) {
         
-        // Saltar horarios bloqueados para golf_tee_10
-        if (court == 'golf_tee_10' && blockedSlotsForTee10.contains(timeSlot)) {
+        // Saltar horarios bloqueados para golf_tee_10 SOLO si Hoyo 1 NO está en mantención
+        if (court == 'golf_tee_10' && 
+            !hoyo1EnMantencion && 
+            blockedSlotsForTee10.contains(timeSlot)) {
           continue;
         }
 
@@ -470,7 +479,7 @@ class BookingProvider extends ChangeNotifier {
   }
   
   // ============================================================================
-  // MÃ‰TODOS AUXILIARES
+  // METODOS AUXILIARES
   // ============================================================================
 
   Booking? getBookingForTimeSlot(String timeSlot, String courtId) {
@@ -497,7 +506,7 @@ class BookingProvider extends ChangeNotifier {
   }
 
   // ============================================================================
-  // INICIALIZACIÃ“N
+  // INICIALIZACION
   // ============================================================================
   
   BookingProvider() {
