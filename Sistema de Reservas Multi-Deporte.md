@@ -1915,16 +1915,27 @@ También se agregaron comentarios en `sportScheduleConfig['padel']`/`['tennis']`
 #### 🧪 Verificación
 
 - `flutter analyze --no-pub lib/core/constants/app_constants.dart` → 0 issues nuevos (2 infos preexistentes de `prefer_const_constructors`, sin relación con este cambio).
-- No fue posible correr `flutter test` para una verificación en runtime: el proyecto tiene un desajuste de SDK preexistente (el Flutter instalado en la máquina usa la feature experimental `dot-shorthands` del lenguaje Dart, que el código de `package:flutter` ya usa internamente pero que no está habilitada para el proyecto) — error no relacionado con este cambio, pendiente de resolver aparte si se quiere volver a tener `flutter test` funcional.
 - Se revisó manualmente la lógica con casos borde (11, 12, 13, 14, 15 de septiembre de 2026, y enero de 2027 en temporada de verano): el corte de fecha compara por día calendario, así que el 14.09.2026 exactamente ya incluye el slot 18:00, y los días previos lo excluyen correctamente.
+- **Bloqueador encontrado y resuelto al intentar compilar:** `flutter build web --release` falló con conflicto de dependencias — `flutter_localizations` del SDK instalado (Flutter 3.47.x, actualizado a nivel de máquina el 25.08.2026, ver ESTADO_PROYECTO.md de `notas_venta`) exige `intl ^0.20.3`, pero `pubspec.yaml` tenía fijado `intl: 0.20.2`. Se relajó a `^0.20.3` (commit `f7094eb`), lo que también regeneró `pubspec.lock` (bumps transitivos menores de `matcher`/`meta`/`test_api`/`vector_math`) y `analysis_options.yaml` (excludes de `build/`/plataformas agregados automáticamente por la migración de tooling). Esto no es un problema introducido por este cambio — es la primera vez que se vuelve a compilar `cgp_reservas` desde el upgrade del SDK.
+- **`flutter test` sí llegó a correr** una vez resuelto el problema de `intl` (el desajuste de `dot-shorthands` mencionado en una revisión anterior de este documento era síntoma del mismo conflicto de dependencias, no un problema aparte). Test con casos borde por fecha, resultado exacto:
+  ```
+  Vie 11-sep-2026 -> padel last=16:30 (6 slots) | tennis last=16:30 (6 slots)
+  Sab 12-sep-2026 -> padel last=16:30 (6 slots) | tennis last=16:30 (6 slots)
+  Dom 13-sep-2026 -> padel last=16:30 (6 slots) | tennis last=16:30 (6 slots)
+  Lun 14-sep-2026 -> padel last=18:00 (7 slots) | tennis last=18:00 (7 slots)
+  Mar 15-sep-2026 -> padel last=18:00 (7 slots) | tennis last=18:00 (7 slots)
+  Ene 2027 (verano) -> padel last=18:00 (7 slots) | tennis last=18:00 (7 slots)
+  golf (control) -> last=16:00 (sin cambios)
+  ```
+- **Probado en vivo en el canal DEV** (`https://cgpreservas--dev-fc6o92ph.web.app`), logueado como socio real (`felipe@garciab.cl`, rol Admin): Pádel/LILEN y Tenis/C.1 confirmados — 12 y 13 de septiembre muestran 6 horarios hasta 16:30, 14 de septiembre muestra 7 horarios con 18:00 nuevo, sin errores de consola.
 
 #### ⚠️ Nota sobre el estado del repositorio al momento de este cambio
 
-Al revisar `git status` antes de este ajuste, ya existían cambios sin commitear en `lib/presentation/pages/golf_reservations_page.dart` y `lib/presentation/providers/booking_provider.dart` (y en `.firebase/hosting.*.cache`) que **no fueron generados por este cambio** — estaban presentes en el árbol de trabajo desde antes. No se tocaron ni se incluyen en este registro; quedan pendientes de que Felipe los revise y decida si commitearlos por separado.
+Al revisar `git status` antes de este ajuste, ya existían cambios sin commitear en `lib/presentation/pages/golf_reservations_page.dart` y `lib/presentation/providers/booking_provider.dart` que **no fueron generados por este cambio** — estaban presentes en el árbol de trabajo desde antes. Se revisaron por separado: corrigen el chequeo de la ventana de mantención del Hoyo 1 (v2.2.2/v2.2.3) para comparar contra la fecha que el usuario está visualizando (`selectedDate`) en vez de `DateTime.now()` — mismo patrón de fix ya usado en v2.2.4, actualmente inerte porque esa ventana de mantención (6-16 abril 2026) ya quedó en el pasado. Con la conformidad de Felipe, se commitearon aparte (commit `128d473`) e incluyeron en el mismo deploy a producción que este cambio de horario.
 
 #### 🎯 Estado Final
 
-**Código:** ✅ Modificado y verificado con `flutter analyze` · **Deploy:** ⏳ Pendiente (no se hizo build ni `firebase deploy` como parte de este cambio — falta decidir si se prueba primero en DEV) · **Efectivo desde:** 14 de septiembre de 2026 (una vez deployado)
+**Código:** ✅ Modificado y verificado con `flutter analyze` + `flutter test` · **DEV:** ✅ Probado en vivo (canal `cgpreservas--dev-fc6o92ph`, expira 2026-09-19) · **Commits:** `f7094eb` (fix intl), `5822ccd` (este cambio), `128d473` (fix mantención Hoyo 1 usa fecha visualizada) — pusheados a `origin/main` · **Deploy a producción:** ✅ Completo (12.09.2026, `firebase deploy --only hosting`, verificado sin errores de consola en `cgpreservas.web.app`) · **Efectivo desde:** 14 de septiembre de 2026
 
 **Responsables:** Felipe García B + Claude
 
