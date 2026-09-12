@@ -302,17 +302,17 @@ class _GolfReservationsPageState extends State<GolfReservationsPage>
 
   Widget _buildHoyoTimeSlots(BuildContext context, BookingProvider provider, String hoyoId, 
                           List<String> timeSlots, bool isHoyo10) {
-    final now = DateTime.now();
+    final now = DateTime.now(); // Para verificar isToday
     final selectedDate = provider.selectedDate;
     final isToday = selectedDate.year == now.year && 
                     selectedDate.month == now.month && 
                     selectedDate.day == now.day;
 
-    // Verificar si Hoyo 1 está en mantención
+    // Verificar si Hoyo 1 está en mantención para la fecha que el usuario está viendo
     final inicioMantencionHoyo1 = DateTime(2026, 4, 6);
     final finMantencionHoyo1 = DateTime(2026, 4, 17);
-    final hoyo1EnMantencion = now.isAfter(inicioMantencionHoyo1) && 
-                              now.isBefore(finMantencionHoyo1);
+    final hoyo1EnMantencion = selectedDate.isAfter(inicioMantencionHoyo1) &&  // ← CORRECTO
+                              selectedDate.isBefore(finMantencionHoyo1);
     
     // Filtrar horarios suspendidos para Hoyo 10 (excepto durante mantención Hoyo 1)
     List<String> availableSlots = timeSlots;

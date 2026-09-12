@@ -407,12 +407,12 @@ class BookingProvider extends ChangeNotifier {
       '12:00', '12:12', '12:24', '12:36', '12:48',
     ];
     
-    // Verificar si Hoyo 1 está en mantención (desbloquear Hoyo 10 solo durante este período)
-    final now = DateTime.now();
+    // Verificar si Hoyo 1 está en mantención para la fecha que el usuario está viendo
+    final fechaVisualizando = selectedDate; // ← CORRECTO: usa fecha seleccionada
     final inicioMantencionHoyo1 = DateTime(2026, 4, 6);
-    final finMantencionHoyo1 = DateTime(2026, 4, 17); // 17 de abril (no incluido)
-    final hoyo1EnMantencion = now.isAfter(inicioMantencionHoyo1) && 
-                              now.isBefore(finMantencionHoyo1);
+    final finMantencionHoyo1 = DateTime(2026, 4, 17);
+    final hoyo1EnMantencion = fechaVisualizando.isAfter(inicioMantencionHoyo1) && 
+                              fechaVisualizando.isBefore(finMantencionHoyo1);
 
     for (final timeSlot in visibleTimeSlots) {
       for (final court in courts) {
