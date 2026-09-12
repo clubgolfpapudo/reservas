@@ -43,6 +43,10 @@ abstract class AppConstants {
   static const Map<String, Map<String, dynamic>> sportScheduleConfig = {
     'padel': {
       'startTime': '09:00',
+      // NOTA: estos valores son solo informativos para Padel/Tenis ('customSlots': true
+      // hace que el horario real salga de winterTimeSlots/summerTimeSlots + el corte de
+      // fecha en getTimeSlotsForSport(), no de winterEndTime/summerEndTime ni de un
+      // generador por intervalo). Último horario desde el 14.09.2026: 18:00.
       'winterEndTime': '16:30',
       'summerEndTime': '16:30',
       //'winterEndTime': '19:30',
@@ -53,6 +57,7 @@ abstract class AppConstants {
     },
     'tennis': {
       'startTime': '09:00',
+      // NOTA: ver comentario equivalente en 'padel' — mismo mecanismo, mismo corte de fecha.
       'winterEndTime': '16:30',
       'summerEndTime': '16:30',
       //'winterEndTime': '19:30',
@@ -127,14 +132,25 @@ abstract class AppConstants {
     return month >= 10 || month <= 3; // Octubre a Marzo
   }
 
+  // Fecha desde la cual se extiende el último horario de Pádel/Tenis de 16:30 a 18:00.
+  // Ajuste solicitado por el club, efectivo a partir del lunes 14 de septiembre de 2026
+  // (ver "Sistema de Reservas Multi-Deporte.md" — Registro de Cambios).
+  static final DateTime _extensionHorarioPadelTenis = DateTime(2026, 9, 14);
+
   /// Obtiene horarios para un deporte específico
   static List<String> getTimeSlotsForSport(String sport, [DateTime? date]) {
     final isSummer = _isSummerSeason(date);
-    
+
     switch (sport.toLowerCase()) {
       case 'padel':
       case 'tennis':
-        return isSummer ? summerTimeSlots : winterTimeSlots;
+        final baseSlots = isSummer ? summerTimeSlots : winterTimeSlots;
+        final referenceDate = date ?? DateTime.now();
+        // A partir del 14.09.2026 se agrega el slot 18:00 (ver _extensionHorarioPadelTenis).
+        if (!referenceDate.isBefore(_extensionHorarioPadelTenis)) {
+          return [...baseSlots, '18:00'];
+        }
+        return baseSlots;
       case 'golf':
         return _generateGolfTimeSlots(isSummer);
       default:
